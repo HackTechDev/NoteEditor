@@ -62,29 +62,17 @@ class MainWindow(QMainWindow):
         )
         self.tabs.currentChanged.connect(self.update_title)
 
-        self.new_tab_button = QToolButton(self.tabs.tabBar())
-        self.new_tab_button.setText("+")
-        self.new_tab_button.setAutoRaise(True)
-        self.new_tab_button.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.new_tab_button.setToolTip("Nouvel onglet")
-        self.new_tab_button.setFixedSize(24, 24)
-        self.new_tab_button.setStyleSheet(
-            """
-            QToolButton {
-                border: none;
-                color: #444444;
-                font-size: 15px;
-                font-weight: bold;
-                border-radius: 3px;
-            }
-            QToolButton:hover {
-                color: #2f6fdb;
-                background: #dddddd;
-            }
-            """
-        )
-        self.new_tab_button.clicked.connect(lambda: self.new_tab())
-        self.new_tab_button.show()
+        # Deux boutons "+" pour le même bouton logique :
+        # - new_tab_button : enfant de la barre d'onglets, collé juste après le
+        #   dernier onglet (comme Gedit) tant que les onglets tiennent dans la largeur.
+        # - new_tab_corner_button : widget de coin du QTabWidget, dont Qt réserve
+        #   automatiquement la place. Utilisé uniquement quand les onglets débordent
+        #   (flèches de défilement visibles), cas où il n'y a plus aucun espace libre
+        #   juste après le dernier onglet.
+        self.new_tab_button = self._build_new_tab_button(self.tabs.tabBar())
+        self.new_tab_corner_button = self._build_new_tab_button(None)
+        self.new_tab_corner_button.hide()
+        self.tabs.setCornerWidget(self.new_tab_corner_button, Qt.Corner.TopRightCorner)
         self._reposition_new_tab_button()
 
         self.drafts_browser = DraftsBrowser()
@@ -113,6 +101,31 @@ class MainWindow(QMainWindow):
 
         self.statusBar()
         self._restore_session()
+
+    def _build_new_tab_button(self, parent):
+        button = QToolButton(parent)
+        button.setText("+")
+        button.setAutoRaise(True)
+        button.setCursor(Qt.CursorShape.PointingHandCursor)
+        button.setToolTip("Nouvel onglet")
+        button.setFixedSize(24, 24)
+        button.setStyleSheet(
+            """
+            QToolButton {
+                border: none;
+                color: #444444;
+                font-size: 15px;
+                font-weight: bold;
+                border-radius: 3px;
+            }
+            QToolButton:hover {
+                color: #2f6fdb;
+                background: #dddddd;
+            }
+            """
+        )
+        button.clicked.connect(lambda: self.new_tab())
+        return button
 
     def _create_actions(self):
         self.new_action = QAction("&Nouveau", self)
@@ -251,25 +264,32 @@ class MainWindow(QMainWindow):
         return editor
 
     def _reposition_new_tab_button(self):
-        QTimer.singleShot(0, self._do_reposition_new_tab_button)
+        QTimer.singleShot(0, self._toggle_new_tab_button_mode)
 
-    def _do_reposition_new_tab_button(self):
-        bar = self.tabs.tabBar()
-        button_width = self.new_tab_button.width()
-
+    def _native_scroll_buttons(self):
         # bar.children() (non-recursive) holds the native scroll-arrow buttons
         # (only present when tabs overflow) as direct QToolButton children;
         # per-tab close buttons live one level deeper, inside their wrapper.
-        native_buttons = [
-            c for c in bar.children() if isinstance(c, QToolButton) and c is not self.new_tab_button and c.isVisible()
-        ]
-        max_x = (
-            min(b.x() for b in native_buttons) - button_width - 4
-            if native_buttons
-            else bar.width() - button_width - 4
-        )
+        bar = self.tabs.tabBar()
+        return [c for c in bar.children() if isinstance(c, QToolButton) and c is not self.new_tab_button and c.isVisible()]
 
+    def _toggle_new_tab_button_mode(self):
+        overflowing = bool(self._native_scroll_buttons())
+        self.new_tab_button.setVisible(not overflowing)
+        self.new_tab_corner_button.setVisible(overflowing)
+        if overflowing:
+            return
+        # laisse la barre d'onglets terminer sa mise en page (largeur récupérée
+        # après le masquage du widget de coin) avant de mesurer sa géométrie
+        QTimer.singleShot(0, self._position_inline_new_tab_button)
+
+    def _position_inline_new_tab_button(self):
+        if self._native_scroll_buttons():
+            return
+        bar = self.tabs.tabBar()
+        button_width = self.new_tab_button.width()
         after_tabs_x = bar.tabRect(bar.count() - 1).right() + 4 if bar.count() > 0 else 4
+        max_x = bar.width() - button_width - 4
         x = max(4, min(after_tabs_x, max_x))
 
         y = max(0, (bar.height() - self.new_tab_button.height()) // 2)
