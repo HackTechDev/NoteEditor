@@ -27,6 +27,30 @@ class MainWindow(QMainWindow):
         self.tabs.setTabsClosable(True)
         self.tabs.setMovable(True)
         self.tabs.setDocumentMode(True)
+        self.tabs.setStyleSheet(
+            """
+            QTabBar::tab {
+                background: #e1e1e1;
+                color: #444444;
+                padding: 6px 14px;
+                border: 1px solid #c4c4c4;
+                border-bottom: none;
+                border-top-left-radius: 4px;
+                border-top-right-radius: 4px;
+                margin-right: 2px;
+            }
+            QTabBar::tab:hover:!selected {
+                background: #ececec;
+            }
+            QTabBar::tab:selected {
+                background: #ffffff;
+                color: #000000;
+                font-weight: bold;
+                border-top: 2px solid #2f6fdb;
+                margin-top: -1px;
+            }
+            """
+        )
         self.tabs.tabCloseRequested.connect(self.close_tab)
         self.tabs.currentChanged.connect(self.update_title)
         self.setCentralWidget(self.tabs)
