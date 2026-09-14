@@ -6,7 +6,7 @@ DRAFTS_DIR = os.path.join(CONFIG_DIR, "drafts")
 SESSION_FILE = os.path.join(CONFIG_DIR, "session.json")
 
 
-def save_session(tabs_info):
+def save_session(tabs_info, active_id=None):
     os.makedirs(DRAFTS_DIR, exist_ok=True)
 
     entries = []
@@ -26,7 +26,7 @@ def save_session(tabs_info):
         )
 
     with open(SESSION_FILE, "w", encoding="utf-8") as f:
-        json.dump(entries, f, ensure_ascii=False, indent=2)
+        json.dump({"active_id": active_id, "tabs": entries}, f, ensure_ascii=False, indent=2)
 
     for name in os.listdir(DRAFTS_DIR):
         if os.path.splitext(name)[0] not in keep_ids:
@@ -38,15 +38,15 @@ def save_session(tabs_info):
 
 def load_session():
     if not os.path.isfile(SESSION_FILE):
-        return []
+        return [], None
     try:
         with open(SESSION_FILE, "r", encoding="utf-8") as f:
-            entries = json.load(f)
+            data = json.load(f)
     except (OSError, ValueError):
-        return []
+        return [], None
 
     result = []
-    for entry in entries:
+    for entry in data.get("tabs", []):
         draft_path = os.path.join(DRAFTS_DIR, entry["id"] + ".txt")
         try:
             with open(draft_path, "r", encoding="utf-8") as f:
@@ -54,4 +54,4 @@ def load_session():
         except OSError:
             continue
         result.append({**entry, "content": content})
-    return result
+    return result, data.get("active_id")

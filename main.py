@@ -152,11 +152,12 @@ class MainWindow(QMainWindow):
         return f"{now:%y%m%d_%H%M%S}{now.microsecond // 10000:02d}"
 
     def _restore_session(self):
-        entries = session.load_session()
+        entries, active_id = session.load_session()
         if not entries:
             self.new_tab()
             return
-        for entry in entries:
+        active_index = 0
+        for i, entry in enumerate(entries):
             self.new_tab(
                 file_path=entry.get("file_path"),
                 content=entry.get("content", ""),
@@ -164,7 +165,9 @@ class MainWindow(QMainWindow):
                 session_id=entry.get("id"),
                 modified=entry.get("modified", False),
             )
-        self.tabs.setCurrentIndex(0)
+            if entry.get("id") == active_id:
+                active_index = i
+        self.tabs.setCurrentIndex(active_index)
 
     def tab_label(self, editor):
         name = os.path.basename(editor.file_path) if editor.file_path else editor.default_name
@@ -265,7 +268,9 @@ class MainWindow(QMainWindow):
             }
             for i in range(self.tabs.count())
         ]
-        session.save_session(tabs_info)
+        active_editor = self.current_editor()
+        active_id = active_editor.session_id if active_editor is not None else None
+        session.save_session(tabs_info, active_id)
 
     def closeEvent(self, event):
         self._save_session()
