@@ -216,7 +216,7 @@ class MainWindow(QMainWindow):
 
     def _refresh_drafts_browser(self):
         open_ids = {self.tabs.widget(i).session_id for i in range(self.tabs.count())}
-        self.drafts_browser.refresh(exclude_ids=open_ids)
+        self.drafts_browser.refresh(open_ids=open_ids)
 
     def _open_draft(self, entry):
         for i in range(self.tabs.count()):

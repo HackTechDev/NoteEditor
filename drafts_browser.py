@@ -16,16 +16,16 @@ class DraftsBrowser(QListWidget):
         self.customContextMenuRequested.connect(self._show_context_menu)
         self.itemDoubleClicked.connect(self._emit_open)
 
-    def refresh(self, exclude_ids=()):
+    def refresh(self, open_ids=()):
         self.clear()
         for entry in session.list_drafts():
-            if entry["id"] in exclude_ids:
-                continue
             label = (
                 os.path.basename(entry["file_path"])
                 if entry["file_path"]
                 else entry["default_name"] or entry["id"][:8]
             )
+            if entry["id"] in open_ids:
+                label += " (ouvert)"
             item = QListWidgetItem(label)
             item.setToolTip(entry["file_path"] or label)
             item.setData(Qt.ItemDataRole.UserRole, entry)
