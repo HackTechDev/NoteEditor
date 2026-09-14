@@ -3,6 +3,7 @@ import os
 
 CONFIG_DIR = os.path.expanduser("~/.noteeditor")
 DRAFTS_DIR = os.path.join(CONFIG_DIR, "drafts")
+DOCS_DIR = os.path.join(CONFIG_DIR, "docs")
 SESSION_FILE = os.path.join(CONFIG_DIR, "session.json")
 INDEX_FILE = os.path.join(CONFIG_DIR, "index.json")
 

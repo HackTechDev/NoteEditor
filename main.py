@@ -455,14 +455,16 @@ class MainWindow(QMainWindow):
         if editor is None:
             return False
         if editor.file_path is None:
-            return self.save_file_as()
+            os.makedirs(session.DOCS_DIR, exist_ok=True)
+            path = os.path.join(session.DOCS_DIR, f"{editor.default_name}.txt")
+            return self._write_file(editor, path)
         return self._write_file(editor, editor.file_path)
 
     def save_file_as(self):
         editor = self.current_editor()
         if editor is None:
             return False
-        start = editor.file_path or f"{editor.default_name}.txt"
+        start = editor.file_path or os.path.join(session.DOCS_DIR, f"{editor.default_name}.txt")
         path, _ = QFileDialog.getSaveFileName(self, "Enregistrer sous", start, "Fichiers texte (*.txt);;Tous les fichiers (*)")
         if not path:
             return False

@@ -10,6 +10,7 @@
 - Coloration syntaxique automatique selon l'extension : Python (`.py`), JSON (`.json`), Markdown (`.md`)
 - Recherche / remplacement (`Ctrl+F` / `Ctrl+H`) : suivant, précédent, remplacer, tout remplacer
 - Nouveaux onglets nommés par date/heure (`aammjj_hhmmssmm`)
+- `Ctrl+S` sur un onglet sans fichier associé l'enregistre directement dans `~/.noteeditor/docs/` (sous son nom par défaut), sans ouvrir de boîte de dialogue ; `Ctrl+Shift+S` (Enregistrer sous) permet de choisir un autre emplacement
 - Session persistante : à la fermeture, tous les onglets (contenu, fichier associé, état modifié, onglet actif) sont sauvegardés automatiquement dans `~/.noteeditor` et restaurés tels quels au prochain lancement
 - Chaque onglet est archivé dans `~/.noteeditor` dès sa création, et à nouveau à chaque fermeture (croix ou Ctrl+W, sans demander de confirmation même en cas de modifications non enregistrées)
 - Panneau « Brouillons » à gauche : liste tous les onglets dont le contenu a été archivé dans `~/.noteeditor` (ceux actuellement ouverts sont marqués « (ouvert) »), avec l'entrée de l'onglet actif surlignée ; clic pour rouvrir ou basculer dessus, clic droit pour supprimer définitivement
@@ -57,5 +58,6 @@ python3 main.py
 - `~/.noteeditor/session.json` : liste des onglets actuellement ouverts (fichier associé, nom par défaut, état modifié, onglet actif)
 - `~/.noteeditor/index.json` : métadonnées de tous les brouillons jamais sauvegardés (pour l'affichage dans le panneau « Brouillons »)
 - `~/.noteeditor/drafts/` : contenu de chaque onglet, conservé même après la fermeture de son onglet
+- `~/.noteeditor/docs/` : fichiers réels créés par `Ctrl+S` depuis un onglet sans titre
 
-Cette copie de secours n'écrase jamais le fichier d'origine sur le disque : seul un `Enregistrer` explicite (`Ctrl+S`) modifie le fichier réel. Les brouillons ne sont supprimés que manuellement, depuis le panneau latéral.
+Cette copie de secours n'écrase jamais le fichier d'origine sur le disque : seul un `Enregistrer` explicite (`Ctrl+S`) modifie le fichier réel (que ce soit dans `~/.noteeditor/docs/` pour un onglet sans titre, ou à l'emplacement d'origine pour un fichier ouvert ailleurs). Les brouillons ne sont supprimés que manuellement, depuis le panneau latéral.
