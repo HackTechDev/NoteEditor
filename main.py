@@ -327,6 +327,12 @@ class MainWindow(QMainWindow):
     def _refresh_drafts_browser(self):
         open_ids = {self.tabs.widget(i).session_id for i in range(self.tabs.count())}
         self.drafts_browser.refresh(open_ids=open_ids)
+        self._highlight_active_draft()
+
+    def _highlight_active_draft(self):
+        editor = self.current_editor()
+        if editor is not None:
+            self.drafts_browser.select_draft(editor.session_id)
 
     def _open_draft(self, entry):
         for i in range(self.tabs.count()):
@@ -425,6 +431,7 @@ class MainWindow(QMainWindow):
         index = self.tabs.currentIndex()
         self.tabs.setTabText(index, self.tab_label(editor))
         self.setWindowTitle(f"{self.tab_label(editor)} — Éditeur de texte")
+        self._highlight_active_draft()
 
     def open_file(self):
         path, _ = QFileDialog.getOpenFileName(self, "Ouvrir un fichier", "", "Fichiers texte (*.txt);;Tous les fichiers (*)")

@@ -31,6 +31,15 @@ class DraftsBrowser(QListWidget):
             item.setData(Qt.ItemDataRole.UserRole, entry)
             self.addItem(item)
 
+    def select_draft(self, draft_id):
+        for i in range(self.count()):
+            item = self.item(i)
+            entry = item.data(Qt.ItemDataRole.UserRole)
+            if entry and entry.get("id") == draft_id:
+                self.setCurrentItem(item)
+                return
+        self.setCurrentItem(None)
+
     def _emit_open(self, item):
         self.open_requested.emit(item.data(Qt.ItemDataRole.UserRole))
 
