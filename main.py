@@ -9,15 +9,19 @@ from PyQt6.QtWidgets import (
     QApplication,
     QFileDialog,
     QHBoxLayout,
+    QLabel,
     QMainWindow,
     QMessageBox,
+    QSplitter,
     QTabBar,
     QTabWidget,
     QToolButton,
+    QVBoxLayout,
     QWidget,
 )
 
 import session
+from drafts_browser import DraftsBrowser
 from editor_widget import Editor
 from find_replace import FindReplaceDialog
 
@@ -57,7 +61,25 @@ class MainWindow(QMainWindow):
             """
         )
         self.tabs.currentChanged.connect(self.update_title)
-        self.setCentralWidget(self.tabs)
+
+        self.drafts_browser = DraftsBrowser()
+        self.drafts_browser.open_requested.connect(self._open_draft)
+        self.drafts_browser.delete_requested.connect(self._delete_draft)
+
+        sidebar = QWidget()
+        sidebar_layout = QVBoxLayout(sidebar)
+        sidebar_layout.setContentsMargins(0, 0, 0, 0)
+        sidebar_layout.setSpacing(0)
+        sidebar_layout.addWidget(QLabel("Brouillons"))
+        sidebar_layout.addWidget(self.drafts_browser)
+
+        self.splitter = QSplitter()
+        self.splitter.addWidget(sidebar)
+        self.splitter.addWidget(self.tabs)
+        self.splitter.setStretchFactor(0, 0)
+        self.splitter.setStretchFactor(1, 1)
+        self.splitter.setSizes([180, 720])
+        self.setCentralWidget(self.splitter)
 
         self.find_dialog = FindReplaceDialog(self)
 
@@ -189,7 +211,38 @@ class MainWindow(QMainWindow):
         self.tabs.tabBar().setTabButton(index, QTabBar.ButtonPosition.RightSide, self._make_close_button())
         self.tabs.setCurrentIndex(index)
         editor.setFocus()
+        self._refresh_drafts_browser()
         return editor
+
+    def _refresh_drafts_browser(self):
+        open_ids = {self.tabs.widget(i).session_id for i in range(self.tabs.count())}
+        self.drafts_browser.refresh(exclude_ids=open_ids)
+
+    def _open_draft(self, entry):
+        for i in range(self.tabs.count()):
+            if self.tabs.widget(i).session_id == entry["id"]:
+                self.tabs.setCurrentIndex(i)
+                return
+        content = session.read_draft(entry["id"])
+        self.new_tab(
+            file_path=entry.get("file_path"),
+            content=content,
+            default_name=entry.get("default_name"),
+            session_id=entry["id"],
+            modified=entry.get("modified", True),
+        )
+
+    def _delete_draft(self, entry):
+        label = os.path.basename(entry["file_path"]) if entry.get("file_path") else entry.get("default_name") or entry["id"][:8]
+        result = QMessageBox.question(
+            self,
+            "Supprimer le brouillon",
+            f"Supprimer définitivement « {label} » ? Cette action est irréversible.",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+        if result == QMessageBox.StandardButton.Yes:
+            session.delete_draft(entry["id"])
+            self._refresh_drafts_browser()
 
     def _make_close_button(self):
         button = QToolButton()
@@ -335,8 +388,11 @@ class MainWindow(QMainWindow):
         return True
 
     def close_tab(self, index):
-        if self._try_close_tab(index) and self.tabs.count() == 0:
-            self.new_tab()
+        if self._try_close_tab(index):
+            if self.tabs.count() == 0:
+                self.new_tab()
+            else:
+                self._refresh_drafts_browser()
 
     def _save_session(self):
         tabs_info = [

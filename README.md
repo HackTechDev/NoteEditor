@@ -10,6 +10,7 @@
 - Recherche / remplacement (`Ctrl+F` / `Ctrl+H`) : suivant, précédent, remplacer, tout remplacer
 - Nouveaux onglets nommés par date/heure (`aammjj_hhmmssmm`)
 - Session persistante : à la fermeture, tous les onglets (contenu, fichier associé, état modifié, onglet actif) sont sauvegardés automatiquement dans `~/.noteeditor` et restaurés tels quels au prochain lancement
+- Panneau « Brouillons » à gauche : liste tous les onglets déjà fermés dont le contenu a été sauvegardé dans `~/.noteeditor` (mais pas les onglets actuellement ouverts) ; double-clic pour rouvrir, clic droit pour supprimer définitivement
 
 ## Installation
 
@@ -46,10 +47,12 @@ python3 main.py
 | `highlighters.py`    | Coloration syntaxique (Python, JSON, Markdown)                    |
 | `find_replace.py`    | Boîte de dialogue de recherche / remplacement                     |
 | `session.py`         | Sauvegarde et restauration de la session dans `~/.noteeditor`     |
+| `drafts_browser.py`  | Panneau latéral listant les brouillons fermés                     |
 
 ## Session (`~/.noteeditor`)
 
-- `~/.noteeditor/session.json` : liste des onglets ouverts (fichier associé, nom par défaut, état modifié, onglet actif)
-- `~/.noteeditor/drafts/` : contenu de chaque onglet au moment de la fermeture
+- `~/.noteeditor/session.json` : liste des onglets actuellement ouverts (fichier associé, nom par défaut, état modifié, onglet actif)
+- `~/.noteeditor/index.json` : métadonnées de tous les brouillons jamais sauvegardés (pour l'affichage dans le panneau « Brouillons »)
+- `~/.noteeditor/drafts/` : contenu de chaque onglet, conservé même après la fermeture de son onglet
 
-Cette copie de secours n'écrase jamais le fichier d'origine sur le disque : seul un `Enregistrer` explicite (`Ctrl+S`) modifie le fichier réel.
+Cette copie de secours n'écrase jamais le fichier d'origine sur le disque : seul un `Enregistrer` explicite (`Ctrl+S`) modifie le fichier réel. Les brouillons ne sont supprimés que manuellement, depuis le panneau latéral.
