@@ -3,7 +3,7 @@ import os
 import sys
 from datetime import datetime
 
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QAction, QKeySequence
 from PyQt6.QtWidgets import (
     QApplication,
@@ -251,8 +251,23 @@ class MainWindow(QMainWindow):
         return editor
 
     def _reposition_new_tab_button(self):
+        QTimer.singleShot(0, self._do_reposition_new_tab_button)
+
+    def _do_reposition_new_tab_button(self):
         bar = self.tabs.tabBar()
-        x = bar.tabRect(bar.count() - 1).right() + 4 if bar.count() > 0 else 4
+        button_width = self.new_tab_button.width()
+
+        # bar.children() (non-recursive) holds the native scroll-arrow buttons
+        # (only present when tabs overflow) as direct QToolButton children;
+        # per-tab close buttons live one level deeper, inside their wrapper.
+        native_buttons = [
+            c for c in bar.children() if isinstance(c, QToolButton) and c is not self.new_tab_button and c.isVisible()
+        ]
+        max_x = min(b.x() for b in native_buttons) - 4 if native_buttons else bar.width() - button_width - 4
+
+        after_tabs_x = bar.tabRect(bar.count() - 1).right() + 4 if bar.count() > 0 else 4
+        x = max(4, min(after_tabs_x, max_x))
+
         y = max(0, (bar.height() - self.new_tab_button.height()) // 2)
         self.new_tab_button.move(x, y)
 
@@ -445,6 +460,10 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         self._save_session()
         event.accept()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._reposition_new_tab_button()
 
 
 def main():
