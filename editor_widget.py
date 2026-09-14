@@ -1,3 +1,5 @@
+import uuid
+
 from PyQt6.QtCore import QRect, QSize, Qt
 from PyQt6.QtGui import QColor, QFont, QPainter, QTextFormat
 from PyQt6.QtWidgets import QPlainTextEdit, QTextEdit, QWidget
@@ -23,6 +25,7 @@ class Editor(QPlainTextEdit):
         self.file_path = None
         self.default_name = None
         self.highlighter = None
+        self.session_id = uuid.uuid4().hex
 
         font = QFont("Monospace")
         font.setStyleHint(QFont.StyleHint.TypeWriter)

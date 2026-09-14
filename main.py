@@ -12,6 +12,7 @@ from PyQt6.QtWidgets import (
     QTabWidget,
 )
 
+import session
 from editor_widget import Editor
 from find_replace import FindReplaceDialog
 
@@ -36,7 +37,7 @@ class MainWindow(QMainWindow):
         self._create_menu()
 
         self.statusBar()
-        self.new_tab()
+        self._restore_session()
 
     def _create_actions(self):
         self.new_action = QAction("&Nouveau", self)
@@ -129,12 +130,14 @@ class MainWindow(QMainWindow):
     def current_editor(self):
         return self.tabs.currentWidget()
 
-    def new_tab(self, file_path=None, content=""):
+    def new_tab(self, file_path=None, content="", default_name=None, session_id=None, modified=False):
         editor = Editor()
+        if session_id:
+            editor.session_id = session_id
         editor.setPlainText(content)
         editor.set_file_path(file_path)
-        editor.default_name = None if file_path else self._timestamp_name()
-        editor.document().setModified(False)
+        editor.default_name = None if file_path else (default_name or self._timestamp_name())
+        editor.document().setModified(modified)
         editor.document().modificationChanged.connect(lambda _: self.update_title())
 
         label = os.path.basename(file_path) if file_path else editor.default_name
@@ -147,6 +150,21 @@ class MainWindow(QMainWindow):
     def _timestamp_name():
         now = datetime.now()
         return f"{now:%y%m%d_%H%M%S}{now.microsecond // 10000:02d}"
+
+    def _restore_session(self):
+        entries = session.load_session()
+        if not entries:
+            self.new_tab()
+            return
+        for entry in entries:
+            self.new_tab(
+                file_path=entry.get("file_path"),
+                content=entry.get("content", ""),
+                default_name=entry.get("default_name"),
+                session_id=entry.get("id"),
+                modified=entry.get("modified", False),
+            )
+        self.tabs.setCurrentIndex(0)
 
     def tab_label(self, editor):
         name = os.path.basename(editor.file_path) if editor.file_path else editor.default_name
@@ -236,11 +254,21 @@ class MainWindow(QMainWindow):
         if self._try_close_tab(index) and self.tabs.count() == 0:
             self.new_tab()
 
+    def _save_session(self):
+        tabs_info = [
+            {
+                "id": self.tabs.widget(i).session_id,
+                "file_path": self.tabs.widget(i).file_path,
+                "default_name": self.tabs.widget(i).default_name,
+                "modified": self.tabs.widget(i).document().isModified(),
+                "content": self.tabs.widget(i).toPlainText(),
+            }
+            for i in range(self.tabs.count())
+        ]
+        session.save_session(tabs_info)
+
     def closeEvent(self, event):
-        while self.tabs.count() > 0:
-            if not self._try_close_tab(0):
-                event.ignore()
-                return
+        self._save_session()
         event.accept()
 
 
