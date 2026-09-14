@@ -263,7 +263,11 @@ class MainWindow(QMainWindow):
         native_buttons = [
             c for c in bar.children() if isinstance(c, QToolButton) and c is not self.new_tab_button and c.isVisible()
         ]
-        max_x = min(b.x() for b in native_buttons) - 4 if native_buttons else bar.width() - button_width - 4
+        max_x = (
+            min(b.x() for b in native_buttons) - button_width - 4
+            if native_buttons
+            else bar.width() - button_width - 4
+        )
 
         after_tabs_x = bar.tabRect(bar.count() - 1).right() + 4 if bar.count() > 0 else 4
         x = max(4, min(after_tabs_x, max_x))
