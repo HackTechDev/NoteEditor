@@ -3,13 +3,18 @@ import os
 import sys
 from datetime import datetime
 
+from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QAction, QKeySequence
 from PyQt6.QtWidgets import (
     QApplication,
     QFileDialog,
+    QHBoxLayout,
     QMainWindow,
     QMessageBox,
+    QTabBar,
     QTabWidget,
+    QToolButton,
+    QWidget,
 )
 
 import session
@@ -24,7 +29,7 @@ class MainWindow(QMainWindow):
         self.resize(900, 650)
 
         self.tabs = QTabWidget()
-        self.tabs.setTabsClosable(True)
+        self.tabs.setTabsClosable(False)
         self.tabs.setMovable(True)
         self.tabs.setDocumentMode(True)
         self.tabs.setStyleSheet(
@@ -32,15 +37,12 @@ class MainWindow(QMainWindow):
             QTabBar::tab {
                 background: #e1e1e1;
                 color: #444444;
-                padding: 6px 14px;
+                padding: 6px 8px 6px 14px;
                 border: 1px solid #c4c4c4;
                 border-bottom: none;
                 border-top-left-radius: 4px;
                 border-top-right-radius: 4px;
                 margin-right: 2px;
-            }
-            QTabBar::close-button {
-                margin-right: 8px;
             }
             QTabBar::tab:hover:!selected {
                 background: #ececec;
@@ -54,7 +56,6 @@ class MainWindow(QMainWindow):
             }
             """
         )
-        self.tabs.tabCloseRequested.connect(self.close_tab)
         self.tabs.currentChanged.connect(self.update_title)
         self.setCentralWidget(self.tabs)
 
@@ -185,9 +186,46 @@ class MainWindow(QMainWindow):
 
         label = os.path.basename(file_path) if file_path else editor.default_name
         index = self.tabs.addTab(editor, label)
+        self.tabs.tabBar().setTabButton(index, QTabBar.ButtonPosition.RightSide, self._make_close_button())
         self.tabs.setCurrentIndex(index)
         editor.setFocus()
         return editor
+
+    def _make_close_button(self):
+        button = QToolButton()
+        button.setText("✕")
+        button.setAutoRaise(True)
+        button.setCursor(Qt.CursorShape.PointingHandCursor)
+        button.setFixedSize(18, 18)
+        button.setStyleSheet(
+            """
+            QToolButton {
+                border: none;
+                color: #777777;
+                font-size: 11px;
+                border-radius: 3px;
+            }
+            QToolButton:hover {
+                color: #d32f2f;
+                background: #dddddd;
+            }
+            """
+        )
+        button.clicked.connect(lambda: self._close_tab_by_button(button))
+
+        wrapper = QWidget()
+        layout = QHBoxLayout(wrapper)
+        layout.setContentsMargins(0, 0, 8, 0)
+        layout.addWidget(button)
+        return wrapper
+
+    def _close_tab_by_button(self, button):
+        bar = self.tabs.tabBar()
+        for i in range(bar.count()):
+            widget = bar.tabButton(i, QTabBar.ButtonPosition.RightSide)
+            if widget is not None and widget.findChild(QToolButton) is button:
+                self.close_tab(i)
+                return
 
     @staticmethod
     def _timestamp_name():
