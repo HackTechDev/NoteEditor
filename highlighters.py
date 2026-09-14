@@ -20,24 +20,24 @@ class PythonHighlighter(QSyntaxHighlighter):
         super().__init__(document)
         self.rules = []
 
-        keyword_fmt = _fmt("#c586c0", bold=True)
+        keyword_fmt = _fmt("#af00db", bold=True)
         pattern = r"\b(" + "|".join(keyword.kwlist) + r")\b"
         self.rules.append((QRegularExpression(pattern), keyword_fmt))
 
-        builtin_fmt = _fmt("#4ec9b0")
+        builtin_fmt = _fmt("#267f99")
         builtins = ["self", "cls", "None", "True", "False", "print", "len", "range", "int", "str", "float", "list", "dict", "set", "tuple"]
         pattern = r"\b(" + "|".join(builtins) + r")\b"
         self.rules.append((QRegularExpression(pattern), builtin_fmt))
 
-        self.rules.append((QRegularExpression(r"\bdef\s+(\w+)"), _fmt("#dcdcaa")))
-        self.rules.append((QRegularExpression(r"\bclass\s+(\w+)"), _fmt("#4ec9b0", bold=True)))
-        self.rules.append((QRegularExpression(r"@\w+"), _fmt("#dcdcaa", italic=True)))
-        self.rules.append((QRegularExpression(r"\b[0-9]+\.?[0-9]*\b"), _fmt("#b5cea8")))
-        self.rules.append((QRegularExpression(r"'[^'\\]*(\\.[^'\\]*)*'"), _fmt("#ce9178")))
-        self.rules.append((QRegularExpression(r'"[^"\\]*(\\.[^"\\]*)*"'), _fmt("#ce9178")))
-        self.rules.append((QRegularExpression(r"#[^\n]*"), _fmt("#6a9955", italic=True)))
+        self.rules.append((QRegularExpression(r"\bdef\s+(\w+)"), _fmt("#795e26")))
+        self.rules.append((QRegularExpression(r"\bclass\s+(\w+)"), _fmt("#267f99", bold=True)))
+        self.rules.append((QRegularExpression(r"@\w+"), _fmt("#795e26", italic=True)))
+        self.rules.append((QRegularExpression(r"\b[0-9]+\.?[0-9]*\b"), _fmt("#098658")))
+        self.rules.append((QRegularExpression(r"'[^'\\]*(\\.[^'\\]*)*'"), _fmt("#a31515")))
+        self.rules.append((QRegularExpression(r'"[^"\\]*(\\.[^"\\]*)*"'), _fmt("#a31515")))
+        self.rules.append((QRegularExpression(r"#[^\n]*"), _fmt("#008000", italic=True)))
 
-        self.triple_fmt = _fmt("#ce9178")
+        self.triple_fmt = _fmt("#a31515")
         self.triple_single = QRegularExpression(r"'''")
         self.triple_double = QRegularExpression(r'"""')
 
@@ -82,10 +82,10 @@ class JsonHighlighter(QSyntaxHighlighter):
     def __init__(self, document):
         super().__init__(document)
         self.rules = [
-            (QRegularExpression(r'"[^"\\]*(\\.[^"\\]*)*"\s*(?=:)'), _fmt("#9cdcfe")),
-            (QRegularExpression(r'(?<=:)\s*"[^"\\]*(\\.[^"\\]*)*"'), _fmt("#ce9178")),
-            (QRegularExpression(r"\b-?[0-9]+\.?[0-9]*([eE][+-]?[0-9]+)?\b"), _fmt("#b5cea8")),
-            (QRegularExpression(r"\b(true|false|null)\b"), _fmt("#569cd6", bold=True)),
+            (QRegularExpression(r'"[^"\\]*(\\.[^"\\]*)*"\s*(?=:)'), _fmt("#0451a5")),
+            (QRegularExpression(r'(?<=:)\s*"[^"\\]*(\\.[^"\\]*)*"'), _fmt("#a31515")),
+            (QRegularExpression(r"\b-?[0-9]+\.?[0-9]*([eE][+-]?[0-9]+)?\b"), _fmt("#098658")),
+            (QRegularExpression(r"\b(true|false|null)\b"), _fmt("#0000ff", bold=True)),
         ]
 
     def highlightBlock(self, text):
@@ -100,13 +100,13 @@ class MarkdownHighlighter(QSyntaxHighlighter):
     def __init__(self, document):
         super().__init__(document)
         self.rules = [
-            (QRegularExpression(r"^#{1,6}\s.*"), _fmt("#569cd6", bold=True)),
-            (QRegularExpression(r"\*\*[^*]+\*\*"), _fmt("#d4d4d4", bold=True)),
-            (QRegularExpression(r"(?<!\*)\*[^*]+\*(?!\*)"), _fmt("#d4d4d4", italic=True)),
-            (QRegularExpression(r"`[^`]+`"), _fmt("#ce9178")),
-            (QRegularExpression(r"\[[^\]]*\]\([^)]*\)"), _fmt("#4ec9b0")),
-            (QRegularExpression(r"^\s*[-*+]\s"), _fmt("#c586c0")),
-            (QRegularExpression(r"^>.*"), _fmt("#6a9955", italic=True)),
+            (QRegularExpression(r"^#{1,6}\s.*"), _fmt("#0451a5", bold=True)),
+            (QRegularExpression(r"\*\*[^*]+\*\*"), _fmt("#24292f", bold=True)),
+            (QRegularExpression(r"(?<!\*)\*[^*]+\*(?!\*)"), _fmt("#24292f", italic=True)),
+            (QRegularExpression(r"`[^`]+`"), _fmt("#a31515")),
+            (QRegularExpression(r"\[[^\]]*\]\([^)]*\)"), _fmt("#0969da")),
+            (QRegularExpression(r"^\s*[-*+]\s"), _fmt("#af00db")),
+            (QRegularExpression(r"^>.*"), _fmt("#6a737d", italic=True)),
         ]
 
     def highlightBlock(self, text):
