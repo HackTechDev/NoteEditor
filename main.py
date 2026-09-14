@@ -3,7 +3,7 @@ import os
 import sys
 from datetime import datetime
 
-from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtCore import Qt, QSize, QTimer
 from PyQt6.QtGui import QAction, QKeySequence
 from PyQt6.QtWidgets import (
     QApplication,
@@ -24,6 +24,23 @@ import session
 from drafts_browser import DraftsBrowser
 from editor_widget import Editor
 from find_replace import FindReplaceDialog
+
+
+class _CornerToolButton(QToolButton):
+    """QToolButton dont le sizeHint force sa taille, pour que QTabWidget le
+    dimensionne correctement en widget de coin (il se base sur sizeHint(), pas
+    sur une taille imposée après coup via setFixedSize). QTabWidget cale un
+    widget de coin sur le BAS de la ligne d'onglets (jamais centré) : le
+    rendre presque aussi haut que la barre (hauteur - 1, le maximum que Qt
+    accepte sans écraser la hauteur à 0) est la seule façon de le faire
+    paraître à peu près centré."""
+
+    def __init__(self, height, parent=None):
+        super().__init__(parent)
+        self._forced_height = height
+
+    def sizeHint(self):
+        return QSize(super().sizeHint().width(), self._forced_height)
 
 
 class MainWindow(QMainWindow):
@@ -67,10 +84,16 @@ class MainWindow(QMainWindow):
         #   dernier onglet (comme Gedit) tant que les onglets tiennent dans la largeur.
         # - new_tab_corner_button : widget de coin du QTabWidget, dont Qt réserve
         #   automatiquement la place. Utilisé uniquement quand les onglets débordent
-        #   (flèches de défilement visibles), cas où il n'y a plus aucun espace libre
-        #   juste après le dernier onglet.
+        #   (flèches de défilement visibles), cas où il n'y a plus aucun espace
+        #   libre juste après le dernier onglet. QTabWidget se base sur son
+        #   sizeHint() pour le centrer/dimensionner : _CornerToolButton force ce
+        #   sizeHint() à la hauteur de la barre d'onglets pour un centrage correct
+        #   (setFixedSize après coup ne fonctionne pas, Qt le réinitialise à 0).
         self.new_tab_button = self._build_new_tab_button(self.tabs.tabBar())
-        self.new_tab_corner_button = self._build_new_tab_button(None)
+        bar_height = self.tabs.tabBar().sizeHint().height()
+        self.new_tab_corner_button = self._build_new_tab_button(
+            None, cls=lambda parent: _CornerToolButton(bar_height - 1, parent)
+        )
         self.new_tab_corner_button.hide()
         self.tabs.setCornerWidget(self.new_tab_corner_button, Qt.Corner.TopRightCorner)
         self._reposition_new_tab_button()
@@ -102,13 +125,14 @@ class MainWindow(QMainWindow):
         self.statusBar()
         self._restore_session()
 
-    def _build_new_tab_button(self, parent):
-        button = QToolButton(parent)
+    def _build_new_tab_button(self, parent, cls=None):
+        button = cls(parent) if cls else QToolButton(parent)
         button.setText("+")
         button.setAutoRaise(True)
         button.setCursor(Qt.CursorShape.PointingHandCursor)
         button.setToolTip("Nouvel onglet")
-        button.setFixedSize(24, 24)
+        if cls is None:
+            button.setFixedSize(24, 24)
         button.setStyleSheet(
             """
             QToolButton {
@@ -276,11 +300,16 @@ class MainWindow(QMainWindow):
     def _toggle_new_tab_button_mode(self):
         overflowing = bool(self._native_scroll_buttons())
         self.new_tab_button.setVisible(not overflowing)
+        if overflowing:
+            # la hauteur de la barre n'est fiable qu'une fois des onglets
+            # présents (0 à la construction) : on la recalcule ici et on force
+            # Qt à requêter le sizeHint mis à jour avant d'afficher le bouton.
+            bar_height = self.tabs.tabBar().height()
+            self.new_tab_corner_button._forced_height = max(1, bar_height - 1)
+            self.new_tab_corner_button.updateGeometry()
         self.new_tab_corner_button.setVisible(overflowing)
         if overflowing:
             return
-        # laisse la barre d'onglets terminer sa mise en page (largeur récupérée
-        # après le masquage du widget de coin) avant de mesurer sa géométrie
         QTimer.singleShot(0, self._position_inline_new_tab_button)
 
     def _position_inline_new_tab_button(self):
