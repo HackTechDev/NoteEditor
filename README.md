@@ -10,7 +10,8 @@
 - Recherche / remplacement (`Ctrl+F` / `Ctrl+H`) : suivant, précédent, remplacer, tout remplacer
 - Nouveaux onglets nommés par date/heure (`aammjj_hhmmssmm`)
 - Session persistante : à la fermeture, tous les onglets (contenu, fichier associé, état modifié, onglet actif) sont sauvegardés automatiquement dans `~/.noteeditor` et restaurés tels quels au prochain lancement
-- Panneau « Brouillons » à gauche : liste tous les onglets déjà fermés dont le contenu a été sauvegardé dans `~/.noteeditor` (mais pas les onglets actuellement ouverts) ; double-clic pour rouvrir, clic droit pour supprimer définitivement
+- Fermer un onglet (croix ou Ctrl+W) l'archive automatiquement dans `~/.noteeditor` sans demander de confirmation, même s'il contient des modifications non enregistrées
+- Panneau « Brouillons » à gauche : liste tous les onglets fermés dont le contenu a été archivé (mais pas les onglets actuellement ouverts) ; double-clic pour rouvrir, clic droit pour supprimer définitivement
 
 ## Installation
 
