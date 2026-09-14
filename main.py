@@ -1,0 +1,239 @@
+#!/usr/bin/env python3
+import os
+import sys
+
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QAction, QFont, QKeySequence
+from PyQt6.QtWidgets import (
+    QApplication,
+    QFileDialog,
+    QMainWindow,
+    QMessageBox,
+    QPlainTextEdit,
+    QTabWidget,
+)
+
+
+class Editor(QPlainTextEdit):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.file_path = None
+        font = QFont("Monospace")
+        font.setStyleHint(QFont.StyleHint.TypeWriter)
+        font.setPointSize(11)
+        self.setFont(font)
+        self.setTabStopDistance(4 * self.fontMetrics().horizontalAdvance(" "))
+
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Éditeur de texte")
+        self.resize(900, 650)
+
+        self.tabs = QTabWidget()
+        self.tabs.setTabsClosable(True)
+        self.tabs.setMovable(True)
+        self.tabs.setDocumentMode(True)
+        self.tabs.tabCloseRequested.connect(self.close_tab)
+        self.tabs.currentChanged.connect(self.update_title)
+        self.setCentralWidget(self.tabs)
+
+        self._create_actions()
+        self._create_menu()
+
+        self.statusBar()
+        self.new_tab()
+
+    def _create_actions(self):
+        self.new_action = QAction("&Nouveau", self)
+        self.new_action.setShortcut(QKeySequence.StandardKey.New)
+        self.new_action.triggered.connect(lambda: self.new_tab())
+
+        self.open_action = QAction("&Ouvrir...", self)
+        self.open_action.setShortcut(QKeySequence.StandardKey.Open)
+        self.open_action.triggered.connect(self.open_file)
+
+        self.save_action = QAction("&Enregistrer", self)
+        self.save_action.setShortcut(QKeySequence.StandardKey.Save)
+        self.save_action.triggered.connect(self.save_file)
+
+        self.save_as_action = QAction("Enregistrer &sous...", self)
+        self.save_as_action.setShortcut(QKeySequence.StandardKey.SaveAs)
+        self.save_as_action.triggered.connect(self.save_file_as)
+
+        self.close_tab_action = QAction("&Fermer l'onglet", self)
+        self.close_tab_action.setShortcut(QKeySequence.StandardKey.Close)
+        self.close_tab_action.triggered.connect(lambda: self.close_tab(self.tabs.currentIndex()))
+
+        self.quit_action = QAction("&Quitter", self)
+        self.quit_action.setShortcut(QKeySequence.StandardKey.Quit)
+        self.quit_action.triggered.connect(self.close)
+
+        self.undo_action = QAction("Annuler", self)
+        self.undo_action.setShortcut(QKeySequence.StandardKey.Undo)
+        self.undo_action.triggered.connect(lambda: self.current_editor().undo())
+
+        self.redo_action = QAction("Rétablir", self)
+        self.redo_action.setShortcut(QKeySequence.StandardKey.Redo)
+        self.redo_action.triggered.connect(lambda: self.current_editor().redo())
+
+        self.cut_action = QAction("Couper", self)
+        self.cut_action.setShortcut(QKeySequence.StandardKey.Cut)
+        self.cut_action.triggered.connect(lambda: self.current_editor().cut())
+
+        self.copy_action = QAction("Copier", self)
+        self.copy_action.setShortcut(QKeySequence.StandardKey.Copy)
+        self.copy_action.triggered.connect(lambda: self.current_editor().copy())
+
+        self.paste_action = QAction("Coller", self)
+        self.paste_action.setShortcut(QKeySequence.StandardKey.Paste)
+        self.paste_action.triggered.connect(lambda: self.current_editor().paste())
+
+        self.select_all_action = QAction("Tout sélectionner", self)
+        self.select_all_action.setShortcut(QKeySequence.StandardKey.SelectAll)
+        self.select_all_action.triggered.connect(lambda: self.current_editor().selectAll())
+
+    def _create_menu(self):
+        menu = self.menuBar()
+
+        file_menu = menu.addMenu("&Fichier")
+        file_menu.addAction(self.new_action)
+        file_menu.addAction(self.open_action)
+        file_menu.addAction(self.save_action)
+        file_menu.addAction(self.save_as_action)
+        file_menu.addSeparator()
+        file_menu.addAction(self.close_tab_action)
+        file_menu.addAction(self.quit_action)
+
+        edit_menu = menu.addMenu("&Édition")
+        edit_menu.addAction(self.undo_action)
+        edit_menu.addAction(self.redo_action)
+        edit_menu.addSeparator()
+        edit_menu.addAction(self.cut_action)
+        edit_menu.addAction(self.copy_action)
+        edit_menu.addAction(self.paste_action)
+        edit_menu.addSeparator()
+        edit_menu.addAction(self.select_all_action)
+
+    def current_editor(self):
+        return self.tabs.currentWidget()
+
+    def new_tab(self, file_path=None, content=""):
+        editor = Editor()
+        editor.setPlainText(content)
+        editor.file_path = file_path
+        editor.document().setModified(False)
+        editor.document().modificationChanged.connect(lambda _: self.update_title())
+
+        label = os.path.basename(file_path) if file_path else "Sans titre"
+        index = self.tabs.addTab(editor, label)
+        self.tabs.setCurrentIndex(index)
+        editor.setFocus()
+        return editor
+
+    def tab_label(self, editor):
+        name = os.path.basename(editor.file_path) if editor.file_path else "Sans titre"
+        return "*" + name if editor.document().isModified() else name
+
+    def update_title(self):
+        editor = self.current_editor()
+        if editor is None:
+            self.setWindowTitle("Éditeur de texte")
+            return
+        index = self.tabs.currentIndex()
+        self.tabs.setTabText(index, self.tab_label(editor))
+        self.setWindowTitle(f"{self.tab_label(editor)} — Éditeur de texte")
+
+    def open_file(self):
+        path, _ = QFileDialog.getOpenFileName(self, "Ouvrir un fichier", "", "Fichiers texte (*.txt);;Tous les fichiers (*)")
+        if not path:
+            return
+        for i in range(self.tabs.count()):
+            w = self.tabs.widget(i)
+            if w.file_path == path:
+                self.tabs.setCurrentIndex(i)
+                return
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                content = f.read()
+        except OSError as e:
+            QMessageBox.critical(self, "Erreur", f"Impossible d'ouvrir le fichier :\n{e}")
+            return
+        self.new_tab(file_path=path, content=content)
+
+    def save_file(self):
+        editor = self.current_editor()
+        if editor is None:
+            return False
+        if editor.file_path is None:
+            return self.save_file_as()
+        return self._write_file(editor, editor.file_path)
+
+    def save_file_as(self):
+        editor = self.current_editor()
+        if editor is None:
+            return False
+        start = editor.file_path or "sans_titre.txt"
+        path, _ = QFileDialog.getSaveFileName(self, "Enregistrer sous", start, "Fichiers texte (*.txt);;Tous les fichiers (*)")
+        if not path:
+            return False
+        return self._write_file(editor, path)
+
+    def _write_file(self, editor, path):
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(editor.toPlainText())
+        except OSError as e:
+            QMessageBox.critical(self, "Erreur", f"Impossible d'enregistrer le fichier :\n{e}")
+            return False
+        editor.file_path = path
+        editor.document().setModified(False)
+        self.update_title()
+        return True
+
+    def _try_close_tab(self, index):
+        editor = self.tabs.widget(index)
+        if editor is None:
+            return True
+        if editor.document().isModified():
+            name = os.path.basename(editor.file_path) if editor.file_path else "Sans titre"
+            result = QMessageBox.question(
+                self,
+                "Modifications non enregistrées",
+                f"« {name} » contient des modifications non enregistrées.\nVoulez-vous les enregistrer ?",
+                QMessageBox.StandardButton.Save
+                | QMessageBox.StandardButton.Discard
+                | QMessageBox.StandardButton.Cancel,
+            )
+            if result == QMessageBox.StandardButton.Cancel:
+                return False
+            if result == QMessageBox.StandardButton.Save:
+                self.tabs.setCurrentIndex(index)
+                if not self.save_file():
+                    return False
+
+        self.tabs.removeTab(index)
+        return True
+
+    def close_tab(self, index):
+        if self._try_close_tab(index) and self.tabs.count() == 0:
+            self.new_tab()
+
+    def closeEvent(self, event):
+        while self.tabs.count() > 0:
+            if not self._try_close_tab(0):
+                event.ignore()
+                return
+        event.accept()
+
+
+def main():
+    app = QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec())
+
+
+if __name__ == "__main__":
+    main()
