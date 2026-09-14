@@ -62,6 +62,30 @@ class MainWindow(QMainWindow):
         )
         self.tabs.currentChanged.connect(self.update_title)
 
+        self.new_tab_button = QToolButton()
+        self.new_tab_button.setText("+")
+        self.new_tab_button.setAutoRaise(True)
+        self.new_tab_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.new_tab_button.setToolTip("Nouvel onglet")
+        self.new_tab_button.setFixedSize(24, 24)
+        self.new_tab_button.setStyleSheet(
+            """
+            QToolButton {
+                border: none;
+                color: #444444;
+                font-size: 15px;
+                font-weight: bold;
+                border-radius: 3px;
+            }
+            QToolButton:hover {
+                color: #2f6fdb;
+                background: #dddddd;
+            }
+            """
+        )
+        self.new_tab_button.clicked.connect(lambda: self.new_tab())
+        self.tabs.setCornerWidget(self.new_tab_button, Qt.Corner.TopRightCorner)
+
         self.drafts_browser = DraftsBrowser()
         self.drafts_browser.open_requested.connect(self._open_draft)
         self.drafts_browser.delete_requested.connect(self._delete_draft)
