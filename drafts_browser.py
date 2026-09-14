@@ -14,7 +14,7 @@ class DraftsBrowser(QListWidget):
         super().__init__(parent)
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self._show_context_menu)
-        self.itemDoubleClicked.connect(self._emit_open)
+        self.itemClicked.connect(self._emit_open)
 
     def refresh(self, open_ids=()):
         self.clear()
