@@ -124,6 +124,9 @@ class MainWindow(QMainWindow):
         self.find_next_action.setShortcut(QKeySequence.StandardKey.FindNext)
         self.find_next_action.triggered.connect(self.find_dialog.find_next)
 
+        self.about_action = QAction("À &propos...", self)
+        self.about_action.triggered.connect(self.show_about)
+
     def _create_menu(self):
         menu = self.menuBar()
 
@@ -150,6 +153,19 @@ class MainWindow(QMainWindow):
         search_menu.addAction(self.find_action)
         search_menu.addAction(self.replace_action)
         search_menu.addAction(self.find_next_action)
+
+        help_menu = menu.addMenu("&Aide")
+        help_menu.addAction(self.about_action)
+
+    def show_about(self):
+        QMessageBox.about(
+            self,
+            "À propos",
+            "<h3>Éditeur de texte</h3>"
+            "<p>Éditeur de texte à onglets écrit en Python avec PyQt6.</p>"
+            "<p>Numéros de ligne, coloration syntaxique, recherche/remplacement "
+            "et restauration automatique de session.</p>",
+        )
 
     def current_editor(self):
         return self.tabs.currentWidget()
