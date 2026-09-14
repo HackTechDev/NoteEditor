@@ -211,6 +211,16 @@ class MainWindow(QMainWindow):
         self.tabs.tabBar().setTabButton(index, QTabBar.ButtonPosition.RightSide, self._make_close_button())
         self.tabs.setCurrentIndex(index)
         editor.setFocus()
+
+        session.save_draft(
+            {
+                "id": editor.session_id,
+                "file_path": editor.file_path,
+                "default_name": editor.default_name,
+                "modified": editor.document().isModified(),
+                "content": editor.toPlainText(),
+            }
+        )
         self._refresh_drafts_browser()
         return editor
 
