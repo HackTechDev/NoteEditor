@@ -62,7 +62,7 @@ class MainWindow(QMainWindow):
         )
         self.tabs.currentChanged.connect(self.update_title)
 
-        self.new_tab_button = QToolButton()
+        self.new_tab_button = QToolButton(self.tabs.tabBar())
         self.new_tab_button.setText("+")
         self.new_tab_button.setAutoRaise(True)
         self.new_tab_button.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -84,7 +84,8 @@ class MainWindow(QMainWindow):
             """
         )
         self.new_tab_button.clicked.connect(lambda: self.new_tab())
-        self.tabs.setCornerWidget(self.new_tab_button, Qt.Corner.TopRightCorner)
+        self.new_tab_button.show()
+        self._reposition_new_tab_button()
 
         self.drafts_browser = DraftsBrowser()
         self.drafts_browser.open_requested.connect(self._open_draft)
@@ -246,7 +247,14 @@ class MainWindow(QMainWindow):
             }
         )
         self._refresh_drafts_browser()
+        self._reposition_new_tab_button()
         return editor
+
+    def _reposition_new_tab_button(self):
+        bar = self.tabs.tabBar()
+        x = bar.tabRect(bar.count() - 1).right() + 4 if bar.count() > 0 else 4
+        y = max(0, (bar.height() - self.new_tab_button.height()) // 2)
+        self.new_tab_button.move(x, y)
 
     def _refresh_drafts_browser(self):
         open_ids = {self.tabs.widget(i).session_id for i in range(self.tabs.count())}
@@ -417,6 +425,7 @@ class MainWindow(QMainWindow):
             self.new_tab()
         else:
             self._refresh_drafts_browser()
+            self._reposition_new_tab_button()
 
     def _save_session(self):
         tabs_info = [
