@@ -40,7 +40,7 @@ class MainWindow(QMainWindow):
                 margin-right: 2px;
             }
             QTabBar::close-button {
-                margin-right: 6px;
+                margin-right: 8px;
             }
             QTabBar::tab:hover:!selected {
                 background: #ececec;
@@ -322,6 +322,7 @@ class MainWindow(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
+    app.setStyle("Fusion")
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
