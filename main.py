@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 import sys
+from datetime import datetime
 
 from PyQt6.QtGui import QAction, QKeySequence
 from PyQt6.QtWidgets import (
@@ -132,17 +133,23 @@ class MainWindow(QMainWindow):
         editor = Editor()
         editor.setPlainText(content)
         editor.set_file_path(file_path)
+        editor.default_name = None if file_path else self._timestamp_name()
         editor.document().setModified(False)
         editor.document().modificationChanged.connect(lambda _: self.update_title())
 
-        label = os.path.basename(file_path) if file_path else "Sans titre"
+        label = os.path.basename(file_path) if file_path else editor.default_name
         index = self.tabs.addTab(editor, label)
         self.tabs.setCurrentIndex(index)
         editor.setFocus()
         return editor
 
+    @staticmethod
+    def _timestamp_name():
+        now = datetime.now()
+        return f"{now:%y%m%d_%H%M%S}{now.microsecond // 10000:02d}"
+
     def tab_label(self, editor):
-        name = os.path.basename(editor.file_path) if editor.file_path else "Sans titre"
+        name = os.path.basename(editor.file_path) if editor.file_path else editor.default_name
         return "*" + name if editor.document().isModified() else name
 
     def update_title(self):
@@ -183,7 +190,7 @@ class MainWindow(QMainWindow):
         editor = self.current_editor()
         if editor is None:
             return False
-        start = editor.file_path or "sans_titre.txt"
+        start = editor.file_path or f"{editor.default_name}.txt"
         path, _ = QFileDialog.getSaveFileName(self, "Enregistrer sous", start, "Fichiers texte (*.txt);;Tous les fichiers (*)")
         if not path:
             return False
@@ -206,7 +213,7 @@ class MainWindow(QMainWindow):
         if editor is None:
             return True
         if editor.document().isModified():
-            name = os.path.basename(editor.file_path) if editor.file_path else "Sans titre"
+            name = os.path.basename(editor.file_path) if editor.file_path else editor.default_name
             result = QMessageBox.question(
                 self,
                 "Modifications non enregistrées",

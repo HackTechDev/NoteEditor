@@ -21,6 +21,7 @@ class Editor(QPlainTextEdit):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.file_path = None
+        self.default_name = None
         self.highlighter = None
 
         font = QFont("Monospace")
