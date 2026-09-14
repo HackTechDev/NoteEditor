@@ -333,6 +333,8 @@ class MainWindow(QMainWindow):
         editor = self.current_editor()
         if editor is not None:
             self.drafts_browser.select_draft(editor.session_id)
+        else:
+            self.drafts_browser.setCurrentItem(None)
 
     def _open_draft(self, entry):
         for i in range(self.tabs.count()):
@@ -427,6 +429,7 @@ class MainWindow(QMainWindow):
         editor = self.current_editor()
         if editor is None:
             self.setWindowTitle("Éditeur de texte")
+            self._highlight_active_draft()
             return
         index = self.tabs.currentIndex()
         self.tabs.setTabText(index, self.tab_label(editor))
@@ -498,11 +501,9 @@ class MainWindow(QMainWindow):
             )
 
         self.tabs.removeTab(index)
-        if self.tabs.count() == 0:
-            self.new_tab()
-        else:
-            self._refresh_drafts_browser()
-            self._reposition_new_tab_button()
+        self._refresh_drafts_browser()
+        self._reposition_new_tab_button()
+        self.update_title()
 
     def _save_session(self):
         tabs_info = [
