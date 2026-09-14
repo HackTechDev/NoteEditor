@@ -39,6 +39,9 @@ class MainWindow(QMainWindow):
                 border-top-right-radius: 4px;
                 margin-right: 2px;
             }
+            QTabBar::close-button {
+                margin-right: 6px;
+            }
             QTabBar::tab:hover:!selected {
                 background: #ececec;
             }
