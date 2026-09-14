@@ -45,6 +45,9 @@ def load_session():
     except (OSError, ValueError):
         return [], None
 
+    if isinstance(data, list):
+        data = {"active_id": None, "tabs": data}
+
     result = []
     for entry in data.get("tabs", []):
         draft_path = os.path.join(DRAFTS_DIR, entry["id"] + ".txt")
