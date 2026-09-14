@@ -5,13 +5,15 @@
 ## Fonctionnalités
 
 - Onglets multiples (fermables, réordonnables), onglet actif bien visible
+- Bouton **+** pour créer un nouvel onglet, collé juste après le dernier onglet (style Gedit) ; se déplace automatiquement à côté des flèches de défilement quand les onglets débordent de la largeur disponible
 - Numéros de ligne avec surlignage de la ligne courante
 - Coloration syntaxique automatique selon l'extension : Python (`.py`), JSON (`.json`), Markdown (`.md`)
 - Recherche / remplacement (`Ctrl+F` / `Ctrl+H`) : suivant, précédent, remplacer, tout remplacer
 - Nouveaux onglets nommés par date/heure (`aammjj_hhmmssmm`)
 - Session persistante : à la fermeture, tous les onglets (contenu, fichier associé, état modifié, onglet actif) sont sauvegardés automatiquement dans `~/.noteeditor` et restaurés tels quels au prochain lancement
-- Fermer un onglet (croix ou Ctrl+W) l'archive automatiquement dans `~/.noteeditor` sans demander de confirmation, même s'il contient des modifications non enregistrées
-- Panneau « Brouillons » à gauche : liste tous les onglets dont le contenu a été archivé dans `~/.noteeditor` (ceux actuellement ouverts sont marqués « (ouvert) ») ; clic pour rouvrir ou basculer dessus, clic droit pour supprimer définitivement
+- Chaque onglet est archivé dans `~/.noteeditor` dès sa création, et à nouveau à chaque fermeture (croix ou Ctrl+W, sans demander de confirmation même en cas de modifications non enregistrées)
+- Panneau « Brouillons » à gauche : liste tous les onglets dont le contenu a été archivé dans `~/.noteeditor` (ceux actuellement ouverts sont marqués « (ouvert) »), avec l'entrée de l'onglet actif surlignée ; clic pour rouvrir ou basculer dessus, clic droit pour supprimer définitivement
+- Menu Aide → À propos
 
 ## Installation
 
@@ -48,7 +50,7 @@ python3 main.py
 | `highlighters.py`    | Coloration syntaxique (Python, JSON, Markdown)                    |
 | `find_replace.py`    | Boîte de dialogue de recherche / remplacement                     |
 | `session.py`         | Sauvegarde et restauration de la session dans `~/.noteeditor`     |
-| `drafts_browser.py`  | Panneau latéral listant les brouillons fermés                     |
+| `drafts_browser.py`  | Panneau latéral listant les brouillons (ouverts et fermés)         |
 
 ## Session (`~/.noteeditor`)
 
