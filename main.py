@@ -363,36 +363,26 @@ class MainWindow(QMainWindow):
         self.update_title()
         return True
 
-    def _try_close_tab(self, index):
+    def close_tab(self, index):
         editor = self.tabs.widget(index)
         if editor is None:
-            return True
+            return
         if editor.document().isModified():
-            name = os.path.basename(editor.file_path) if editor.file_path else editor.default_name
-            result = QMessageBox.question(
-                self,
-                "Modifications non enregistrées",
-                f"« {name} » contient des modifications non enregistrées.\nVoulez-vous les enregistrer ?",
-                QMessageBox.StandardButton.Save
-                | QMessageBox.StandardButton.Discard
-                | QMessageBox.StandardButton.Cancel,
+            session.save_draft(
+                {
+                    "id": editor.session_id,
+                    "file_path": editor.file_path,
+                    "default_name": editor.default_name,
+                    "modified": True,
+                    "content": editor.toPlainText(),
+                }
             )
-            if result == QMessageBox.StandardButton.Cancel:
-                return False
-            if result == QMessageBox.StandardButton.Save:
-                self.tabs.setCurrentIndex(index)
-                if not self.save_file():
-                    return False
 
         self.tabs.removeTab(index)
-        return True
-
-    def close_tab(self, index):
-        if self._try_close_tab(index):
-            if self.tabs.count() == 0:
-                self.new_tab()
-            else:
-                self._refresh_drafts_browser()
+        if self.tabs.count() == 0:
+            self.new_tab()
+        else:
+            self._refresh_drafts_browser()
 
     def _save_session(self):
         tabs_info = [

@@ -55,6 +55,22 @@ def save_session(tabs_info, active_id=None):
     _save_index(index)
 
 
+def save_draft(info):
+    """Persist a single tab's content to the drafts store, without touching the active session list."""
+    os.makedirs(DRAFTS_DIR, exist_ok=True)
+    draft_path = os.path.join(DRAFTS_DIR, info["id"] + ".txt")
+    with open(draft_path, "w", encoding="utf-8") as f:
+        f.write(info["content"])
+
+    index = _load_index()
+    index[info["id"]] = {
+        "file_path": info["file_path"],
+        "default_name": info["default_name"],
+        "modified": info["modified"],
+    }
+    _save_index(index)
+
+
 def load_session():
     data = _load_json(SESSION_FILE, None)
     if data is None:
