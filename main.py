@@ -2,27 +2,17 @@
 import os
 import sys
 
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QAction, QFont, QKeySequence
+from PyQt6.QtGui import QAction, QKeySequence
 from PyQt6.QtWidgets import (
     QApplication,
     QFileDialog,
     QMainWindow,
     QMessageBox,
-    QPlainTextEdit,
     QTabWidget,
 )
 
-
-class Editor(QPlainTextEdit):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.file_path = None
-        font = QFont("Monospace")
-        font.setStyleHint(QFont.StyleHint.TypeWriter)
-        font.setPointSize(11)
-        self.setFont(font)
-        self.setTabStopDistance(4 * self.fontMetrics().horizontalAdvance(" "))
+from editor_widget import Editor
+from find_replace import FindReplaceDialog
 
 
 class MainWindow(QMainWindow):
@@ -38,6 +28,8 @@ class MainWindow(QMainWindow):
         self.tabs.tabCloseRequested.connect(self.close_tab)
         self.tabs.currentChanged.connect(self.update_title)
         self.setCentralWidget(self.tabs)
+
+        self.find_dialog = FindReplaceDialog(self)
 
         self._create_actions()
         self._create_menu()
@@ -94,6 +86,18 @@ class MainWindow(QMainWindow):
         self.select_all_action.setShortcut(QKeySequence.StandardKey.SelectAll)
         self.select_all_action.triggered.connect(lambda: self.current_editor().selectAll())
 
+        self.find_action = QAction("&Rechercher...", self)
+        self.find_action.setShortcut(QKeySequence.StandardKey.Find)
+        self.find_action.triggered.connect(self.find_dialog.show_for_find)
+
+        self.replace_action = QAction("Rechercher / &Remplacer...", self)
+        self.replace_action.setShortcut(QKeySequence("Ctrl+H"))
+        self.replace_action.triggered.connect(self.find_dialog.show_for_replace)
+
+        self.find_next_action = QAction("Suivant", self)
+        self.find_next_action.setShortcut(QKeySequence.StandardKey.FindNext)
+        self.find_next_action.triggered.connect(self.find_dialog.find_next)
+
     def _create_menu(self):
         menu = self.menuBar()
 
@@ -116,13 +120,18 @@ class MainWindow(QMainWindow):
         edit_menu.addSeparator()
         edit_menu.addAction(self.select_all_action)
 
+        search_menu = menu.addMenu("&Rechercher")
+        search_menu.addAction(self.find_action)
+        search_menu.addAction(self.replace_action)
+        search_menu.addAction(self.find_next_action)
+
     def current_editor(self):
         return self.tabs.currentWidget()
 
     def new_tab(self, file_path=None, content=""):
         editor = Editor()
         editor.setPlainText(content)
-        editor.file_path = file_path
+        editor.set_file_path(file_path)
         editor.document().setModified(False)
         editor.document().modificationChanged.connect(lambda _: self.update_title())
 
@@ -187,7 +196,7 @@ class MainWindow(QMainWindow):
         except OSError as e:
             QMessageBox.critical(self, "Erreur", f"Impossible d'enregistrer le fichier :\n{e}")
             return False
-        editor.file_path = path
+        editor.set_file_path(path)
         editor.document().setModified(False)
         self.update_title()
         return True
