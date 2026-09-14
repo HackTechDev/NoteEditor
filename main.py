@@ -482,7 +482,17 @@ class MainWindow(QMainWindow):
             return False
         editor.set_file_path(path)
         editor.document().setModified(False)
+        session.save_draft(
+            {
+                "id": editor.session_id,
+                "file_path": editor.file_path,
+                "default_name": editor.default_name,
+                "modified": False,
+                "content": editor.toPlainText(),
+            }
+        )
         self.update_title()
+        self._refresh_drafts_browser()
         return True
 
     def close_tab(self, index):
