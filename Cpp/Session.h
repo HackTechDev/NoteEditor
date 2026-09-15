@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QString>
+#include <QStringList>
 #include <QVector>
 
 // All disk persistence under ~/.noteeditor/. Mirrors Python/session.py.
@@ -26,9 +27,19 @@ struct DraftEntry {
     qint64 mtimeMs = 0;
 };
 
+// A trashed draft's metadata, as read back from trash_index.json.
+struct TrashEntry {
+    QString id;
+    QString filePath;
+    QString defaultName;
+    QString deletedAt; // ISO 8601, empty if unknown
+};
+
 QString configDir();
 QString draftsDir();
 QString docsDir();
+QString trashDir();
+QString versionsDir();
 
 // Persists every currently-open tab (overwrites session.json wholesale) and
 // merges their metadata into index.json.
@@ -45,6 +56,32 @@ QVector<TabSnapshot> loadSession(QString *activeId);
 QVector<DraftEntry> listDrafts();
 
 QString readDraft(const QString &draftId);
+
+// Permanently removes a draft (file + index entry), no trash involved.
 void deleteDraft(const QString &draftId);
+
+// Renames an untitled draft (one with no real filePath).
+void renameDraft(const QString &draftId, const QString &newDefaultName);
+
+// Moves a draft to the trash instead of deleting it outright.
+void trashDraft(const QString &draftId);
+
+// All trashed drafts, most recently deleted first.
+QVector<TrashEntry> listTrash();
+
+// Moves a trashed draft back into the active drafts store.
+void restoreDraft(const QString &draftId);
+
+// Permanently deletes a trashed draft.
+void purgeDraft(const QString &draftId);
+
+// Snapshots a tab's pre-save content, keeping only the most recent versions
+// (see kMaxVersions in Session.cpp).
+void saveVersion(const QString &draftId, const QString &content);
+
+// Timestamps (newest first) of the saved versions kept for a tab.
+QStringList listVersions(const QString &draftId);
+
+QString readVersion(const QString &draftId, const QString &stamp);
 
 } // namespace Session

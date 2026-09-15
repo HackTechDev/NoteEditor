@@ -1,5 +1,6 @@
 #include "Session.h"
 
+#include <QDateTime>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -13,6 +14,8 @@
 #include <algorithm>
 
 namespace Session {
+
+static const int kMaxVersions = 10;
 
 QString configDir()
 {
@@ -29,6 +32,16 @@ QString docsDir()
     return configDir() + "/docs";
 }
 
+QString trashDir()
+{
+    return configDir() + "/trash";
+}
+
+QString versionsDir()
+{
+    return configDir() + "/versions";
+}
+
 static QString sessionFile()
 {
     return configDir() + "/session.json";
@@ -37,6 +50,11 @@ static QString sessionFile()
 static QString indexFile()
 {
     return configDir() + "/index.json";
+}
+
+static QString trashIndexFile()
+{
+    return configDir() + "/trash_index.json";
 }
 
 static QJsonValue toJsonOrNull(const QString &s)
@@ -223,6 +241,116 @@ void deleteDraft(const QString &draftId)
         index.remove(draftId);
         writeJsonObject(indexFile(), index);
     }
+}
+
+void renameDraft(const QString &draftId, const QString &newDefaultName)
+{
+    QJsonObject index = loadJsonObject(indexFile());
+    QJsonObject entry = index.value(draftId).toObject();
+    entry["default_name"] = newDefaultName;
+    index[draftId] = entry;
+    writeJsonObject(indexFile(), index);
+}
+
+void trashDraft(const QString &draftId)
+{
+    QDir().mkpath(trashDir());
+    const QString src = draftsDir() + "/" + draftId + ".txt";
+    const QString dst = trashDir() + "/" + draftId + ".txt";
+    QFile::remove(dst);
+    if (!QFile::rename(src, dst))
+        return;
+
+    QJsonObject index = loadJsonObject(indexFile());
+    QJsonObject meta = index.value(draftId).toObject();
+    index.remove(draftId);
+    writeJsonObject(indexFile(), index);
+
+    meta["deleted_at"] = QDateTime::currentDateTime().toString(Qt::ISODate);
+    QJsonObject trashIndex = loadJsonObject(trashIndexFile());
+    trashIndex[draftId] = meta;
+    writeJsonObject(trashIndexFile(), trashIndex);
+}
+
+QVector<TrashEntry> listTrash()
+{
+    const QJsonObject trashIndex = loadJsonObject(trashIndexFile());
+    QVector<TrashEntry> items;
+    for (auto it = trashIndex.constBegin(); it != trashIndex.constEnd(); ++it) {
+        const QJsonObject meta = it.value().toObject();
+        TrashEntry entry;
+        entry.id = it.key();
+        entry.filePath = fromJsonOrEmpty(meta.value("file_path"));
+        entry.defaultName = fromJsonOrEmpty(meta.value("default_name"));
+        entry.deletedAt = fromJsonOrEmpty(meta.value("deleted_at"));
+        items.append(entry);
+    }
+    std::sort(items.begin(), items.end(), [](const TrashEntry &a, const TrashEntry &b) {
+        return a.deletedAt > b.deletedAt;
+    });
+    return items;
+}
+
+void restoreDraft(const QString &draftId)
+{
+    const QString src = trashDir() + "/" + draftId + ".txt";
+    const QString dst = draftsDir() + "/" + draftId + ".txt";
+    QDir().mkpath(draftsDir());
+    QFile::remove(dst);
+    if (!QFile::rename(src, dst))
+        return;
+
+    QJsonObject trashIndex = loadJsonObject(trashIndexFile());
+    QJsonObject meta = trashIndex.value(draftId).toObject();
+    trashIndex.remove(draftId);
+    writeJsonObject(trashIndexFile(), trashIndex);
+    meta.remove("deleted_at");
+
+    QJsonObject index = loadJsonObject(indexFile());
+    index[draftId] = meta;
+    writeJsonObject(indexFile(), index);
+}
+
+void purgeDraft(const QString &draftId)
+{
+    QFile::remove(trashDir() + "/" + draftId + ".txt");
+    QJsonObject trashIndex = loadJsonObject(trashIndexFile());
+    if (trashIndex.contains(draftId)) {
+        trashIndex.remove(draftId);
+        writeJsonObject(trashIndexFile(), trashIndex);
+    }
+}
+
+void saveVersion(const QString &draftId, const QString &content)
+{
+    const QString dir = versionsDir() + "/" + draftId;
+    QDir().mkpath(dir);
+    const QString stamp = QDateTime::currentDateTime().toString("yyyyMMddTHHmmsszzz");
+    writeTextFile(dir + "/" + stamp + ".txt", content);
+
+    QStringList names = QDir(dir).entryList(QStringList() << "*.txt", QDir::Files, QDir::Name | QDir::Reversed);
+    for (int i = kMaxVersions; i < names.size(); ++i)
+        QFile::remove(dir + "/" + names[i]);
+}
+
+QStringList listVersions(const QString &draftId)
+{
+    const QString dir = versionsDir() + "/" + draftId;
+    if (!QDir(dir).exists())
+        return {};
+    QStringList names = QDir(dir).entryList(QStringList() << "*.txt", QDir::Files, QDir::Name | QDir::Reversed);
+    QStringList stamps;
+    for (const QString &name : names)
+        stamps.append(name.left(name.length() - 4));
+    return stamps;
+}
+
+QString readVersion(const QString &draftId, const QString &stamp)
+{
+    QFile f(versionsDir() + "/" + draftId + "/" + stamp + ".txt");
+    if (!f.open(QIODevice::ReadOnly))
+        return QString();
+    return QString::fromUtf8(f.readAll());
 }
 
 } // namespace Session

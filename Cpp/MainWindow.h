@@ -11,6 +11,10 @@ class Editor;
 class DraftsBrowser;
 class FindReplaceDialog;
 class QAction;
+class QComboBox;
+class QDragEnterEvent;
+class QDropEvent;
+class QLineEdit;
 class QSplitter;
 class QTabWidget;
 class QListWidgetItem;
@@ -48,6 +52,8 @@ public:
 protected:
     void closeEvent(QCloseEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
+    void dragEnterEvent(QDragEnterEvent *event) override;
+    void dropEvent(QDropEvent *event) override;
 
 private slots:
     void openFile();
@@ -58,7 +64,12 @@ private slots:
     void toggleNewTabButtonMode();
     void positionInlineNewTabButton();
     void openDraft(const Session::DraftEntry &entry);
-    void deleteDraftEntry(const Session::DraftEntry &entry);
+    void trashDraftEntry(const Session::DraftEntry &entry);
+    void renameDraftEntry(const Session::DraftEntry &entry);
+    void showTrash();
+    void showTabContextMenu(const QPoint &pos);
+    void checkCurrentExternalChange();
+    void onAppStateChanged(Qt::ApplicationState state);
 
 private:
     void createActions();
@@ -75,11 +86,24 @@ private:
     static QString timestampName();
     void restoreSession();
     void saveSessionToDisk();
+    void openPath(const QString &path);
+    void autosaveTab(Editor *editor);
+    void renameTab(int index);
+    void duplicateTab(int index);
+    void closeOtherTabs(int index);
+    void closeAllTabs();
+    void closeTabsToTheRight(int index);
+    void showVersionHistory(Editor *editor);
+    void applyRestoredVersion(Editor *editor, const QString &content);
+    void checkExternalChange(Editor *editor);
 
     QTabWidget *m_tabs;
     QToolButton *m_newTabButton;
     CornerToolButton *m_newTabCornerButton;
     DraftsBrowser *m_draftsBrowser;
+    QLineEdit *m_draftsSearch;
+    QComboBox *m_draftsSort;
+    QToolButton *m_trashButton;
     QSplitter *m_splitter;
     FindReplaceDialog *m_findDialog;
 
@@ -99,4 +123,5 @@ private:
     QAction *m_replaceAction;
     QAction *m_findNextAction;
     QAction *m_aboutAction;
+    QAction *m_trashAction;
 };

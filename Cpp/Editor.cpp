@@ -38,6 +38,12 @@ Editor::Editor(QWidget *parent)
     connect(this, &QPlainTextEdit::updateRequest, this, &Editor::updateLineNumberArea);
     connect(this, &QPlainTextEdit::cursorPositionChanged, this, &Editor::highlightCurrentLine);
 
+    m_autosaveTimer = new QTimer(this);
+    m_autosaveTimer->setSingleShot(true);
+    m_autosaveTimer->setInterval(kAutosaveDelayMs);
+    connect(m_autosaveTimer, &QTimer::timeout, this, &Editor::autosaveRequested);
+    connect(document(), &QTextDocument::contentsChanged, m_autosaveTimer, qOverload<>(&QTimer::start));
+
     updateLineNumberAreaWidth();
     highlightCurrentLine();
 }

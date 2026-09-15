@@ -19,6 +19,10 @@ add_executable(NoteEditor
     FindReplaceDialog.h
     DraftsBrowser.cpp
     DraftsBrowser.h
+    TrashDialog.cpp
+    TrashDialog.h
+    VersionHistoryDialog.cpp
+    VersionHistoryDialog.h
     Session.cpp
     Session.h
 )

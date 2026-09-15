@@ -2,19 +2,28 @@
 #include "DraftsBrowser.h"
 #include "Editor.h"
 #include "FindReplaceDialog.h"
+#include "TrashDialog.h"
+#include "VersionHistoryDialog.h"
 
 #include <QAction>
+#include <QApplication>
 #include <QCloseEvent>
+#include <QComboBox>
 #include <QDateTime>
 #include <QDir>
+#include <QDragEnterEvent>
+#include <QDropEvent>
 #include <QFile>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QHBoxLayout>
+#include <QInputDialog>
 #include <QLabel>
+#include <QLineEdit>
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
+#include <QMimeData>
 #include <QResizeEvent>
 #include <QSplitter>
 #include <QStringConverter>
@@ -22,6 +31,7 @@
 #include <QTabWidget>
 #include <QTextStream>
 #include <QTimer>
+#include <QUrl>
 #include <QVBoxLayout>
 
 namespace {
@@ -98,6 +108,12 @@ MainWindow::MainWindow(QWidget *parent)
         }
     )");
     connect(m_tabs, &QTabWidget::currentChanged, this, &MainWindow::updateTitle);
+    connect(m_tabs, &QTabWidget::currentChanged, this, &MainWindow::checkCurrentExternalChange);
+    m_tabs->tabBar()->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(m_tabs->tabBar(), &QTabBar::customContextMenuRequested, this, &MainWindow::showTabContextMenu);
+
+    setAcceptDrops(true);
+    connect(qApp, &QApplication::applicationStateChanged, this, &MainWindow::onAppStateChanged);
 
     // Deux boutons "+" pour le même bouton logique : voir Cpp/CLAUDE.md ou
     // Python/main.py pour le détail du pourquoi (débordement des onglets /
@@ -113,14 +129,36 @@ MainWindow::MainWindow(QWidget *parent)
 
     m_draftsBrowser = new DraftsBrowser(this);
     connect(m_draftsBrowser, &DraftsBrowser::openRequested, this, &MainWindow::openDraft);
-    connect(m_draftsBrowser, &DraftsBrowser::deleteRequested, this, &MainWindow::deleteDraftEntry);
+    connect(m_draftsBrowser, &DraftsBrowser::deleteRequested, this, &MainWindow::trashDraftEntry);
+    connect(m_draftsBrowser, &DraftsBrowser::renameRequested, this, &MainWindow::renameDraftEntry);
+
+    m_draftsSearch = new QLineEdit(this);
+    m_draftsSearch->setPlaceholderText("Rechercher...");
+    connect(m_draftsSearch, &QLineEdit::textChanged, m_draftsBrowser, &DraftsBrowser::setFilterText);
+
+    m_draftsSort = new QComboBox(this);
+    m_draftsSort->addItem("Date", "date");
+    m_draftsSort->addItem("Nom", "name");
+    connect(m_draftsSort, &QComboBox::currentIndexChanged, this, [this](int i) {
+        m_draftsBrowser->setSortMode(m_draftsSort->itemData(i).toString());
+    });
+
+    auto *draftsToolbar = new QHBoxLayout();
+    draftsToolbar->addWidget(m_draftsSearch);
+    draftsToolbar->addWidget(m_draftsSort);
+
+    m_trashButton = new QToolButton(this);
+    m_trashButton->setText("Corbeille...");
+    connect(m_trashButton, &QToolButton::clicked, this, &MainWindow::showTrash);
 
     auto *sidebar = new QWidget(this);
     auto *sidebarLayout = new QVBoxLayout(sidebar);
     sidebarLayout->setContentsMargins(0, 0, 0, 0);
-    sidebarLayout->setSpacing(0);
+    sidebarLayout->setSpacing(4);
     sidebarLayout->addWidget(new QLabel("Brouillons", sidebar));
+    sidebarLayout->addLayout(draftsToolbar);
     sidebarLayout->addWidget(m_draftsBrowser);
+    sidebarLayout->addWidget(m_trashButton);
 
     m_splitter = new QSplitter(this);
     m_splitter->addWidget(sidebar);
@@ -212,6 +250,9 @@ void MainWindow::createActions()
 
     m_aboutAction = new QAction("À &propos...", this);
     connect(m_aboutAction, &QAction::triggered, this, &MainWindow::showAbout);
+
+    m_trashAction = new QAction("&Corbeille...", this);
+    connect(m_trashAction, &QAction::triggered, this, &MainWindow::showTrash);
 }
 
 void MainWindow::createMenu()
@@ -223,6 +264,8 @@ void MainWindow::createMenu()
     fileMenu->addAction(m_openAction);
     fileMenu->addAction(m_saveAction);
     fileMenu->addAction(m_saveAsAction);
+    fileMenu->addSeparator();
+    fileMenu->addAction(m_trashAction);
     fileMenu->addSeparator();
     fileMenu->addAction(m_closeTabAction);
     fileMenu->addAction(m_quitAction);
@@ -271,6 +314,7 @@ Editor *MainWindow::newTab(const QString &filePath, const QString &content, cons
     editor->defaultName = filePath.isEmpty() ? (!defaultName.isEmpty() ? defaultName : timestampName()) : QString();
     editor->document()->setModified(modified);
     connect(editor->document(), &QTextDocument::modificationChanged, this, [this](bool) { updateTitle(); });
+    connect(editor, &Editor::autosaveRequested, this, [this, editor] { autosaveTab(editor); });
 
     const QString label = !filePath.isEmpty() ? QFileInfo(filePath).fileName() : editor->defaultName;
     const int index = m_tabs->addTab(editor, label);
@@ -421,18 +465,230 @@ void MainWindow::openDraft(const Session::DraftEntry &entry)
     newTab(entry.filePath, content, entry.defaultName, entry.id, entry.modified);
 }
 
-void MainWindow::deleteDraftEntry(const Session::DraftEntry &entry)
+void MainWindow::trashDraftEntry(const Session::DraftEntry &entry)
 {
     const QString label = !entry.filePath.isEmpty()
         ? QFileInfo(entry.filePath).fileName()
         : (!entry.defaultName.isEmpty() ? entry.defaultName : entry.id.left(8));
-    const auto result = QMessageBox::question(this, "Supprimer le brouillon",
-        QString("Supprimer définitivement « %1 » ? Cette action est irréversible.").arg(label),
+    const auto result = QMessageBox::question(this, "Mettre à la corbeille",
+        QString("Mettre « %1 » à la corbeille ?").arg(label),
         QMessageBox::Yes | QMessageBox::No);
     if (result == QMessageBox::Yes) {
-        Session::deleteDraft(entry.id);
+        Session::trashDraft(entry.id);
         refreshDraftsBrowser();
     }
+}
+
+void MainWindow::showTrash()
+{
+    auto *dialog = new TrashDialog(this);
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    connect(dialog, &TrashDialog::restored, this, &MainWindow::refreshDraftsBrowser);
+    dialog->exec();
+}
+
+void MainWindow::autosaveTab(Editor *editor)
+{
+    if (m_tabs->indexOf(editor) == -1)
+        return; // l'onglet a été fermé avant que le délai ne s'écoule
+
+    Session::TabSnapshot snap;
+    snap.id = editor->sessionId;
+    snap.filePath = editor->filePath;
+    snap.defaultName = editor->defaultName;
+    snap.modified = editor->document()->isModified();
+    snap.content = editor->toPlainText();
+    Session::saveDraft(snap);
+}
+
+void MainWindow::renameTab(int index)
+{
+    Editor *editor = qobject_cast<Editor *>(m_tabs->widget(index));
+    if (!editor || !editor->filePath.isEmpty())
+        return;
+    bool ok = false;
+    const QString newName = QInputDialog::getText(this, "Renommer", "Nouveau nom :",
+                                                    QLineEdit::Normal, editor->defaultName, &ok)
+                                 .trimmed();
+    if (!ok || newName.isEmpty())
+        return;
+    editor->defaultName = newName;
+
+    Session::TabSnapshot snap;
+    snap.id = editor->sessionId;
+    snap.filePath = editor->filePath;
+    snap.defaultName = editor->defaultName;
+    snap.modified = editor->document()->isModified();
+    snap.content = editor->toPlainText();
+    Session::saveDraft(snap);
+
+    updateTitle();
+    refreshDraftsBrowser();
+}
+
+void MainWindow::renameDraftEntry(const Session::DraftEntry &entry)
+{
+    for (int i = 0; i < m_tabs->count(); ++i) {
+        auto *editor = qobject_cast<Editor *>(m_tabs->widget(i));
+        if (editor && editor->sessionId == entry.id) {
+            renameTab(i);
+            return;
+        }
+    }
+    bool ok = false;
+    const QString newName = QInputDialog::getText(this, "Renommer", "Nouveau nom :",
+                                                    QLineEdit::Normal, entry.defaultName, &ok)
+                                 .trimmed();
+    if (!ok || newName.isEmpty())
+        return;
+    Session::renameDraft(entry.id, newName);
+    refreshDraftsBrowser();
+}
+
+void MainWindow::duplicateTab(int index)
+{
+    Editor *editor = qobject_cast<Editor *>(m_tabs->widget(index));
+    if (!editor)
+        return;
+    newTab(QString(), editor->toPlainText());
+}
+
+void MainWindow::closeOtherTabs(int index)
+{
+    QWidget *keep = m_tabs->widget(index);
+    for (int i = m_tabs->count() - 1; i >= 0; --i) {
+        if (m_tabs->widget(i) != keep)
+            closeTab(i);
+    }
+}
+
+void MainWindow::closeAllTabs()
+{
+    for (int i = m_tabs->count() - 1; i >= 0; --i)
+        closeTab(i);
+}
+
+void MainWindow::closeTabsToTheRight(int index)
+{
+    for (int i = m_tabs->count() - 1; i > index; --i)
+        closeTab(i);
+}
+
+void MainWindow::showVersionHistory(Editor *editor)
+{
+    auto *dialog = new VersionHistoryDialog(editor->sessionId, this);
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    connect(dialog, &VersionHistoryDialog::restoreRequested, this,
+            [this, editor](const QString &content) { applyRestoredVersion(editor, content); });
+    dialog->exec();
+}
+
+void MainWindow::applyRestoredVersion(Editor *editor, const QString &content)
+{
+    editor->setPlainText(content);
+    editor->document()->setModified(true);
+    updateTitle();
+}
+
+void MainWindow::showTabContextMenu(const QPoint &pos)
+{
+    QTabBar *bar = m_tabs->tabBar();
+    const int index = bar->tabAt(pos);
+    if (index == -1)
+        return;
+    Editor *editor = qobject_cast<Editor *>(m_tabs->widget(index));
+
+    QMenu menu(this);
+    QAction *closeAction = menu.addAction("Fermer");
+    QAction *closeOthersAction = menu.addAction("Fermer les autres");
+    QAction *closeRightAction = menu.addAction("Fermer à droite");
+    closeRightAction->setEnabled(index < m_tabs->count() - 1);
+    QAction *closeAllAction = menu.addAction("Fermer tout");
+    menu.addSeparator();
+    QAction *duplicateAction = menu.addAction("Dupliquer");
+    QAction *renameAction = (editor && editor->filePath.isEmpty()) ? menu.addAction("Renommer...") : nullptr;
+    QAction *historyAction = (editor && !Session::listVersions(editor->sessionId).isEmpty())
+        ? menu.addAction("Historique des versions...")
+        : nullptr;
+
+    QAction *chosen = menu.exec(bar->mapToGlobal(pos));
+    if (chosen == closeAction)
+        closeTab(index);
+    else if (chosen == closeOthersAction)
+        closeOtherTabs(index);
+    else if (chosen == closeRightAction)
+        closeTabsToTheRight(index);
+    else if (chosen == closeAllAction)
+        closeAllTabs();
+    else if (chosen == duplicateAction)
+        duplicateTab(index);
+    else if (renameAction && chosen == renameAction)
+        renameTab(index);
+    else if (historyAction && chosen == historyAction)
+        showVersionHistory(editor);
+}
+
+void MainWindow::checkCurrentExternalChange()
+{
+    checkExternalChange(currentEditor());
+}
+
+void MainWindow::onAppStateChanged(Qt::ApplicationState state)
+{
+    if (state == Qt::ApplicationActive)
+        checkCurrentExternalChange();
+}
+
+void MainWindow::checkExternalChange(Editor *editor)
+{
+    if (!editor || editor->filePath.isEmpty())
+        return;
+    const QFileInfo fi(editor->filePath);
+    if (!fi.exists())
+        return;
+    const qint64 mtime = fi.lastModified().toMSecsSinceEpoch();
+
+    if (editor->diskMTime < 0) {
+        editor->diskMTime = mtime;
+        return;
+    }
+    if (mtime <= editor->diskMTime)
+        return;
+    editor->diskMTime = mtime;
+
+    const auto result = QMessageBox::warning(this, "Fichier modifié en dehors de l'éditeur",
+        QString("« %1 » a été modifié par un autre programme.\n"
+                "Voulez-vous recharger son contenu depuis le disque ? "
+                "Les modifications non enregistrées dans cet onglet seront perdues.")
+            .arg(fi.fileName()),
+        QMessageBox::Yes | QMessageBox::No);
+    if (result != QMessageBox::Yes)
+        return;
+
+    QFile file(editor->filePath);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QMessageBox::critical(this, "Erreur", QString("Impossible de recharger le fichier :\n%1").arg(file.errorString()));
+        return;
+    }
+    editor->setPlainText(QString::fromUtf8(file.readAll()));
+    editor->document()->setModified(false);
+    updateTitle();
+}
+
+void MainWindow::dragEnterEvent(QDragEnterEvent *event)
+{
+    if (event->mimeData()->hasUrls())
+        event->acceptProposedAction();
+}
+
+void MainWindow::dropEvent(QDropEvent *event)
+{
+    for (const QUrl &url : event->mimeData()->urls()) {
+        const QString path = url.toLocalFile();
+        if (!path.isEmpty())
+            openPath(path);
+    }
+    event->acceptProposedAction();
 }
 
 void MainWindow::restoreSession()
@@ -446,7 +702,9 @@ void MainWindow::restoreSession()
     int activeIndex = 0;
     for (int i = 0; i < entries.size(); ++i) {
         const Session::TabSnapshot &entry = entries[i];
-        newTab(entry.filePath, entry.content, entry.defaultName, entry.id, entry.modified);
+        Editor *editor = newTab(entry.filePath, entry.content, entry.defaultName, entry.id, entry.modified);
+        if (!entry.filePath.isEmpty() && QFileInfo::exists(entry.filePath))
+            editor->diskMTime = QFileInfo(entry.filePath).lastModified().toMSecsSinceEpoch();
         if (entry.id == activeId)
             activeIndex = i;
     }
@@ -477,8 +735,12 @@ void MainWindow::openFile()
 {
     const QString path = QFileDialog::getOpenFileName(this, "Ouvrir un fichier", QString(),
                                                         "Fichiers texte (*.txt);;Tous les fichiers (*)");
-    if (path.isEmpty())
-        return;
+    if (!path.isEmpty())
+        openPath(path);
+}
+
+void MainWindow::openPath(const QString &path)
+{
     for (int i = 0; i < m_tabs->count(); ++i) {
         auto *editor = qobject_cast<Editor *>(m_tabs->widget(i));
         if (editor && editor->filePath == path) {
@@ -492,7 +754,8 @@ void MainWindow::openFile()
         return;
     }
     const QString content = QString::fromUtf8(file.readAll());
-    newTab(path, content);
+    Editor *editor = newTab(path, content);
+    editor->diskMTime = QFileInfo(path).lastModified().toMSecsSinceEpoch();
 }
 
 bool MainWindow::saveFile()
@@ -525,6 +788,12 @@ bool MainWindow::saveFileAs()
 
 bool MainWindow::writeFile(Editor *editor, const QString &path)
 {
+    if (QFileInfo::exists(path)) {
+        QFile previous(path);
+        if (previous.open(QIODevice::ReadOnly | QIODevice::Text))
+            Session::saveVersion(editor->sessionId, QString::fromUtf8(previous.readAll()));
+    }
+
     QFile file(path);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
         QMessageBox::critical(this, "Erreur", QString("Impossible d'enregistrer le fichier :\n%1").arg(file.errorString()));
@@ -537,6 +806,7 @@ bool MainWindow::writeFile(Editor *editor, const QString &path)
 
     editor->setFilePath(path);
     editor->document()->setModified(false);
+    editor->diskMTime = QFileInfo(path).lastModified().toMSecsSinceEpoch();
 
     Session::TabSnapshot snap;
     snap.id = editor->sessionId;
