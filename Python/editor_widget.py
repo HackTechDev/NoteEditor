@@ -1,10 +1,12 @@
 import uuid
 
-from PyQt6.QtCore import QRect, QSize, Qt
+from PyQt6.QtCore import QRect, QSize, Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import QColor, QFont, QPainter, QTextFormat
 from PyQt6.QtWidgets import QPlainTextEdit, QTextEdit, QWidget
 
 from highlighters import highlighter_class_for
+
+AUTOSAVE_DELAY_MS = 1500
 
 
 class LineNumberArea(QWidget):
@@ -20,12 +22,15 @@ class LineNumberArea(QWidget):
 
 
 class Editor(QPlainTextEdit):
+    autosave_requested = pyqtSignal()
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.file_path = None
         self.default_name = None
         self.highlighter = None
         self.session_id = uuid.uuid4().hex
+        self.disk_mtime = None
 
         font = QFont("Monospace")
         font.setStyleHint(QFont.StyleHint.TypeWriter)
@@ -37,6 +42,12 @@ class Editor(QPlainTextEdit):
         self.blockCountChanged.connect(self.update_line_number_area_width)
         self.updateRequest.connect(self.update_line_number_area)
         self.cursorPositionChanged.connect(self.highlight_current_line)
+
+        self._autosave_timer = QTimer(self)
+        self._autosave_timer.setSingleShot(True)
+        self._autosave_timer.setInterval(AUTOSAVE_DELAY_MS)
+        self._autosave_timer.timeout.connect(self.autosave_requested)
+        self.document().contentsChanged.connect(self._autosave_timer.start)
 
         self.update_line_number_area_width()
         self.highlight_current_line()

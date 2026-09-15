@@ -7,10 +7,14 @@ from PyQt6.QtCore import Qt, QSize, QTimer
 from PyQt6.QtGui import QAction, QKeySequence
 from PyQt6.QtWidgets import (
     QApplication,
+    QComboBox,
     QFileDialog,
     QHBoxLayout,
+    QInputDialog,
     QLabel,
+    QLineEdit,
     QMainWindow,
+    QMenu,
     QMessageBox,
     QSplitter,
     QTabBar,
@@ -24,6 +28,8 @@ import session
 from drafts_browser import DraftsBrowser
 from editor_widget import Editor
 from find_replace import FindReplaceDialog
+from trash_dialog import TrashDialog
+from version_history_dialog import VersionHistoryDialog
 
 
 class _CornerToolButton(QToolButton):
@@ -78,6 +84,12 @@ class MainWindow(QMainWindow):
             """
         )
         self.tabs.currentChanged.connect(self.update_title)
+        self.tabs.currentChanged.connect(self._check_current_external_change)
+        self.tabs.tabBar().setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.tabs.tabBar().customContextMenuRequested.connect(self._show_tab_context_menu)
+
+        self.setAcceptDrops(True)
+        QApplication.instance().applicationStateChanged.connect(self._on_app_state_changed)
 
         # Deux boutons "+" pour le même bouton logique :
         # - new_tab_button : enfant de la barre d'onglets, collé juste après le
@@ -100,14 +112,36 @@ class MainWindow(QMainWindow):
 
         self.drafts_browser = DraftsBrowser()
         self.drafts_browser.open_requested.connect(self._open_draft)
-        self.drafts_browser.delete_requested.connect(self._delete_draft)
+        self.drafts_browser.delete_requested.connect(self._trash_draft)
+        self.drafts_browser.rename_requested.connect(self._rename_draft_entry)
+
+        self.drafts_search = QLineEdit()
+        self.drafts_search.setPlaceholderText("Rechercher...")
+        self.drafts_search.textChanged.connect(self.drafts_browser.set_filter_text)
+
+        self.drafts_sort = QComboBox()
+        self.drafts_sort.addItem("Date", "date")
+        self.drafts_sort.addItem("Nom", "name")
+        self.drafts_sort.currentIndexChanged.connect(
+            lambda i: self.drafts_browser.set_sort_mode(self.drafts_sort.itemData(i))
+        )
+
+        drafts_toolbar = QHBoxLayout()
+        drafts_toolbar.addWidget(self.drafts_search)
+        drafts_toolbar.addWidget(self.drafts_sort)
+
+        self.trash_button = QToolButton()
+        self.trash_button.setText("Corbeille...")
+        self.trash_button.clicked.connect(self._show_trash)
 
         sidebar = QWidget()
         sidebar_layout = QVBoxLayout(sidebar)
         sidebar_layout.setContentsMargins(0, 0, 0, 0)
-        sidebar_layout.setSpacing(0)
+        sidebar_layout.setSpacing(4)
         sidebar_layout.addWidget(QLabel("Brouillons"))
+        sidebar_layout.addLayout(drafts_toolbar)
         sidebar_layout.addWidget(self.drafts_browser)
+        sidebar_layout.addWidget(self.trash_button)
 
         self.splitter = QSplitter()
         self.splitter.addWidget(sidebar)
@@ -215,6 +249,9 @@ class MainWindow(QMainWindow):
         self.about_action = QAction("À &propos...", self)
         self.about_action.triggered.connect(self.show_about)
 
+        self.trash_action = QAction("&Corbeille...", self)
+        self.trash_action.triggered.connect(self._show_trash)
+
     def _create_menu(self):
         menu = self.menuBar()
 
@@ -223,6 +260,8 @@ class MainWindow(QMainWindow):
         file_menu.addAction(self.open_action)
         file_menu.addAction(self.save_action)
         file_menu.addAction(self.save_as_action)
+        file_menu.addSeparator()
+        file_menu.addAction(self.trash_action)
         file_menu.addSeparator()
         file_menu.addAction(self.close_tab_action)
         file_menu.addAction(self.quit_action)
@@ -267,6 +306,7 @@ class MainWindow(QMainWindow):
         editor.default_name = None if file_path else (default_name or self._timestamp_name())
         editor.document().setModified(modified)
         editor.document().modificationChanged.connect(lambda _: self.update_title())
+        editor.autosave_requested.connect(lambda: self._autosave_tab(editor))
 
         label = os.path.basename(file_path) if file_path else editor.default_name
         index = self.tabs.addTab(editor, label)
@@ -350,17 +390,183 @@ class MainWindow(QMainWindow):
             modified=entry.get("modified", True),
         )
 
-    def _delete_draft(self, entry):
+    def _trash_draft(self, entry):
         label = os.path.basename(entry["file_path"]) if entry.get("file_path") else entry.get("default_name") or entry["id"][:8]
         result = QMessageBox.question(
             self,
-            "Supprimer le brouillon",
-            f"Supprimer définitivement « {label} » ? Cette action est irréversible.",
+            "Mettre à la corbeille",
+            f"Mettre « {label} » à la corbeille ?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
         if result == QMessageBox.StandardButton.Yes:
-            session.delete_draft(entry["id"])
+            session.trash_draft(entry["id"])
             self._refresh_drafts_browser()
+
+    def _show_trash(self):
+        dialog = TrashDialog(self)
+        dialog.restored.connect(self._refresh_drafts_browser)
+        dialog.exec()
+
+    def _autosave_tab(self, editor):
+        if self.tabs.indexOf(editor) == -1:
+            return  # l'onglet a été fermé avant que le délai ne s'écoule
+        session.save_draft(
+            {
+                "id": editor.session_id,
+                "file_path": editor.file_path,
+                "default_name": editor.default_name,
+                "modified": editor.document().isModified(),
+                "content": editor.toPlainText(),
+            }
+        )
+
+    def _rename_tab(self, index):
+        editor = self.tabs.widget(index)
+        if editor is None or editor.file_path is not None:
+            return
+        new_name, ok = QInputDialog.getText(self, "Renommer", "Nouveau nom :", text=editor.default_name)
+        new_name = new_name.strip()
+        if not ok or not new_name:
+            return
+        editor.default_name = new_name
+        session.save_draft(
+            {
+                "id": editor.session_id,
+                "file_path": editor.file_path,
+                "default_name": editor.default_name,
+                "modified": editor.document().isModified(),
+                "content": editor.toPlainText(),
+            }
+        )
+        self.update_title()
+        self._refresh_drafts_browser()
+
+    def _rename_draft_entry(self, entry):
+        for i in range(self.tabs.count()):
+            if self.tabs.widget(i).session_id == entry["id"]:
+                self._rename_tab(i)
+                return
+        new_name, ok = QInputDialog.getText(self, "Renommer", "Nouveau nom :", text=entry.get("default_name") or "")
+        new_name = new_name.strip()
+        if not ok or not new_name:
+            return
+        session.rename_draft(entry["id"], new_name)
+        self._refresh_drafts_browser()
+
+    def _duplicate_tab(self, index):
+        editor = self.tabs.widget(index)
+        if editor is None:
+            return
+        self.new_tab(content=editor.toPlainText())
+
+    def _close_other_tabs(self, index):
+        keep = self.tabs.widget(index)
+        for i in reversed(range(self.tabs.count())):
+            if self.tabs.widget(i) is not keep:
+                self.close_tab(i)
+
+    def _close_all_tabs(self):
+        for i in reversed(range(self.tabs.count())):
+            self.close_tab(i)
+
+    def _close_tabs_to_the_right(self, index):
+        for i in reversed(range(index + 1, self.tabs.count())):
+            self.close_tab(i)
+
+    def _show_version_history(self, editor):
+        dialog = VersionHistoryDialog(editor.session_id, self)
+        dialog.restore_requested.connect(lambda content: self._apply_restored_version(editor, content))
+        dialog.exec()
+
+    def _apply_restored_version(self, editor, content):
+        editor.setPlainText(content)
+        editor.document().setModified(True)
+        self.update_title()
+
+    def _show_tab_context_menu(self, pos):
+        bar = self.tabs.tabBar()
+        index = bar.tabAt(pos)
+        if index == -1:
+            return
+        editor = self.tabs.widget(index)
+
+        menu = QMenu(self)
+        close_action = menu.addAction("Fermer")
+        close_others_action = menu.addAction("Fermer les autres")
+        close_right_action = menu.addAction("Fermer à droite")
+        close_right_action.setEnabled(index < self.tabs.count() - 1)
+        close_all_action = menu.addAction("Fermer tout")
+        menu.addSeparator()
+        duplicate_action = menu.addAction("Dupliquer")
+        rename_action = menu.addAction("Renommer...") if editor.file_path is None else None
+        history_action = menu.addAction("Historique des versions...") if session.list_versions(editor.session_id) else None
+
+        chosen = menu.exec(bar.mapToGlobal(pos))
+        if chosen == close_action:
+            self.close_tab(index)
+        elif chosen == close_others_action:
+            self._close_other_tabs(index)
+        elif chosen == close_right_action:
+            self._close_tabs_to_the_right(index)
+        elif chosen == close_all_action:
+            self._close_all_tabs()
+        elif chosen == duplicate_action:
+            self._duplicate_tab(index)
+        elif rename_action is not None and chosen == rename_action:
+            self._rename_tab(index)
+        elif history_action is not None and chosen == history_action:
+            self._show_version_history(editor)
+
+    def _check_current_external_change(self):
+        self._check_external_change(self.current_editor())
+
+    def _on_app_state_changed(self, state):
+        if state == Qt.ApplicationState.ApplicationActive:
+            self._check_current_external_change()
+
+    def _check_external_change(self, editor):
+        if editor is None or not editor.file_path:
+            return
+        try:
+            mtime = os.path.getmtime(editor.file_path)
+        except OSError:
+            return
+        if editor.disk_mtime is None:
+            editor.disk_mtime = mtime
+            return
+        if mtime <= editor.disk_mtime:
+            return
+        editor.disk_mtime = mtime
+        result = QMessageBox.warning(
+            self,
+            "Fichier modifié en dehors de l'éditeur",
+            f"« {os.path.basename(editor.file_path)} » a été modifié par un autre programme.\n"
+            "Voulez-vous recharger son contenu depuis le disque ? "
+            "Les modifications non enregistrées dans cet onglet seront perdues.",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+        if result != QMessageBox.StandardButton.Yes:
+            return
+        try:
+            with open(editor.file_path, "r", encoding="utf-8") as f:
+                content = f.read()
+        except OSError as e:
+            QMessageBox.critical(self, "Erreur", f"Impossible de recharger le fichier :\n{e}")
+            return
+        editor.setPlainText(content)
+        editor.document().setModified(False)
+        self.update_title()
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+
+    def dropEvent(self, event):
+        for url in event.mimeData().urls():
+            path = url.toLocalFile()
+            if path:
+                self._open_path(path)
+        event.acceptProposedAction()
 
     def _make_close_button(self):
         button = QToolButton()
@@ -410,13 +616,18 @@ class MainWindow(QMainWindow):
             return
         active_index = 0
         for i, entry in enumerate(entries):
-            self.new_tab(
+            editor = self.new_tab(
                 file_path=entry.get("file_path"),
                 content=entry.get("content", ""),
                 default_name=entry.get("default_name"),
                 session_id=entry.get("id"),
                 modified=entry.get("modified", False),
             )
+            if entry.get("file_path") and os.path.isfile(entry["file_path"]):
+                try:
+                    editor.disk_mtime = os.path.getmtime(entry["file_path"])
+                except OSError:
+                    pass
             if entry.get("id") == active_id:
                 active_index = i
         self.tabs.setCurrentIndex(active_index)
@@ -438,8 +649,10 @@ class MainWindow(QMainWindow):
 
     def open_file(self):
         path, _ = QFileDialog.getOpenFileName(self, "Ouvrir un fichier", "", "Fichiers texte (*.txt);;Tous les fichiers (*)")
-        if not path:
-            return
+        if path:
+            self._open_path(path)
+
+    def _open_path(self, path):
         for i in range(self.tabs.count()):
             w = self.tabs.widget(i)
             if w.file_path == path:
@@ -451,7 +664,11 @@ class MainWindow(QMainWindow):
         except OSError as e:
             QMessageBox.critical(self, "Erreur", f"Impossible d'ouvrir le fichier :\n{e}")
             return
-        self.new_tab(file_path=path, content=content)
+        editor = self.new_tab(file_path=path, content=content)
+        try:
+            editor.disk_mtime = os.path.getmtime(path)
+        except OSError:
+            pass
 
     def save_file(self):
         editor = self.current_editor()
@@ -474,6 +691,14 @@ class MainWindow(QMainWindow):
         return self._write_file(editor, path)
 
     def _write_file(self, editor, path):
+        if os.path.isfile(path):
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    previous_content = f.read()
+            except OSError:
+                previous_content = None
+            if previous_content is not None:
+                session.save_version(editor.session_id, previous_content)
         try:
             with open(path, "w", encoding="utf-8") as f:
                 f.write(editor.toPlainText())
@@ -482,6 +707,10 @@ class MainWindow(QMainWindow):
             return False
         editor.set_file_path(path)
         editor.document().setModified(False)
+        try:
+            editor.disk_mtime = os.path.getmtime(path)
+        except OSError:
+            pass
         session.save_draft(
             {
                 "id": editor.session_id,
