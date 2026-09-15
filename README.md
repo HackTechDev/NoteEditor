@@ -1,6 +1,9 @@
 # NoteEditor
 
-Éditeur de texte à onglets, écrit en Python avec PyQt6.
+Éditeur de texte à onglets. Deux implémentations équivalentes cohabitent dans ce dépôt et partagent le même format de données (`~/.noteeditor`) :
+
+- **`Python/`** — Python + PyQt6
+- **`Cpp/`** — C++ + Qt6
 
 ## Fonctionnalités
 
@@ -16,18 +19,25 @@
 - Panneau « Brouillons » à gauche : liste tous les onglets dont le contenu a été archivé dans `~/.noteeditor` (ceux actuellement ouverts sont marqués « (ouvert) »), avec l'entrée de l'onglet actif surlignée ; clic pour rouvrir ou basculer dessus, clic droit pour supprimer définitivement
 - Menu Aide → À propos
 
-## Installation
+## Installation et lancement
+
+### Python
 
 ```bash
 cd Python
 pip install -r requirements.txt
+python3 main.py
 ```
 
-## Lancement
+### C++
+
+Nécessite `qt6-base-dev` (fournit les en-têtes et `Qt6Config.cmake`) en plus d'un compilateur C++17 et de CMake.
 
 ```bash
-cd Python
-python3 main.py
+cd Cpp
+cmake -B build
+cmake --build build -j"$(nproc)"
+./build/NoteEditor
 ```
 
 ## Raccourcis clavier
@@ -46,16 +56,16 @@ python3 main.py
 
 ## Structure du projet
 
-Le code Python vit dans `Python/` (d'autres implémentations pourraient un jour rejoindre le dépôt dans leur propre répertoire).
+| Fichier                        | Rôle                                                                     |
+|----------------------------------|-----------------------------------------------------------------------------|
+| `Python/main.py` / `Cpp/MainWindow.*` | Fenêtre principale, gestion des onglets, menus, ouverture/enregistrement |
+| `Python/editor_widget.py` / `Cpp/Editor.*` | Widget d'édition (gouttière de numéros de ligne, ligne courante)   |
+| `Python/highlighters.py` / `Cpp/Highlighters.*` | Coloration syntaxique (Python, JSON, Markdown)                |
+| `Python/find_replace.py` / `Cpp/FindReplaceDialog.*` | Boîte de dialogue de recherche / remplacement           |
+| `Python/session.py` / `Cpp/Session.*` | Sauvegarde et restauration de la session dans `~/.noteeditor`           |
+| `Python/drafts_browser.py` / `Cpp/DraftsBrowser.*` | Panneau latéral listant les brouillons (ouverts et fermés)  |
 
-| Fichier                      | Rôle                                                             |
-|--------------------------------|-------------------------------------------------------------------|
-| `Python/main.py`            | Fenêtre principale, gestion des onglets, menus, ouverture/enregistrement |
-| `Python/editor_widget.py`   | Widget d'édition (gouttière de numéros de ligne, ligne courante)   |
-| `Python/highlighters.py`    | Coloration syntaxique (Python, JSON, Markdown)                    |
-| `Python/find_replace.py`    | Boîte de dialogue de recherche / remplacement                     |
-| `Python/session.py`         | Sauvegarde et restauration de la session dans `~/.noteeditor`     |
-| `Python/drafts_browser.py`  | Panneau latéral listant les brouillons (ouverts et fermés)         |
+Les deux implémentations lisent/écrivent exactement le même format dans `~/.noteeditor` : on peut lancer l'une puis l'autre indifféremment sur la même machine, elles se partagent les onglets ouverts et les brouillons.
 
 ## Session (`~/.noteeditor`)
 

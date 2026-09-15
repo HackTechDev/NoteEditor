@@ -1,2 +1,8 @@
 __pycache__/
 *.pyc
+
+# C++ build output (Cpp/)
+build/
+*.o
+*.moc
+moc_*.cpp
