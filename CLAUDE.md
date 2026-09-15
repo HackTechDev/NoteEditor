@@ -4,11 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-NoteEditor: a tabbed text editor GUI, Python + PyQt6, single-window `QMainWindow` app in `main.py`. No package/build system — it's a flat set of modules imported directly.
+NoteEditor: a tabbed text editor GUI, Python + PyQt6, single-window `QMainWindow` app in `Python/main.py`. No package/build system — it's a flat set of modules imported directly. The Python implementation lives under `Python/`; other language implementations, if any get added, should get their own top-level directory alongside it rather than mixing into the same one.
 
 ## Commands
 
 ```bash
+cd Python
 pip install -r requirements.txt   # only dependency: PyQt6
 python3 main.py                   # run the app
 ```
@@ -19,7 +20,7 @@ There is no test suite, linter, or build step configured. Verify changes by actu
 
 This is a desktop GUI; there's no headless assertion suite to run. Two techniques used throughout development:
 
-- **Offscreen smoke test** (no display needed, safe for functional checks): `QT_QPA_PLATFORM=offscreen python3 -c "import main; app = main.QApplication([]); w = main.MainWindow(); ..."` — drive the API directly (`w.new_tab(...)`, `w.close_tab(...)`, etc.) and assert on state.
+- **Offscreen smoke test** (no display needed, safe for functional checks), run from `Python/`: `QT_QPA_PLATFORM=offscreen python3 -c "import main; app = main.QApplication([]); w = main.MainWindow(); ..."` — drive the API directly (`w.new_tab(...)`, `w.close_tab(...)`, etc.) and assert on state.
 - **Visual check**: render with `widget.grab().save("out.png")` and read the PNG back. This renders the widget's own paint buffer — it is *not* a screen capture and is safe to use even on a real, shared `DISPLAY`.
 - **Never** run a full-screen capture tool (e.g. `import -window root`, `scrot`) against a real `DISPLAY` — if it's the user's actual desktop rather than an isolated virtual one, this captures whatever else is on screen (other windows, private content). Stick to `widget.grab()`.
 - When testing session/draft persistence, always override `HOME` to a scratch directory (`env HOME=/tmp/.../fakehome`). The real `~/.noteeditor` is the user's actual data — never write to it from a test run.

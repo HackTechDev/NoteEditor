@@ -19,12 +19,14 @@
 ## Installation
 
 ```bash
+cd Python
 pip install -r requirements.txt
 ```
 
 ## Lancement
 
 ```bash
+cd Python
 python3 main.py
 ```
 
@@ -44,14 +46,16 @@ python3 main.py
 
 ## Structure du projet
 
-| Fichier             | Rôle                                                             |
-|----------------------|-------------------------------------------------------------------|
-| `main.py`            | Fenêtre principale, gestion des onglets, menus, ouverture/enregistrement |
-| `editor_widget.py`   | Widget d'édition (gouttière de numéros de ligne, ligne courante)   |
-| `highlighters.py`    | Coloration syntaxique (Python, JSON, Markdown)                    |
-| `find_replace.py`    | Boîte de dialogue de recherche / remplacement                     |
-| `session.py`         | Sauvegarde et restauration de la session dans `~/.noteeditor`     |
-| `drafts_browser.py`  | Panneau latéral listant les brouillons (ouverts et fermés)         |
+Le code Python vit dans `Python/` (d'autres implémentations pourraient un jour rejoindre le dépôt dans leur propre répertoire).
+
+| Fichier                      | Rôle                                                             |
+|--------------------------------|-------------------------------------------------------------------|
+| `Python/main.py`            | Fenêtre principale, gestion des onglets, menus, ouverture/enregistrement |
+| `Python/editor_widget.py`   | Widget d'édition (gouttière de numéros de ligne, ligne courante)   |
+| `Python/highlighters.py`    | Coloration syntaxique (Python, JSON, Markdown)                    |
+| `Python/find_replace.py`    | Boîte de dialogue de recherche / remplacement                     |
+| `Python/session.py`         | Sauvegarde et restauration de la session dans `~/.noteeditor`     |
+| `Python/drafts_browser.py`  | Panneau latéral listant les brouillons (ouverts et fermés)         |
 
 ## Session (`~/.noteeditor`)
 
