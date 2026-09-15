@@ -34,25 +34,29 @@ Same responsibilities in both implementations, just named per-language conventio
 | Editor widget (line-number gutter, current-line highlight, `session_id`) | `editor_widget.py` (`Editor`) | `Editor.h/.cpp` |
 | Syntax highlighting (Python/JSON/Markdown, by extension) | `highlighters.py` | `Highlighters.h/.cpp` |
 | Find/replace dialog | `find_replace.py` (`FindReplaceDialog`) | `FindReplaceDialog.h/.cpp` |
-| Drafts sidebar | `drafts_browser.py` (`DraftsBrowser`) | `DraftsBrowser.h/.cpp` |
+| Drafts sidebar (search, sort, rename, trash) | `drafts_browser.py` (`DraftsBrowser`) | `DraftsBrowser.h/.cpp` |
+| Trash (restore / purge) | `trash_dialog.py` (`TrashDialog`) | `TrashDialog.h/.cpp` |
+| Version history (view / restore) | `version_history_dialog.py` (`VersionHistoryDialog`) | `VersionHistoryDialog.h/.cpp` |
 | `~/.noteeditor/` persistence — the only module that touches that directory | `session.py` | `Session.h/.cpp` |
 
 ### The `~/.noteeditor` persistence model
 
-This is the part that spans multiple files and isn't obvious from any single one, in either implementation. Four things live under `~/.noteeditor/`, in a JSON format both implementations read and write identically (they can be pointed at the same home directory interchangeably):
+This is the part that spans multiple files and isn't obvious from any single one, in either implementation. These live under `~/.noteeditor/`, in a JSON format both implementations read and write identically (they can be pointed at the same home directory interchangeably):
 
 - `session.json` — the tabs currently open (file path if any, default name, modified flag) plus which one is active. Read once at startup to restore the window; rewritten wholesale on every quit.
-- `index.json` — accumulated metadata (file path, default name, modified flag) for **every** draft ever seen, keyed by `session_id`. Never pruned automatically — entries only disappear via explicit deletion from the drafts sidebar.
-- `drafts/<session_id>.txt` — the raw text backup for one tab. Written immediately when a tab is created, again when it's closed (if modified), and unconditionally for every open tab when the app quits.
+- `index.json` — accumulated metadata (file path, default name, modified flag) for **every** draft ever seen, keyed by `session_id`. Never pruned automatically — entries only disappear via explicit deletion (trashing) from the drafts sidebar.
+- `drafts/<session_id>.txt` — the raw text backup for one tab. Written immediately when a tab is created, ~1.5s after each keystroke (debounced, see below), when it's closed (if modified), and unconditionally for every open tab when the app quits.
 - `docs/<default_name>.txt` — where `Ctrl+S` lands for a tab that has no real file yet. This is a genuinely saved file, not a backup.
+- `trash/<session_id>.txt` + `trash_index.json` — where a draft's file and metadata move when "trashed" from the sidebar (soft delete). `index.json`'s entry for that id is removed at the same time; restoring reverses both moves.
+- `versions/<session_id>/<timestamp>.txt` — up to the 10 most recent versions of a file, one snapshot taken of whatever was on disk immediately before each overwrite (i.e. it captures pre-save states, not post-save ones). Pruned to the newest 10 on every write.
 
 Key invariant: the `drafts/` backup **never** writes to the user's real file location — only an explicit Save/Save As touches a path outside `~/.noteeditor`. Don't blur this line when adding auto-save behavior.
 
 Every editor tab gets a `session_id` (a random UUID) at construction. That id — not tab index, not file path — is the stable key threading together the open tab, its draft file on disk, its `index.json` entry, and its row in the drafts sidebar. Tab reordering (drag & drop is enabled) never invalidates this.
 
-There is deliberately **no "unsaved changes?" confirmation dialog anywhere** — closing a tab or quitting always archives silently to `drafts/` and proceeds. The drafts sidebar is the safety net that makes this acceptable; don't reintroduce a blocking confirmation without reconsidering that tradeoff.
+There is deliberately **no "unsaved changes?" confirmation dialog anywhere** — closing a tab or quitting always archives silently to `drafts/` and proceeds. The drafts sidebar is the safety net that makes this acceptable; don't reintroduce a blocking confirmation without reconsidering that tradeoff. (Trashing *does* ask for confirmation — that's a deliberate exception, since it removes an entry from `index.json`/the sidebar entirely rather than just archiving silently in the background.)
 
-Sidebar behavior: it lists every draft in `index.json`/on disk, open or closed — currently-open ones get a `(ouvert)` suffix rather than being hidden. Clicking an already-open one switches to it instead of duplicating the tab.
+Sidebar behavior: it lists every draft in `index.json`/on disk, open or closed — currently-open ones get a `(ouvert)` suffix rather than being hidden. Clicking an already-open one switches to it instead of duplicating the tab. Renaming (right-click) only applies to untitled drafts (no `file_path`) — it's rejected/hidden for anything backed by a real file, since renaming *that* would mean either renaming the file on disk or diverging the label from the actual filename, neither of which this feature is meant to do.
 
 ### The tab-bar "+" button
 

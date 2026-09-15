@@ -15,8 +15,13 @@
 - Nouveaux onglets nommés par date/heure (`aammjj_hhmmssmm`)
 - `Ctrl+S` sur un onglet sans fichier associé l'enregistre directement dans `~/.noteeditor/docs/` (sous son nom par défaut), sans ouvrir de boîte de dialogue ; `Ctrl+Shift+S` (Enregistrer sous) permet de choisir un autre emplacement
 - Session persistante : à la fermeture, tous les onglets (contenu, fichier associé, état modifié, onglet actif) sont sauvegardés automatiquement dans `~/.noteeditor` et restaurés tels quels au prochain lancement
-- Chaque onglet est archivé dans `~/.noteeditor` dès sa création, et à nouveau à chaque fermeture (croix ou Ctrl+W, sans demander de confirmation même en cas de modifications non enregistrées)
-- Panneau « Brouillons » à gauche : liste tous les onglets dont le contenu a été archivé dans `~/.noteeditor` (ceux actuellement ouverts sont marqués « (ouvert) »), avec l'entrée de l'onglet actif surlignée ; clic pour rouvrir ou basculer dessus, clic droit pour supprimer définitivement
+- Chaque onglet est archivé dans `~/.noteeditor` dès sa création, et à nouveau en continu pendant la frappe (1,5s après la dernière touche), à sa fermeture (croix ou Ctrl+W, sans confirmation même en cas de modifications non enregistrées) et à la fermeture de l'appli
+- Panneau « Brouillons » à gauche : liste tous les onglets archivés dans `~/.noteeditor` (ouverts marqués « (ouvert) »), avec recherche, tri (date/nom) et l'entrée de l'onglet actif surlignée ; clic pour rouvrir ou basculer dessus, clic droit pour renommer (onglets sans fichier) ou mettre à la corbeille
+- Corbeille : la suppression d'un brouillon est réversible (bouton « Corbeille... » ou menu Fichier), avec restauration ou suppression définitive
+- Historique des versions (10 dernières) : chaque enregistrement archive le contenu précédent du fichier, consultable et restaurable depuis le menu contextuel d'un onglet (clic droit)
+- Menu contextuel sur les onglets (clic droit) : fermer / fermer les autres / fermer à droite / fermer tout, dupliquer, renommer, historique des versions
+- Glisser-déposer un fichier dans la fenêtre pour l'ouvrir dans un nouvel onglet
+- Détection de modification externe : si le fichier ouvert change sur le disque (autre programme), l'appli propose de recharger
 - Menu Aide → À propos
 
 ## Installation et lancement
@@ -64,6 +69,8 @@ cmake --build build -j"$(nproc)"
 | `Python/find_replace.py` / `Cpp/FindReplaceDialog.*` | Boîte de dialogue de recherche / remplacement           |
 | `Python/session.py` / `Cpp/Session.*` | Sauvegarde et restauration de la session dans `~/.noteeditor`           |
 | `Python/drafts_browser.py` / `Cpp/DraftsBrowser.*` | Panneau latéral listant les brouillons (ouverts et fermés)  |
+| `Python/trash_dialog.py` / `Cpp/TrashDialog.*` | Boîte de dialogue de la corbeille (restaurer / supprimer définitivement) |
+| `Python/version_history_dialog.py` / `Cpp/VersionHistoryDialog.*` | Historique des versions d'un onglet     |
 
 Les deux implémentations lisent/écrivent exactement le même format dans `~/.noteeditor` : on peut lancer l'une puis l'autre indifféremment sur la même machine, elles se partagent les onglets ouverts et les brouillons.
 
@@ -73,5 +80,7 @@ Les deux implémentations lisent/écrivent exactement le même format dans `~/.n
 - `~/.noteeditor/index.json` : métadonnées de tous les brouillons jamais sauvegardés (pour l'affichage dans le panneau « Brouillons »)
 - `~/.noteeditor/drafts/` : contenu de chaque onglet, conservé même après la fermeture de son onglet
 - `~/.noteeditor/docs/` : fichiers réels créés par `Ctrl+S` depuis un onglet sans titre
+- `~/.noteeditor/trash/` et `trash_index.json` : brouillons mis à la corbeille (suppression réversible)
+- `~/.noteeditor/versions/<id>/` : les 10 dernières versions d'un fichier avant chaque écrasement par un enregistrement
 
-Cette copie de secours n'écrase jamais le fichier d'origine sur le disque : seul un `Enregistrer` explicite (`Ctrl+S`) modifie le fichier réel (que ce soit dans `~/.noteeditor/docs/` pour un onglet sans titre, ou à l'emplacement d'origine pour un fichier ouvert ailleurs). Les brouillons ne sont supprimés que manuellement, depuis le panneau latéral.
+Cette copie de secours n'écrase jamais le fichier d'origine sur le disque : seul un `Enregistrer` explicite (`Ctrl+S`) modifie le fichier réel (que ce soit dans `~/.noteeditor/docs/` pour un onglet sans titre, ou à l'emplacement d'origine pour un fichier ouvert ailleurs). Les brouillons ne sont supprimés que manuellement, depuis le panneau latéral (et ne le sont alors que déplacés vers la corbeille).

@@ -12,20 +12,23 @@ c'est juste un réservoir d'idées à picorer.
 - **Aperçu Markdown** en volet séparé pour les fichiers `.md`.
 - **Correcteur orthographique** (via `pyspellchecker` ou l'intégration d'un dictionnaire système).
 
-## Onglets et navigation
+## Onglets et navigation — fait ✅
 
-- **Menu contextuel sur les onglets** (clic droit) : fermer les autres, fermer tout, fermer à droite, dupliquer, renommer.
-- **Renommer un onglet/brouillon** sans passer par « Enregistrer sous » — utile pour donner un nom clair aux notes sans titre.
-- **Recherche/filtre dans le panneau Brouillons** (`drafts_browser.py`) quand la liste s'allonge avec l'usage.
-- **Tri du panneau Brouillons** (par date, par nom) plutôt que le seul ordre actuel (date de modification).
-- **Glisser-déposer** un fichier depuis l'explorateur pour l'ouvrir dans un nouvel onglet.
+Implémenté en Python et en C++ :
 
-## Sauvegarde et données
+- Menu contextuel sur les onglets (clic droit) : fermer / fermer les autres / fermer à droite / fermer tout, dupliquer, renommer.
+- Renommer un onglet/brouillon sans passer par « Enregistrer sous » (onglets sans fichier associé uniquement).
+- Recherche et tri (date/nom) dans le panneau Brouillons.
+- Glisser-déposer un fichier depuis l'explorateur pour l'ouvrir dans un nouvel onglet.
 
-- **Sauvegarde automatique continue** pendant la frappe (actuellement, le contenu n'est archivé qu'à la création, la fermeture d'un onglet ou celle de l'appli — une perte de courant en plein milieu d'édition ferait perdre le travail en cours).
-- **Corbeille pour les brouillons supprimés** au lieu d'une suppression définitive immédiate (`session.delete_draft`), avec un délai de grâce ou une confirmation renforcée.
-- **Historique des versions** d'un fichier (garder les N dernières sauvegardes), pour pouvoir revenir en arrière.
-- **Détection de modification externe** : si le fichier ouvert a été modifié par un autre programme entre-temps, prévenir avant d'écraser.
+## Sauvegarde et données — fait ✅
+
+Implémenté en Python et en C++ :
+
+- Sauvegarde automatique continue (1,5s après la dernière frappe) dans `~/.noteeditor/drafts`, plus seulement à la création/fermeture d'un onglet ou de l'appli.
+- Corbeille (`~/.noteeditor/trash`) : la suppression d'un brouillon est réversible, avec une boîte de dialogue pour restaurer ou supprimer définitivement.
+- Historique des versions (`~/.noteeditor/versions`, 10 dernières) : chaque enregistrement archive le contenu précédent du fichier, consultable et restaurable depuis le menu contextuel d'un onglet.
+- Détection de modification externe : si le fichier ouvert change sur le disque, l'appli propose de recharger au changement d'onglet ou au retour au premier plan.
 
 ## Interface
 
