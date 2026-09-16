@@ -4,7 +4,7 @@ import sys
 from datetime import datetime
 
 from PyQt6.QtCore import Qt, QSize, QTimer
-from PyQt6.QtGui import QAction, QKeySequence
+from PyQt6.QtGui import QAction, QIcon, QKeySequence, QPainter, QPen, QPixmap
 from PyQt6.QtWidgets import (
     QApplication,
     QComboBox,
@@ -16,9 +16,11 @@ from PyQt6.QtWidgets import (
     QMainWindow,
     QMenu,
     QMessageBox,
+    QPlainTextEdit,
     QSplitter,
     QTabBar,
     QTabWidget,
+    QToolBar,
     QToolButton,
     QVBoxLayout,
     QWidget,
@@ -30,6 +32,30 @@ from editor_widget import Editor
 from find_replace import FindReplaceDialog
 from trash_dialog import TrashDialog
 from version_history_dialog import VersionHistoryDialog
+
+
+def _word_wrap_icon():
+    """Dessine une icône « lignes qui reviennent à la ligne » : pas de fichier
+    externe à embarquer, cohérent avec les autres icônes de l'appli (+, ✕),
+    de simples glyphes dessinés/textuels plutôt que des assets."""
+    pixmap = QPixmap(22, 22)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    pen = QPen(Qt.GlobalColor.darkGray)
+    pen.setWidth(2)
+    pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+    painter.setPen(pen)
+    painter.drawLine(3, 5, 19, 5)
+    painter.drawLine(3, 11, 19, 11)
+    painter.drawLine(3, 17, 13, 17)
+    # petite flèche de retour à la ligne, à la fin de la 2e ligne
+    painter.drawLine(19, 11, 19, 16)
+    painter.drawLine(19, 16, 15, 16)
+    painter.drawLine(15, 16, 17, 14)
+    painter.drawLine(15, 16, 17, 18)
+    painter.end()
+    return QIcon(pixmap)
 
 
 class _CornerToolButton(QToolButton):
@@ -152,9 +178,11 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.splitter)
 
         self.find_dialog = FindReplaceDialog(self)
+        self.word_wrap_enabled = True
 
         self._create_actions()
         self._create_menu()
+        self._create_toolbar()
 
         self.statusBar()
         self._restore_session()
@@ -252,6 +280,23 @@ class MainWindow(QMainWindow):
         self.trash_action = QAction("&Corbeille...", self)
         self.trash_action.triggered.connect(self._show_trash)
 
+        self.word_wrap_action = QAction(_word_wrap_icon(), "Retour automatique à la ligne", self)
+        self.word_wrap_action.setCheckable(True)
+        self.word_wrap_action.setChecked(True)
+        self.word_wrap_action.toggled.connect(self._set_word_wrap)
+
+    def _create_toolbar(self):
+        toolbar = QToolBar("Barre d'outils", self)
+        toolbar.setMovable(False)
+        toolbar.addAction(self.word_wrap_action)
+        self.addToolBar(toolbar)
+
+    def _set_word_wrap(self, enabled):
+        self.word_wrap_enabled = enabled
+        mode = QPlainTextEdit.LineWrapMode.WidgetWidth if enabled else QPlainTextEdit.LineWrapMode.NoWrap
+        for i in range(self.tabs.count()):
+            self.tabs.widget(i).setLineWrapMode(mode)
+
     def _create_menu(self):
         menu = self.menuBar()
 
@@ -307,6 +352,9 @@ class MainWindow(QMainWindow):
         editor.document().setModified(modified)
         editor.document().modificationChanged.connect(lambda _: self.update_title())
         editor.autosave_requested.connect(lambda: self._autosave_tab(editor))
+        editor.setLineWrapMode(
+            QPlainTextEdit.LineWrapMode.WidgetWidth if self.word_wrap_enabled else QPlainTextEdit.LineWrapMode.NoWrap
+        )
 
         label = os.path.basename(file_path) if file_path else editor.default_name
         index = self.tabs.addTab(editor, label)
