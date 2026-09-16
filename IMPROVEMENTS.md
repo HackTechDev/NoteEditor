@@ -33,7 +33,7 @@ Implémenté en Python et en C++ :
 ## Interface
 
 - **Thème sombre**, avec bascule manuelle ou suivi du thème système — les couleurs sont actuellement pensées uniquement pour un fond clair (`highlighters.py`, styles des onglets).
-- **Barre de statut enrichie** : position ligne/colonne, nombre de mots/caractères, encodage.
+- ~~**Barre de statut enrichie** : position ligne/colonne, nombre de mots/caractères, encodage.~~ — fait ✅ (Python et C++)
 - **Palette de commandes** (`Ctrl+Maj+P`) pour retrouver rapidement une action sans fouiller les menus.
 - **Redimensionnement mémorisé** : retenir la taille de la fenêtre et la position du séparateur du panneau latéral d'une session à l'autre.
 

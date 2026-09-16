@@ -23,6 +23,7 @@
 - Menu contextuel sur les onglets (clic droit) : fermer / fermer les autres / fermer à droite / fermer tout, dupliquer, renommer, historique des versions
 - Glisser-déposer un fichier dans la fenêtre pour l'ouvrir dans un nouvel onglet
 - Détection de modification externe : si le fichier ouvert change sur le disque (autre programme), l'appli propose de recharger
+- Barre de statut : position ligne/colonne, nombre de mots/caractères et encodage (UTF-8) de l'onglet actif
 - Menu Aide → À propos
 
 ## Installation et lancement
