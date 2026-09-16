@@ -178,6 +178,16 @@ class MainWindow(QMainWindow):
         self.splitter.setSizes([180, 720])
         self.setCentralWidget(self.splitter)
 
+        window_state = session.load_window_state()
+        if window_state:
+            width = window_state.get("width")
+            height = window_state.get("height")
+            if width and height:
+                self.resize(width, height)
+            sizes = window_state.get("splitter_sizes")
+            if sizes:
+                self.splitter.setSizes(sizes)
+
         self.find_dialog = FindReplaceDialog(self)
         self.word_wrap_enabled = True
 
@@ -843,6 +853,7 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event):
         self._save_session()
+        session.save_window_state(self.width(), self.height(), self.splitter.sizes())
         event.accept()
 
     def resizeEvent(self, event):

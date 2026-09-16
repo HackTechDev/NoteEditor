@@ -10,6 +10,7 @@ VERSIONS_DIR = os.path.join(CONFIG_DIR, "versions")
 SESSION_FILE = os.path.join(CONFIG_DIR, "session.json")
 INDEX_FILE = os.path.join(CONFIG_DIR, "index.json")
 TRASH_INDEX_FILE = os.path.join(CONFIG_DIR, "trash_index.json")
+WINDOW_FILE = os.path.join(CONFIG_DIR, "window.json")
 
 MAX_VERSIONS = 10
 
@@ -268,3 +269,20 @@ def read_version(draft_id, stamp):
     path = os.path.join(VERSIONS_DIR, draft_id, stamp + ".txt")
     with open(path, "r", encoding="utf-8") as f:
         return f.read()
+
+
+def save_window_state(width, height, splitter_sizes):
+    """Persists the window size and sidebar-splitter position across launches."""
+    os.makedirs(CONFIG_DIR, exist_ok=True)
+    with open(WINDOW_FILE, "w", encoding="utf-8") as f:
+        json.dump(
+            {"width": width, "height": height, "splitter_sizes": list(splitter_sizes)},
+            f,
+            ensure_ascii=False,
+            indent=2,
+        )
+
+
+def load_window_state():
+    """Returns {"width", "height", "splitter_sizes"} or None if never saved."""
+    return _load_json(WINDOW_FILE, None)
