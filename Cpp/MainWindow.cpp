@@ -203,6 +203,13 @@ MainWindow::MainWindow(QWidget *parent)
     m_splitter->setSizes({180, 720});
     setCentralWidget(m_splitter);
 
+    const Session::WindowState windowState = Session::loadWindowState();
+    if (windowState.valid) {
+        resize(windowState.width, windowState.height);
+        if (!windowState.splitterSizes.isEmpty())
+            m_splitter->setSizes(windowState.splitterSizes);
+    }
+
     m_findDialog = new FindReplaceDialog(this);
 
     createActions();
@@ -965,6 +972,7 @@ void MainWindow::saveSessionToDisk()
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     saveSessionToDisk();
+    Session::saveWindowState(width(), height(), m_splitter->sizes());
     event->accept();
 }
 

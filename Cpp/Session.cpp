@@ -57,6 +57,11 @@ static QString trashIndexFile()
     return configDir() + "/trash_index.json";
 }
 
+static QString windowFile()
+{
+    return configDir() + "/window.json";
+}
+
 static QJsonValue toJsonOrNull(const QString &s)
 {
     return s.isEmpty() ? QJsonValue(QJsonValue::Null) : QJsonValue(s);
@@ -351,6 +356,38 @@ QString readVersion(const QString &draftId, const QString &stamp)
     if (!f.open(QIODevice::ReadOnly))
         return QString();
     return QString::fromUtf8(f.readAll());
+}
+
+void saveWindowState(int width, int height, const QList<int> &splitterSizes)
+{
+    QDir().mkpath(configDir());
+    QJsonObject obj;
+    obj["width"] = width;
+    obj["height"] = height;
+    QJsonArray sizesArray;
+    for (int s : splitterSizes)
+        sizesArray.append(s);
+    obj["splitter_sizes"] = sizesArray;
+    writeJsonObject(windowFile(), obj);
+}
+
+WindowState loadWindowState()
+{
+    WindowState state;
+    QFile f(windowFile());
+    if (!f.open(QIODevice::ReadOnly))
+        return state;
+    const QJsonDocument doc = QJsonDocument::fromJson(f.readAll());
+    if (!doc.isObject())
+        return state;
+
+    const QJsonObject obj = doc.object();
+    state.width = obj.value("width").toInt(0);
+    state.height = obj.value("height").toInt(0);
+    for (const QJsonValue &v : obj.value("splitter_sizes").toArray())
+        state.splitterSizes.append(v.toInt());
+    state.valid = state.width > 0 && state.height > 0;
+    return state;
 }
 
 } // namespace Session

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QList>
 #include <QString>
 #include <QStringList>
 #include <QVector>
@@ -33,6 +34,15 @@ struct TrashEntry {
     QString filePath;
     QString defaultName;
     QString deletedAt; // ISO 8601, empty if unknown
+};
+
+// The window size and sidebar-splitter position, as read back from
+// window.json. `valid` is false when nothing has ever been saved (first run).
+struct WindowState {
+    int width = 0;
+    int height = 0;
+    QList<int> splitterSizes;
+    bool valid = false;
 };
 
 QString configDir();
@@ -83,5 +93,10 @@ void saveVersion(const QString &draftId, const QString &content);
 QStringList listVersions(const QString &draftId);
 
 QString readVersion(const QString &draftId, const QString &stamp);
+
+// Persists the window size and sidebar-splitter position across launches.
+void saveWindowState(int width, int height, const QList<int> &splitterSizes);
+
+WindowState loadWindowState();
 
 } // namespace Session
