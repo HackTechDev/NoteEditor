@@ -10,6 +10,9 @@ class DraftsBrowser(QListWidget):
     open_requested = pyqtSignal(dict)
     delete_requested = pyqtSignal(dict)
     rename_requested = pyqtSignal(dict)
+    # Actions partagées avec le menu contextuel des onglets : "close",
+    # "close_others", "close_right", "close_all", "duplicate", "history".
+    action_requested = pyqtSignal(str, dict)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -70,13 +73,45 @@ class DraftsBrowser(QListWidget):
         if item is None:
             return
         entry = item.data(Qt.ItemDataRole.UserRole)
+        is_open = entry["id"] in self._open_ids
+        has_history = bool(session.list_versions(entry["id"]))
+
         menu = QMenu(self)
         rename_action = None
         if not entry.get("file_path"):
             rename_action = menu.addAction("Renommer...")
+        menu.addSeparator()
+
+        close_action = menu.addAction("Fermer")
+        close_action.setEnabled(is_open)
+        close_others_action = menu.addAction("Fermer les autres")
+        close_others_action.setEnabled(is_open)
+        close_right_action = menu.addAction("Fermer à droite")
+        close_right_action.setEnabled(is_open)
+        close_all_action = menu.addAction("Fermer tout")
+        menu.addSeparator()
+
+        duplicate_action = menu.addAction("Dupliquer")
+        history_action = menu.addAction("Historique des versions...")
+        history_action.setEnabled(has_history)
+        menu.addSeparator()
+
         delete_action = menu.addAction("Mettre à la corbeille")
+
         chosen = menu.exec(self.mapToGlobal(pos))
         if chosen == delete_action:
             self.delete_requested.emit(entry)
         elif rename_action is not None and chosen == rename_action:
             self.rename_requested.emit(entry)
+        elif chosen == close_action:
+            self.action_requested.emit("close", entry)
+        elif chosen == close_others_action:
+            self.action_requested.emit("close_others", entry)
+        elif chosen == close_right_action:
+            self.action_requested.emit("close_right", entry)
+        elif chosen == close_all_action:
+            self.action_requested.emit("close_all", entry)
+        elif chosen == duplicate_action:
+            self.action_requested.emit("duplicate", entry)
+        elif chosen == history_action:
+            self.action_requested.emit("history", entry)

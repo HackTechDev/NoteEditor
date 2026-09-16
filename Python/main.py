@@ -169,6 +169,7 @@ class MainWindow(QMainWindow):
         self.drafts_browser.open_requested.connect(self._open_draft)
         self.drafts_browser.delete_requested.connect(self._trash_draft)
         self.drafts_browser.rename_requested.connect(self._rename_draft_entry)
+        self.drafts_browser.action_requested.connect(self._handle_drafts_context_action)
 
         self.drafts_search = QLineEdit()
         self.drafts_search.setPlaceholderText("Rechercher...")
@@ -604,6 +605,43 @@ class MainWindow(QMainWindow):
         editor.setPlainText(content)
         editor.document().setModified(True)
         self.update_title()
+
+    def _tab_index_for_id(self, draft_id):
+        for i in range(self.tabs.count()):
+            if self.tabs.widget(i).session_id == draft_id:
+                return i
+        return None
+
+    def _duplicate_draft_entry(self, entry):
+        index = self._tab_index_for_id(entry.get("id"))
+        if index is not None:
+            self._duplicate_tab(index)
+            return
+        self.new_tab(content=session.read_draft(entry["id"]))
+
+    def _show_version_history_for_entry(self, entry):
+        self._open_draft(entry)
+        index = self._tab_index_for_id(entry.get("id"))
+        if index is not None:
+            self._show_version_history(self.tabs.widget(index))
+
+    def _handle_drafts_context_action(self, action, entry):
+        index = self._tab_index_for_id(entry.get("id"))
+        if action == "close":
+            if index is not None:
+                self.close_tab(index)
+        elif action == "close_others":
+            if index is not None:
+                self._close_other_tabs(index)
+        elif action == "close_right":
+            if index is not None:
+                self._close_tabs_to_the_right(index)
+        elif action == "close_all":
+            self._close_all_tabs()
+        elif action == "duplicate":
+            self._duplicate_draft_entry(entry)
+        elif action == "history":
+            self._show_version_history_for_entry(entry)
 
     def _show_tab_context_menu(self, pos):
         bar = self.tabs.tabBar()
