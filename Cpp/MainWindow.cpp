@@ -29,11 +29,14 @@
 #include <QPen>
 #include <QPixmap>
 #include <QPlainTextEdit>
+#include <QRegularExpression>
 #include <QResizeEvent>
 #include <QSplitter>
+#include <QStatusBar>
 #include <QStringConverter>
 #include <QTabBar>
 #include <QTabWidget>
+#include <QTextCursor>
 #include <QTextStream>
 #include <QTimer>
 #include <QToolBar>
@@ -140,6 +143,7 @@ MainWindow::MainWindow(QWidget *parent)
     )");
     connect(m_tabs, &QTabWidget::currentChanged, this, &MainWindow::updateTitle);
     connect(m_tabs, &QTabWidget::currentChanged, this, &MainWindow::checkCurrentExternalChange);
+    connect(m_tabs, &QTabWidget::currentChanged, this, &MainWindow::updateStatusBar);
     m_tabs->tabBar()->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(m_tabs->tabBar(), &QTabBar::customContextMenuRequested, this, &MainWindow::showTabContextMenu);
 
@@ -204,8 +208,8 @@ MainWindow::MainWindow(QWidget *parent)
     createActions();
     createMenu();
     createToolBar();
+    createStatusBar();
 
-    statusBar();
     restoreSession();
 }
 
@@ -310,6 +314,43 @@ void MainWindow::setWordWrap(bool enabled)
     }
 }
 
+void MainWindow::createStatusBar()
+{
+    m_statusPosition = new QLabel(this);
+    m_statusCounts = new QLabel(this);
+    m_statusEncoding = new QLabel("UTF-8", this);
+    QStatusBar *bar = statusBar();
+    bar->addPermanentWidget(m_statusPosition);
+    bar->addPermanentWidget(m_statusCounts);
+    bar->addPermanentWidget(m_statusEncoding);
+    updateStatusBar();
+}
+
+void MainWindow::updateStatusBar()
+{
+    Editor *editor = currentEditor();
+    if (!editor) {
+        m_statusPosition->setText(QString());
+        m_statusCounts->setText(QString());
+        m_statusEncoding->setText(QString());
+        return;
+    }
+
+    const QTextCursor cursor = editor->textCursor();
+    const int line = cursor.blockNumber() + 1;
+    const int col = cursor.columnNumber() + 1;
+    m_statusPosition->setText(QString("Ligne %1, Colonne %2").arg(line).arg(col));
+
+    const QString text = editor->toPlainText();
+    const int words = static_cast<int>(text.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts).size());
+    const int chars = static_cast<int>(text.size());
+    const QString wordLabel = words <= 1 ? "mot" : "mots";
+    const QString charLabel = chars <= 1 ? "caractère" : "caractères";
+    m_statusCounts->setText(QString("%1 %2, %3 %4").arg(words).arg(wordLabel).arg(chars).arg(charLabel));
+
+    m_statusEncoding->setText("UTF-8");
+}
+
 void MainWindow::createMenu()
 {
     QMenuBar *menu = menuBar();
@@ -371,6 +412,8 @@ Editor *MainWindow::newTab(const QString &filePath, const QString &content, cons
     connect(editor->document(), &QTextDocument::modificationChanged, this, [this](bool) { updateTitle(); });
     connect(editor, &Editor::autosaveRequested, this, [this, editor] { autosaveTab(editor); });
     editor->setLineWrapMode(m_wordWrapEnabled ? QPlainTextEdit::WidgetWidth : QPlainTextEdit::NoWrap);
+    connect(editor, &QPlainTextEdit::cursorPositionChanged, this, &MainWindow::updateStatusBar);
+    connect(editor, &QPlainTextEdit::textChanged, this, &MainWindow::updateStatusBar);
 
     const QString label = !filePath.isEmpty() ? QFileInfo(filePath).fileName() : editor->defaultName;
     const int index = m_tabs->addTab(editor, label);

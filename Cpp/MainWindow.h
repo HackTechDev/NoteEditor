@@ -14,6 +14,7 @@ class QAction;
 class QComboBox;
 class QDragEnterEvent;
 class QDropEvent;
+class QLabel;
 class QLineEdit;
 class QSplitter;
 class QTabWidget;
@@ -71,11 +72,13 @@ private slots:
     void checkCurrentExternalChange();
     void onAppStateChanged(Qt::ApplicationState state);
     void setWordWrap(bool enabled);
+    void updateStatusBar();
 
 private:
     void createActions();
     void createMenu();
     void createToolBar();
+    void createStatusBar();
     QToolButton *buildNewTabButton(QWidget *parent);
     QWidget *makeCloseButton();
     void closeTabByButton(QToolButton *button);
@@ -108,6 +111,9 @@ private:
     QToolButton *m_trashButton;
     QSplitter *m_splitter;
     FindReplaceDialog *m_findDialog;
+    QLabel *m_statusPosition;
+    QLabel *m_statusCounts;
+    QLabel *m_statusEncoding;
 
     QAction *m_newAction;
     QAction *m_openAction;
