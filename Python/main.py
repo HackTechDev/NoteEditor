@@ -90,6 +90,33 @@ def _new_note_icon():
     return QIcon(pixmap)
 
 
+def _open_icon():
+    """Dessine une icône « dossier » classique, dans le même esprit que
+    _new_note_icon() / _save_icon() : glyphes dessinés, pas de fichier
+    externe."""
+    pixmap = QPixmap(22, 22)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    pen = QPen(Qt.GlobalColor.darkGray)
+    pen.setWidth(2)
+    pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+    painter.setPen(pen)
+    folder = QPolygon(
+        [
+            QPoint(2, 6),
+            QPoint(9, 6),
+            QPoint(11, 8),
+            QPoint(20, 8),
+            QPoint(20, 18),
+            QPoint(2, 18),
+        ]
+    )
+    painter.drawPolygon(folder)
+    painter.end()
+    return QIcon(pixmap)
+
+
 def _save_icon():
     """Dessine une icône « disquette » classique, dans le même esprit que
     _word_wrap_icon() : glyphes dessinés, pas de fichier externe."""
@@ -290,7 +317,7 @@ class MainWindow(QMainWindow):
         self.new_action.setShortcut(QKeySequence.StandardKey.New)
         self.new_action.triggered.connect(lambda: self.new_tab())
 
-        self.open_action = QAction("&Ouvrir...", self)
+        self.open_action = QAction(_open_icon(), "&Ouvrir...", self)
         self.open_action.setShortcut(QKeySequence.StandardKey.Open)
         self.open_action.triggered.connect(self.open_file)
 
@@ -361,6 +388,7 @@ class MainWindow(QMainWindow):
         toolbar = QToolBar("Barre d'outils", self)
         toolbar.setMovable(False)
         toolbar.addAction(self.new_action)
+        toolbar.addAction(self.open_action)
         toolbar.addAction(self.save_action)
         toolbar.addSeparator()
         toolbar.addAction(self.word_wrap_action)

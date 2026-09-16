@@ -122,6 +122,31 @@ QIcon newNoteIcon()
     return QIcon(pixmap);
 }
 
+// Dessine une icône « dossier » classique, dans le même esprit que
+// newNoteIcon() / saveIcon() : glyphes dessinés, pas de fichier externe.
+QIcon openIcon()
+{
+    QPixmap pixmap(22, 22);
+    pixmap.fill(Qt::transparent);
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+    QPen pen(Qt::darkGray);
+    pen.setWidth(2);
+    pen.setJoinStyle(Qt::RoundJoin);
+    painter.setPen(pen);
+    const QPolygon folder({
+        QPoint(2, 6),
+        QPoint(9, 6),
+        QPoint(11, 8),
+        QPoint(20, 8),
+        QPoint(20, 18),
+        QPoint(2, 18),
+    });
+    painter.drawPolygon(folder);
+    painter.end();
+    return QIcon(pixmap);
+}
+
 // Dessine une icône « disquette » classique, dans le même esprit que
 // wordWrapIcon() : glyphes dessinés, pas de fichier externe.
 QIcon saveIcon()
@@ -294,7 +319,7 @@ void MainWindow::createActions()
     m_newAction->setShortcut(QKeySequence::New);
     connect(m_newAction, &QAction::triggered, this, [this] { newTab(); });
 
-    m_openAction = new QAction("&Ouvrir...", this);
+    m_openAction = new QAction(openIcon(), "&Ouvrir...", this);
     m_openAction->setShortcut(QKeySequence::Open);
     connect(m_openAction, &QAction::triggered, this, &MainWindow::openFile);
 
@@ -367,6 +392,7 @@ void MainWindow::createToolBar()
     auto *toolbar = new QToolBar("Barre d'outils", this);
     toolbar->setMovable(false);
     toolbar->addAction(m_newAction);
+    toolbar->addAction(m_openAction);
     toolbar->addAction(m_saveAction);
     toolbar->addSeparator();
     toolbar->addAction(m_wordWrapAction);
