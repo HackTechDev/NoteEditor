@@ -170,7 +170,7 @@ QSize CornerToolButton::sizeHint() const
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-    setWindowTitle("Éditeur de texte");
+    setWindowTitle("Éditeur de note");
     resize(900, 650);
 
     m_tabs = new QTabWidget(this);
@@ -457,8 +457,8 @@ void MainWindow::createMenu()
 void MainWindow::showAbout()
 {
     QMessageBox::about(this, "À propos",
-        "<h3>Éditeur de texte</h3>"
-        "<p>Éditeur de texte à onglets écrit en C++ avec Qt6.</p>"
+        "<h3>Éditeur de note</h3>"
+        "<p>Éditeur de note à onglets écrit en C++ avec Qt6.</p>"
         "<p>Numéros de ligne, coloration syntaxique, recherche/remplacement "
         "et restauration automatique de session.</p>");
 }
@@ -940,13 +940,13 @@ void MainWindow::updateTitle()
 {
     Editor *editor = currentEditor();
     if (!editor) {
-        setWindowTitle("Éditeur de texte");
+        setWindowTitle("Éditeur de note");
         highlightActiveDraft();
         return;
     }
     const int index = m_tabs->currentIndex();
     m_tabs->setTabText(index, tabLabel(editor));
-    setWindowTitle(tabLabel(editor) + " — Éditeur de texte");
+    setWindowTitle(tabLabel(editor) + " — Éditeur de note");
     highlightActiveDraft();
 }
 

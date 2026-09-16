@@ -138,7 +138,7 @@ class _CornerToolButton(QToolButton):
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Éditeur de texte")
+        self.setWindowTitle("Éditeur de note")
         self.resize(900, 650)
 
         self.tabs = QTabWidget()
