@@ -28,6 +28,9 @@ signals:
     void openRequested(const Session::DraftEntry &entry);
     void deleteRequested(const Session::DraftEntry &entry);
     void renameRequested(const Session::DraftEntry &entry);
+    // Actions shared with the tab context menu: "close", "close_others",
+    // "close_right", "close_all", "duplicate", "history".
+    void actionRequested(const QString &action, const Session::DraftEntry &entry);
 
 private slots:
     void emitOpen(QListWidgetItem *item);

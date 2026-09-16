@@ -91,13 +91,44 @@ void DraftsBrowser::showContextMenu(const QPoint &pos)
     if (!m_entriesById.contains(id))
         return;
     const Session::DraftEntry entry = m_entriesById.value(id);
+    const bool isOpen = m_openIds.contains(entry.id);
+    const bool hasHistory = !Session::listVersions(entry.id).isEmpty();
 
     QMenu menu(this);
     QAction *renameAction = entry.filePath.isEmpty() ? menu.addAction("Renommer...") : nullptr;
+    menu.addSeparator();
+
+    QAction *closeAction = menu.addAction("Fermer");
+    closeAction->setEnabled(isOpen);
+    QAction *closeOthersAction = menu.addAction("Fermer les autres");
+    closeOthersAction->setEnabled(isOpen);
+    QAction *closeRightAction = menu.addAction("Fermer à droite");
+    closeRightAction->setEnabled(isOpen);
+    QAction *closeAllAction = menu.addAction("Fermer tout");
+    menu.addSeparator();
+
+    QAction *duplicateAction = menu.addAction("Dupliquer");
+    QAction *historyAction = menu.addAction("Historique des versions...");
+    historyAction->setEnabled(hasHistory);
+    menu.addSeparator();
+
     QAction *deleteAction = menu.addAction("Mettre à la corbeille");
+
     QAction *chosen = menu.exec(mapToGlobal(pos));
     if (chosen == deleteAction)
         emit deleteRequested(entry);
     else if (renameAction && chosen == renameAction)
         emit renameRequested(entry);
+    else if (chosen == closeAction)
+        emit actionRequested("close", entry);
+    else if (chosen == closeOthersAction)
+        emit actionRequested("close_others", entry);
+    else if (chosen == closeRightAction)
+        emit actionRequested("close_right", entry);
+    else if (chosen == closeAllAction)
+        emit actionRequested("close_all", entry);
+    else if (chosen == duplicateAction)
+        emit actionRequested("duplicate", entry);
+    else if (chosen == historyAction)
+        emit actionRequested("history", entry);
 }

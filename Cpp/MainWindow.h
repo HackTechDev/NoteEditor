@@ -73,6 +73,7 @@ private slots:
     void onAppStateChanged(Qt::ApplicationState state);
     void setWordWrap(bool enabled);
     void updateStatusBar();
+    void handleDraftsContextAction(const QString &action, const Session::DraftEntry &entry);
 
 private:
     void createActions();
@@ -101,6 +102,9 @@ private:
     void showVersionHistory(Editor *editor);
     void applyRestoredVersion(Editor *editor, const QString &content);
     void checkExternalChange(Editor *editor);
+    int tabIndexForId(const QString &draftId) const;
+    void duplicateDraftEntry(const Session::DraftEntry &entry);
+    void showVersionHistoryForEntry(const Session::DraftEntry &entry);
 
     QTabWidget *m_tabs;
     QToolButton *m_newTabButton;

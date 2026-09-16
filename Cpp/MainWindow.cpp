@@ -194,6 +194,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_draftsBrowser, &DraftsBrowser::openRequested, this, &MainWindow::openDraft);
     connect(m_draftsBrowser, &DraftsBrowser::deleteRequested, this, &MainWindow::trashDraftEntry);
     connect(m_draftsBrowser, &DraftsBrowser::renameRequested, this, &MainWindow::renameDraftEntry);
+    connect(m_draftsBrowser, &DraftsBrowser::actionRequested, this, &MainWindow::handleDraftsContextAction);
 
     m_draftsSearch = new QLineEdit(this);
     m_draftsSearch->setPlaceholderText("Rechercher...");
@@ -679,6 +680,57 @@ void MainWindow::renameDraftEntry(const Session::DraftEntry &entry)
         return;
     Session::renameDraft(entry.id, newName);
     refreshDraftsBrowser();
+}
+
+int MainWindow::tabIndexForId(const QString &draftId) const
+{
+    for (int i = 0; i < m_tabs->count(); ++i) {
+        auto *editor = qobject_cast<Editor *>(m_tabs->widget(i));
+        if (editor && editor->sessionId == draftId)
+            return i;
+    }
+    return -1;
+}
+
+void MainWindow::duplicateDraftEntry(const Session::DraftEntry &entry)
+{
+    const int index = tabIndexForId(entry.id);
+    if (index != -1) {
+        duplicateTab(index);
+        return;
+    }
+    newTab(QString(), Session::readDraft(entry.id));
+}
+
+void MainWindow::showVersionHistoryForEntry(const Session::DraftEntry &entry)
+{
+    openDraft(entry);
+    const int index = tabIndexForId(entry.id);
+    if (index != -1) {
+        if (auto *editor = qobject_cast<Editor *>(m_tabs->widget(index)))
+            showVersionHistory(editor);
+    }
+}
+
+void MainWindow::handleDraftsContextAction(const QString &action, const Session::DraftEntry &entry)
+{
+    const int index = tabIndexForId(entry.id);
+    if (action == "close") {
+        if (index != -1)
+            closeTab(index);
+    } else if (action == "close_others") {
+        if (index != -1)
+            closeOtherTabs(index);
+    } else if (action == "close_right") {
+        if (index != -1)
+            closeTabsToTheRight(index);
+    } else if (action == "close_all") {
+        closeAllTabs();
+    } else if (action == "duplicate") {
+        duplicateDraftEntry(entry);
+    } else if (action == "history") {
+        showVersionHistoryForEntry(entry);
+    }
 }
 
 void MainWindow::duplicateTab(int index)
