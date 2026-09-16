@@ -49,6 +49,7 @@ This is the part that spans multiple files and isn't obvious from any single one
 - `docs/<default_name>.txt` — where `Ctrl+S` lands for a tab that has no real file yet. This is a genuinely saved file, not a backup.
 - `trash/<session_id>.txt` + `trash_index.json` — where a draft's file and metadata move when "trashed" from the sidebar (soft delete). `index.json`'s entry for that id is removed at the same time; restoring reverses both moves.
 - `versions/<session_id>/<timestamp>.txt` — up to the 10 most recent versions of a file, one snapshot taken of whatever was on disk immediately before each overwrite (i.e. it captures pre-save states, not post-save ones). Pruned to the newest 10 on every write.
+- `window.json` — the last window size and sidebar-splitter position, saved in `closeEvent()` and applied at construction time (before the tab session is restored). Unlike everything else above, this is a UI preference, not document data — it's the only thing in `~/.noteeditor/` that isn't keyed by `session_id`.
 
 Key invariant: the `drafts/` backup **never** writes to the user's real file location — only an explicit Save/Save As touches a path outside `~/.noteeditor`. Don't blur this line when adding auto-save behavior.
 
