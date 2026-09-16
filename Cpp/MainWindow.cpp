@@ -28,6 +28,7 @@
 #include <QPainter>
 #include <QPen>
 #include <QPixmap>
+#include <QPolygon>
 #include <QPlainTextEdit>
 #include <QRegularExpression>
 #include <QResizeEvent>
@@ -87,6 +88,33 @@ QIcon wordWrapIcon()
     painter.drawLine(19, 16, 15, 16);
     painter.drawLine(15, 16, 17, 14);
     painter.drawLine(15, 16, 17, 18);
+    painter.end();
+    return QIcon(pixmap);
+}
+
+// Dessine une icône « disquette » classique, dans le même esprit que
+// wordWrapIcon() : glyphes dessinés, pas de fichier externe.
+QIcon saveIcon()
+{
+    QPixmap pixmap(22, 22);
+    pixmap.fill(Qt::transparent);
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+    QPen pen(Qt::darkGray);
+    pen.setWidth(2);
+    pen.setJoinStyle(Qt::RoundJoin);
+    painter.setPen(pen);
+    // corps de la disquette, coin supérieur droit coupé
+    const QPolygon body({
+        QPoint(3, 3),
+        QPoint(16, 3),
+        QPoint(19, 6),
+        QPoint(19, 19),
+        QPoint(3, 19),
+    });
+    painter.drawPolygon(body);
+    painter.drawRect(7, 3, 6, 6);   // volet métallique en haut
+    painter.drawRect(6, 12, 10, 6); // étiquette en bas
     painter.end();
     return QIcon(pixmap);
 }
@@ -239,7 +267,7 @@ void MainWindow::createActions()
     m_openAction->setShortcut(QKeySequence::Open);
     connect(m_openAction, &QAction::triggered, this, &MainWindow::openFile);
 
-    m_saveAction = new QAction("&Enregistrer", this);
+    m_saveAction = new QAction(saveIcon(), "&Enregistrer", this);
     m_saveAction->setShortcut(QKeySequence::Save);
     connect(m_saveAction, &QAction::triggered, this, &MainWindow::saveFile);
 
@@ -307,6 +335,8 @@ void MainWindow::createToolBar()
 {
     auto *toolbar = new QToolBar("Barre d'outils", this);
     toolbar->setMovable(false);
+    toolbar->addAction(m_saveAction);
+    toolbar->addSeparator();
     toolbar->addAction(m_wordWrapAction);
     addToolBar(toolbar);
 }
