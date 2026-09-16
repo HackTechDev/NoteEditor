@@ -9,7 +9,7 @@ DraftsBrowser::DraftsBrowser(QWidget *parent)
 {
     setContextMenuPolicy(Qt::CustomContextMenu);
     connect(this, &QListWidget::customContextMenuRequested, this, &DraftsBrowser::showContextMenu);
-    connect(this, &QListWidget::itemClicked, this, &DraftsBrowser::emitOpen);
+    connect(this, &QListWidget::itemDoubleClicked, this, &DraftsBrowser::emitOpen);
 }
 
 QString DraftsBrowser::labelFor(const Session::DraftEntry &entry)

@@ -18,7 +18,7 @@ class DraftsBrowser(QListWidget):
         super().__init__(parent)
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self._show_context_menu)
-        self.itemClicked.connect(self._emit_open)
+        self.itemDoubleClicked.connect(self._emit_open)
         self._open_ids = set()
         self._sort_mode = "date"
         self._filter_text = ""
