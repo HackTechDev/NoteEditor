@@ -207,6 +207,24 @@ QIcon saveAsIcon()
     return QIcon(pixmap);
 }
 
+// Dessine une icône « loupe » classique, dans le même esprit que
+// saveIcon() : glyphes dessinés, pas de fichier externe.
+QIcon findIcon()
+{
+    QPixmap pixmap(22, 22);
+    pixmap.fill(Qt::transparent);
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+    QPen pen(Qt::darkGray);
+    pen.setWidth(2);
+    pen.setCapStyle(Qt::RoundCap);
+    painter.setPen(pen);
+    painter.drawEllipse(3, 3, 11, 11);
+    painter.drawLine(13, 13, 19, 19);
+    painter.end();
+    return QIcon(pixmap);
+}
+
 } // namespace
 
 CornerToolButton::CornerToolButton(int height, QWidget *parent)
@@ -396,7 +414,7 @@ void MainWindow::createActions()
     m_selectAllAction->setShortcut(QKeySequence::SelectAll);
     connect(m_selectAllAction, &QAction::triggered, this, [this] { if (auto *e = currentEditor()) e->selectAll(); });
 
-    m_findAction = new QAction("&Rechercher...", this);
+    m_findAction = new QAction(findIcon(), "&Rechercher...", this);
     m_findAction->setShortcut(QKeySequence::Find);
     connect(m_findAction, &QAction::triggered, m_findDialog, &FindReplaceDialog::showForFind);
 
@@ -428,6 +446,8 @@ void MainWindow::createToolBar()
     toolbar->addAction(m_openAction);
     toolbar->addAction(m_saveAction);
     toolbar->addAction(m_saveAsAction);
+    toolbar->addSeparator();
+    toolbar->addAction(m_findAction);
     toolbar->addSeparator();
     toolbar->addAction(m_wordWrapAction);
     addToolBar(toolbar);

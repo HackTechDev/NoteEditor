@@ -179,6 +179,23 @@ def _save_as_icon():
     return QIcon(pixmap)
 
 
+def _find_icon():
+    """Dessine une icône « loupe » classique, dans le même esprit que
+    _save_icon() : glyphes dessinés, pas de fichier externe."""
+    pixmap = QPixmap(22, 22)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    pen = QPen(Qt.GlobalColor.darkGray)
+    pen.setWidth(2)
+    pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+    painter.setPen(pen)
+    painter.drawEllipse(3, 3, 11, 11)
+    painter.drawLine(13, 13, 19, 19)
+    painter.end()
+    return QIcon(pixmap)
+
+
 class _CornerToolButton(QToolButton):
     """QToolButton dont le sizeHint force sa taille, pour que QTabWidget le
     dimensionne correctement en widget de coin (il se base sur sizeHint(), pas
@@ -395,7 +412,7 @@ class MainWindow(QMainWindow):
         self.select_all_action.setShortcut(QKeySequence.StandardKey.SelectAll)
         self.select_all_action.triggered.connect(lambda: self.current_editor().selectAll())
 
-        self.find_action = QAction("&Rechercher...", self)
+        self.find_action = QAction(_find_icon(), "&Rechercher...", self)
         self.find_action.setShortcut(QKeySequence.StandardKey.Find)
         self.find_action.triggered.connect(self.find_dialog.show_for_find)
 
@@ -425,6 +442,8 @@ class MainWindow(QMainWindow):
         toolbar.addAction(self.open_action)
         toolbar.addAction(self.save_action)
         toolbar.addAction(self.save_as_action)
+        toolbar.addSeparator()
+        toolbar.addAction(self.find_action)
         toolbar.addSeparator()
         toolbar.addAction(self.word_wrap_action)
         self.addToolBar(toolbar)
