@@ -3,8 +3,8 @@ import os
 import sys
 from datetime import datetime
 
-from PyQt6.QtCore import Qt, QSize, QTimer
-from PyQt6.QtGui import QAction, QIcon, QKeySequence, QPainter, QPen, QPixmap
+from PyQt6.QtCore import Qt, QPoint, QSize, QTimer
+from PyQt6.QtGui import QAction, QIcon, QKeySequence, QPainter, QPen, QPixmap, QPolygon
 from PyQt6.QtWidgets import (
     QApplication,
     QComboBox,
@@ -54,6 +54,34 @@ def _word_wrap_icon():
     painter.drawLine(19, 16, 15, 16)
     painter.drawLine(15, 16, 17, 14)
     painter.drawLine(15, 16, 17, 18)
+    painter.end()
+    return QIcon(pixmap)
+
+
+def _save_icon():
+    """Dessine une icône « disquette » classique, dans le même esprit que
+    _word_wrap_icon() : glyphes dessinés, pas de fichier externe."""
+    pixmap = QPixmap(22, 22)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    pen = QPen(Qt.GlobalColor.darkGray)
+    pen.setWidth(2)
+    pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+    painter.setPen(pen)
+    # corps de la disquette, coin supérieur droit coupé
+    body = QPolygon(
+        [
+            QPoint(3, 3),
+            QPoint(16, 3),
+            QPoint(19, 6),
+            QPoint(19, 19),
+            QPoint(3, 19),
+        ]
+    )
+    painter.drawPolygon(body)
+    painter.drawRect(7, 3, 6, 6)  # volet métallique en haut
+    painter.drawRect(6, 12, 10, 6)  # étiquette en bas
     painter.end()
     return QIcon(pixmap)
 
@@ -233,7 +261,7 @@ class MainWindow(QMainWindow):
         self.open_action.setShortcut(QKeySequence.StandardKey.Open)
         self.open_action.triggered.connect(self.open_file)
 
-        self.save_action = QAction("&Enregistrer", self)
+        self.save_action = QAction(_save_icon(), "&Enregistrer", self)
         self.save_action.setShortcut(QKeySequence.StandardKey.Save)
         self.save_action.triggered.connect(self.save_file)
 
@@ -299,6 +327,8 @@ class MainWindow(QMainWindow):
     def _create_toolbar(self):
         toolbar = QToolBar("Barre d'outils", self)
         toolbar.setMovable(False)
+        toolbar.addAction(self.save_action)
+        toolbar.addSeparator()
         toolbar.addAction(self.word_wrap_action)
         self.addToolBar(toolbar)
 
