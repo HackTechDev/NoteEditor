@@ -17,6 +17,7 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QHBoxLayout>
+#include <QIcon>
 #include <QInputDialog>
 #include <QLabel>
 #include <QLineEdit>
@@ -24,6 +25,10 @@
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QMimeData>
+#include <QPainter>
+#include <QPen>
+#include <QPixmap>
+#include <QPlainTextEdit>
 #include <QResizeEvent>
 #include <QSplitter>
 #include <QStringConverter>
@@ -31,6 +36,7 @@
 #include <QTabWidget>
 #include <QTextStream>
 #include <QTimer>
+#include <QToolBar>
 #include <QUrl>
 #include <QVBoxLayout>
 
@@ -55,6 +61,31 @@ void styleNewTabButton(QToolButton *button)
             background: #dddddd;
         }
     )");
+}
+
+// Dessine une icône « lignes qui reviennent à la ligne » : pas de fichier
+// externe à embarquer, cohérent avec les autres icônes de l'appli (+, ✕),
+// de simples glyphes dessinés plutôt que des assets.
+QIcon wordWrapIcon()
+{
+    QPixmap pixmap(22, 22);
+    pixmap.fill(Qt::transparent);
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+    QPen pen(Qt::darkGray);
+    pen.setWidth(2);
+    pen.setCapStyle(Qt::RoundCap);
+    painter.setPen(pen);
+    painter.drawLine(3, 5, 19, 5);
+    painter.drawLine(3, 11, 19, 11);
+    painter.drawLine(3, 17, 13, 17);
+    // petite flèche de retour à la ligne, à la fin de la 2e ligne
+    painter.drawLine(19, 11, 19, 16);
+    painter.drawLine(19, 16, 15, 16);
+    painter.drawLine(15, 16, 17, 14);
+    painter.drawLine(15, 16, 17, 18);
+    painter.end();
+    return QIcon(pixmap);
 }
 
 } // namespace
@@ -172,6 +203,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     createActions();
     createMenu();
+    createToolBar();
 
     statusBar();
     restoreSession();
@@ -253,6 +285,29 @@ void MainWindow::createActions()
 
     m_trashAction = new QAction("&Corbeille...", this);
     connect(m_trashAction, &QAction::triggered, this, &MainWindow::showTrash);
+
+    m_wordWrapAction = new QAction(wordWrapIcon(), "Retour automatique à la ligne", this);
+    m_wordWrapAction->setCheckable(true);
+    m_wordWrapAction->setChecked(true);
+    connect(m_wordWrapAction, &QAction::toggled, this, &MainWindow::setWordWrap);
+}
+
+void MainWindow::createToolBar()
+{
+    auto *toolbar = new QToolBar("Barre d'outils", this);
+    toolbar->setMovable(false);
+    toolbar->addAction(m_wordWrapAction);
+    addToolBar(toolbar);
+}
+
+void MainWindow::setWordWrap(bool enabled)
+{
+    m_wordWrapEnabled = enabled;
+    const auto mode = enabled ? QPlainTextEdit::WidgetWidth : QPlainTextEdit::NoWrap;
+    for (int i = 0; i < m_tabs->count(); ++i) {
+        if (auto *editor = qobject_cast<Editor *>(m_tabs->widget(i)))
+            editor->setLineWrapMode(mode);
+    }
 }
 
 void MainWindow::createMenu()
@@ -315,6 +370,7 @@ Editor *MainWindow::newTab(const QString &filePath, const QString &content, cons
     editor->document()->setModified(modified);
     connect(editor->document(), &QTextDocument::modificationChanged, this, [this](bool) { updateTitle(); });
     connect(editor, &Editor::autosaveRequested, this, [this, editor] { autosaveTab(editor); });
+    editor->setLineWrapMode(m_wordWrapEnabled ? QPlainTextEdit::WidgetWidth : QPlainTextEdit::NoWrap);
 
     const QString label = !filePath.isEmpty() ? QFileInfo(filePath).fileName() : editor->defaultName;
     const int index = m_tabs->addTab(editor, label);

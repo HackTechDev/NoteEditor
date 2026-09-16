@@ -70,10 +70,12 @@ private slots:
     void showTabContextMenu(const QPoint &pos);
     void checkCurrentExternalChange();
     void onAppStateChanged(Qt::ApplicationState state);
+    void setWordWrap(bool enabled);
 
 private:
     void createActions();
     void createMenu();
+    void createToolBar();
     QToolButton *buildNewTabButton(QWidget *parent);
     QWidget *makeCloseButton();
     void closeTabByButton(QToolButton *button);
@@ -124,4 +126,6 @@ private:
     QAction *m_findNextAction;
     QAction *m_aboutAction;
     QAction *m_trashAction;
+    QAction *m_wordWrapAction;
+    bool m_wordWrapEnabled = true;
 };
