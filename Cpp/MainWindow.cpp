@@ -92,6 +92,36 @@ QIcon wordWrapIcon()
     return QIcon(pixmap);
 }
 
+// Dessine une icône « page + » (nouvelle note), dans le même esprit que
+// wordWrapIcon() / saveIcon() : glyphes dessinés, pas de fichier externe.
+QIcon newNoteIcon()
+{
+    QPixmap pixmap(22, 22);
+    pixmap.fill(Qt::transparent);
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+    QPen pen(Qt::darkGray);
+    pen.setWidth(2);
+    pen.setJoinStyle(Qt::RoundJoin);
+    painter.setPen(pen);
+    // feuille de papier, coin supérieur droit corné
+    const QPolygon page({
+        QPoint(5, 2),
+        QPoint(14, 2),
+        QPoint(18, 6),
+        QPoint(18, 20),
+        QPoint(5, 20),
+    });
+    painter.drawPolygon(page);
+    painter.drawLine(14, 2, 14, 6);
+    painter.drawLine(14, 6, 18, 6);
+    // « + » au centre bas de la feuille
+    painter.drawLine(11, 11, 11, 17);
+    painter.drawLine(8, 14, 14, 14);
+    painter.end();
+    return QIcon(pixmap);
+}
+
 // Dessine une icône « disquette » classique, dans le même esprit que
 // wordWrapIcon() : glyphes dessinés, pas de fichier externe.
 QIcon saveIcon()
@@ -260,7 +290,7 @@ QToolButton *MainWindow::buildNewTabButton(QWidget *parent)
 
 void MainWindow::createActions()
 {
-    m_newAction = new QAction("&Nouveau", this);
+    m_newAction = new QAction(newNoteIcon(), "&Nouveau", this);
     m_newAction->setShortcut(QKeySequence::New);
     connect(m_newAction, &QAction::triggered, this, [this] { newTab(); });
 
@@ -336,6 +366,7 @@ void MainWindow::createToolBar()
 {
     auto *toolbar = new QToolBar("Barre d'outils", this);
     toolbar->setMovable(false);
+    toolbar->addAction(m_newAction);
     toolbar->addAction(m_saveAction);
     toolbar->addSeparator();
     toolbar->addAction(m_wordWrapAction);

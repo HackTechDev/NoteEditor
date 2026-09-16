@@ -58,6 +58,38 @@ def _word_wrap_icon():
     return QIcon(pixmap)
 
 
+def _new_note_icon():
+    """Dessine une icône « page + » (nouvelle note), dans le même esprit que
+    _word_wrap_icon() / _save_icon() : glyphes dessinés, pas de fichier
+    externe."""
+    pixmap = QPixmap(22, 22)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    pen = QPen(Qt.GlobalColor.darkGray)
+    pen.setWidth(2)
+    pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+    painter.setPen(pen)
+    # feuille de papier, coin supérieur droit corné
+    page = QPolygon(
+        [
+            QPoint(5, 2),
+            QPoint(14, 2),
+            QPoint(18, 6),
+            QPoint(18, 20),
+            QPoint(5, 20),
+        ]
+    )
+    painter.drawPolygon(page)
+    painter.drawLine(14, 2, 14, 6)
+    painter.drawLine(14, 6, 18, 6)
+    # « + » au centre bas de la feuille
+    painter.drawLine(11, 11, 11, 17)
+    painter.drawLine(8, 14, 14, 14)
+    painter.end()
+    return QIcon(pixmap)
+
+
 def _save_icon():
     """Dessine une icône « disquette » classique, dans le même esprit que
     _word_wrap_icon() : glyphes dessinés, pas de fichier externe."""
@@ -254,7 +286,7 @@ class MainWindow(QMainWindow):
         return button
 
     def _create_actions(self):
-        self.new_action = QAction("&Nouveau", self)
+        self.new_action = QAction(_new_note_icon(), "&Nouveau", self)
         self.new_action.setShortcut(QKeySequence.StandardKey.New)
         self.new_action.triggered.connect(lambda: self.new_tab())
 
@@ -328,6 +360,7 @@ class MainWindow(QMainWindow):
     def _create_toolbar(self):
         toolbar = QToolBar("Barre d'outils", self)
         toolbar.setMovable(False)
+        toolbar.addAction(self.new_action)
         toolbar.addAction(self.save_action)
         toolbar.addSeparator()
         toolbar.addAction(self.word_wrap_action)
