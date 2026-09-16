@@ -10,14 +10,14 @@
 - Onglets multiples (fermables, réordonnables), onglet actif bien visible
 - Bouton **+** pour créer un nouvel onglet, collé juste après le dernier onglet (style Gedit) ; se déplace automatiquement à côté des flèches de défilement quand les onglets débordent de la largeur disponible
 - Numéros de ligne avec surlignage de la ligne courante
-- Barre d'outils avec bouton de retour à la ligne automatique (activable/désactivable, actif par défaut, s'applique à tous les onglets)
+- Barre d'outils avec icônes Nouveau, Enregistrer et retour à la ligne automatique (ce dernier activable/désactivable, actif par défaut, s'applique à tous les onglets)
 - Coloration syntaxique automatique selon l'extension : Python (`.py`), JSON (`.json`), Markdown (`.md`)
 - Recherche / remplacement (`Ctrl+F` / `Ctrl+H`) : suivant, précédent, remplacer, tout remplacer
 - Nouveaux onglets nommés par date/heure (`aammjj_hhmmssmm`)
 - `Ctrl+S` sur un onglet sans fichier associé l'enregistre directement dans `~/.noteeditor/docs/` (sous son nom par défaut), sans ouvrir de boîte de dialogue ; `Ctrl+Shift+S` (Enregistrer sous) permet de choisir un autre emplacement
 - Session persistante : à la fermeture, tous les onglets (contenu, fichier associé, état modifié, onglet actif) sont sauvegardés automatiquement dans `~/.noteeditor` et restaurés tels quels au prochain lancement, ainsi que la taille de la fenêtre et la position du séparateur du panneau latéral
 - Chaque onglet est archivé dans `~/.noteeditor` dès sa création, et à nouveau en continu pendant la frappe (1,5s après la dernière touche), à sa fermeture (croix ou Ctrl+W, sans confirmation même en cas de modifications non enregistrées) et à la fermeture de l'appli
-- Panneau « Brouillons » à gauche : liste tous les onglets archivés dans `~/.noteeditor` (ouverts marqués « (ouvert) »), avec recherche, tri (date/nom) et l'entrée de l'onglet actif surlignée ; clic pour rouvrir ou basculer dessus, clic droit pour renommer (onglets sans fichier) ou mettre à la corbeille
+- Panneau « Brouillons » à gauche : liste tous les onglets archivés dans `~/.noteeditor` (ouverts marqués « (ouvert) »), avec recherche, tri (date/nom) et l'entrée de l'onglet actif surlignée ; clic pour rouvrir ou basculer dessus, clic droit pour la même palette d'actions que le menu contextuel des onglets (fermer / fermer les autres / fermer à droite / fermer tout, dupliquer, historique des versions), renommer (onglets sans fichier) ou mettre à la corbeille
 - Corbeille : la suppression d'un brouillon est réversible (bouton « Corbeille... » ou menu Fichier), avec restauration ou suppression définitive
 - Historique des versions (10 dernières) : chaque enregistrement archive le contenu précédent du fichier, consultable et restaurable depuis le menu contextuel d'un onglet (clic droit)
 - Menu contextuel sur les onglets (clic droit) : fermer / fermer les autres / fermer à droite / fermer tout, dupliquer, renommer, historique des versions
