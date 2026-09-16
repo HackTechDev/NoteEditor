@@ -174,6 +174,39 @@ QIcon saveIcon()
     return QIcon(pixmap);
 }
 
+// Dessine une icône « disquette + flèche » (Enregistrer sous), dans le même
+// esprit que saveIcon() : une disquette réduite, avec une petite flèche vers
+// un autre emplacement pour la distinguer d'Enregistrer.
+QIcon saveAsIcon()
+{
+    QPixmap pixmap(22, 22);
+    pixmap.fill(Qt::transparent);
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+    QPen pen(Qt::darkGray);
+    pen.setWidth(2);
+    pen.setJoinStyle(Qt::RoundJoin);
+    pen.setCapStyle(Qt::RoundCap);
+    painter.setPen(pen);
+    // disquette réduite, en haut à gauche
+    const QPolygon body({
+        QPoint(2, 3),
+        QPoint(12, 3),
+        QPoint(15, 6),
+        QPoint(15, 15),
+        QPoint(2, 15),
+    });
+    painter.drawPolygon(body);
+    painter.drawRect(6, 3, 5, 4);  // volet métallique en haut
+    painter.drawRect(5, 10, 7, 4); // étiquette en bas
+    // petite flèche vers un autre emplacement, en bas à droite
+    painter.drawLine(14, 14, 20, 20);
+    painter.drawLine(20, 20, 20, 15);
+    painter.drawLine(20, 20, 15, 20);
+    painter.end();
+    return QIcon(pixmap);
+}
+
 } // namespace
 
 CornerToolButton::CornerToolButton(int height, QWidget *parent)
@@ -327,7 +360,7 @@ void MainWindow::createActions()
     m_saveAction->setShortcut(QKeySequence::Save);
     connect(m_saveAction, &QAction::triggered, this, &MainWindow::saveFile);
 
-    m_saveAsAction = new QAction("Enregistrer &sous...", this);
+    m_saveAsAction = new QAction(saveAsIcon(), "Enregistrer &sous...", this);
     m_saveAsAction->setShortcut(QKeySequence::SaveAs);
     connect(m_saveAsAction, &QAction::triggered, this, &MainWindow::saveFileAs);
 
@@ -394,6 +427,7 @@ void MainWindow::createToolBar()
     toolbar->addAction(m_newAction);
     toolbar->addAction(m_openAction);
     toolbar->addAction(m_saveAction);
+    toolbar->addAction(m_saveAsAction);
     toolbar->addSeparator();
     toolbar->addAction(m_wordWrapAction);
     addToolBar(toolbar);

@@ -10,7 +10,7 @@
 - Onglets multiples (fermables, réordonnables), onglet actif bien visible
 - Bouton **+** pour créer un nouvel onglet, collé juste après le dernier onglet (style Gedit) ; se déplace automatiquement à côté des flèches de défilement quand les onglets débordent de la largeur disponible
 - Numéros de ligne avec surlignage de la ligne courante
-- Barre d'outils avec icônes Nouveau, Ouvrir, Enregistrer et retour à la ligne automatique (ce dernier activable/désactivable, actif par défaut, s'applique à tous les onglets)
+- Barre d'outils avec icônes Nouveau, Ouvrir, Enregistrer, Enregistrer sous et retour à la ligne automatique (ce dernier activable/désactivable, actif par défaut, s'applique à tous les onglets)
 - Coloration syntaxique automatique selon l'extension : Python (`.py`), JSON (`.json`), Markdown (`.md`)
 - Recherche / remplacement (`Ctrl+F` / `Ctrl+H`) : suivant, précédent, remplacer, tout remplacer
 - Nouveaux onglets nommés par date/heure (`aammjj_hhmmssmm`)

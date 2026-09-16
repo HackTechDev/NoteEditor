@@ -145,6 +145,40 @@ def _save_icon():
     return QIcon(pixmap)
 
 
+def _save_as_icon():
+    """Dessine une icône « disquette + flèche » (Enregistrer sous), dans le
+    même esprit que _save_icon() : une disquette réduite, avec une petite
+    flèche vers un autre emplacement pour la distinguer d'Enregistrer."""
+    pixmap = QPixmap(22, 22)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    pen = QPen(Qt.GlobalColor.darkGray)
+    pen.setWidth(2)
+    pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+    pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+    painter.setPen(pen)
+    # disquette réduite, en haut à gauche
+    body = QPolygon(
+        [
+            QPoint(2, 3),
+            QPoint(12, 3),
+            QPoint(15, 6),
+            QPoint(15, 15),
+            QPoint(2, 15),
+        ]
+    )
+    painter.drawPolygon(body)
+    painter.drawRect(6, 3, 5, 4)  # volet métallique en haut
+    painter.drawRect(5, 10, 7, 4)  # étiquette en bas
+    # petite flèche vers un autre emplacement, en bas à droite
+    painter.drawLine(14, 14, 20, 20)
+    painter.drawLine(20, 20, 20, 15)
+    painter.drawLine(20, 20, 15, 20)
+    painter.end()
+    return QIcon(pixmap)
+
+
 class _CornerToolButton(QToolButton):
     """QToolButton dont le sizeHint force sa taille, pour que QTabWidget le
     dimensionne correctement en widget de coin (il se base sur sizeHint(), pas
@@ -325,7 +359,7 @@ class MainWindow(QMainWindow):
         self.save_action.setShortcut(QKeySequence.StandardKey.Save)
         self.save_action.triggered.connect(self.save_file)
 
-        self.save_as_action = QAction("Enregistrer &sous...", self)
+        self.save_as_action = QAction(_save_as_icon(), "Enregistrer &sous...", self)
         self.save_as_action.setShortcut(QKeySequence.StandardKey.SaveAs)
         self.save_as_action.triggered.connect(self.save_file_as)
 
@@ -390,6 +424,7 @@ class MainWindow(QMainWindow):
         toolbar.addAction(self.new_action)
         toolbar.addAction(self.open_action)
         toolbar.addAction(self.save_action)
+        toolbar.addAction(self.save_as_action)
         toolbar.addSeparator()
         toolbar.addAction(self.word_wrap_action)
         self.addToolBar(toolbar)
