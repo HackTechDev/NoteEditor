@@ -6,7 +6,7 @@ c'est juste un réservoir d'idées à picorer.
 ## Édition
 
 - **Police et taille configurables** : actuellement fixées en dur (Monospace 11) dans `editor_widget.py`. Un réglage (menu ou raccourci `Ctrl+molette`) rendrait l'appli plus confortable selon l'écran.
-- **Retour à la ligne automatique (word wrap)** activable/désactivable — utile pour du texte libre, gênant pour du code.
+- ~~**Retour à la ligne automatique (word wrap)** activable/désactivable~~ — fait ✅ (Python et C++) : bouton dans une nouvelle barre d'outils, appliqué globalement à tous les onglets.
 - **Indentation automatique** et **correspondance des parenthèses/accolades** pour les fichiers de code.
 - **Plus de langages** pour la coloration syntaxique (`highlighters.py` ne couvre que Python/JSON/Markdown) : JS, HTML, CSS, YAML, Shell seraient des ajouts naturels.
 - **Aperçu Markdown** en volet séparé pour les fichiers `.md`.
