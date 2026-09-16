@@ -111,6 +111,7 @@ class MainWindow(QMainWindow):
         )
         self.tabs.currentChanged.connect(self.update_title)
         self.tabs.currentChanged.connect(self._check_current_external_change)
+        self.tabs.currentChanged.connect(self._update_status_bar)
         self.tabs.tabBar().setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.tabs.tabBar().customContextMenuRequested.connect(self._show_tab_context_menu)
 
@@ -183,8 +184,8 @@ class MainWindow(QMainWindow):
         self._create_actions()
         self._create_menu()
         self._create_toolbar()
+        self._create_status_bar()
 
-        self.statusBar()
         self._restore_session()
 
     def _build_new_tab_button(self, parent, cls=None):
@@ -297,6 +298,37 @@ class MainWindow(QMainWindow):
         for i in range(self.tabs.count()):
             self.tabs.widget(i).setLineWrapMode(mode)
 
+    def _create_status_bar(self):
+        self.status_position = QLabel()
+        self.status_counts = QLabel()
+        self.status_encoding = QLabel("UTF-8")
+        bar = self.statusBar()
+        bar.addPermanentWidget(self.status_position)
+        bar.addPermanentWidget(self.status_counts)
+        bar.addPermanentWidget(self.status_encoding)
+        self._update_status_bar()
+
+    def _update_status_bar(self):
+        editor = self.current_editor()
+        if editor is None:
+            self.status_position.setText("")
+            self.status_counts.setText("")
+            self.status_encoding.setText("")
+            return
+        cursor = editor.textCursor()
+        line = cursor.blockNumber() + 1
+        col = cursor.columnNumber() + 1
+        self.status_position.setText(f"Ligne {line}, Colonne {col}")
+
+        text = editor.toPlainText()
+        words = len(text.split())
+        chars = len(text)
+        word_label = "mot" if words <= 1 else "mots"
+        char_label = "caractère" if chars <= 1 else "caractères"
+        self.status_counts.setText(f"{words} {word_label}, {chars} {char_label}")
+
+        self.status_encoding.setText("UTF-8")
+
     def _create_menu(self):
         menu = self.menuBar()
 
@@ -352,6 +384,8 @@ class MainWindow(QMainWindow):
         editor.document().setModified(modified)
         editor.document().modificationChanged.connect(lambda _: self.update_title())
         editor.autosave_requested.connect(lambda: self._autosave_tab(editor))
+        editor.cursorPositionChanged.connect(self._update_status_bar)
+        editor.textChanged.connect(self._update_status_bar)
         editor.setLineWrapMode(
             QPlainTextEdit.LineWrapMode.WidgetWidth if self.word_wrap_enabled else QPlainTextEdit.LineWrapMode.NoWrap
         )
