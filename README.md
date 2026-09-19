@@ -11,22 +11,20 @@ La liste détaillée et complète est dans [`FEATURES.md`](FEATURES.md). En rés
 
 - Session persistante : à la fermeture, tous les onglets (contenu, fichier associé, état modifié, onglet actif) sont sauvegardés automatiquement dans `~/.noteeditor` et restaurés tels quels au prochain lancement, ainsi que la taille et la position de la fenêtre sur l'écran (ignorée si elle n'est plus visible, p. ex. écran débranché) et la position du séparateur du panneau latéral
 - Chaque onglet est archivé dans `~/.noteeditor` dès sa création, et à nouveau en continu pendant la frappe (1,5s après la dernière touche), à sa fermeture (croix ou Ctrl+W, sans confirmation même en cas de modifications non enregistrées) et à la fermeture de l'appli
-- Corbeille : la suppression d'un brouillon est réversible (bouton « Corbeille... » ou menu Fichier), avec restauration ou suppression définitive
-- Historique des versions (10 dernières) : chaque enregistrement archive le contenu précédent du fichier, consultable et restaurable depuis le menu contextuel d'un onglet (clic droit)
-
-
 - Onglets multiples (fermables, réordonnables), onglet actif bien visible
 - Bouton **+** pour créer un nouvel onglet, collé juste après le dernier onglet (style Gedit) ; se déplace automatiquement à côté des flèches de défilement quand les onglets débordent de la largeur disponible
+- Nouveaux onglets nommés par date/heure (`aammjj_hhmmssmm`)
+- Menu contextuel sur les onglets (clic droit) : fermer / fermer les autres / fermer à droite / fermer tout, dupliquer, renommer, historique des versions, mettre à la corbeille (l'onglet se ferme et la note quitte le panneau Brouillons)
 - Numéros de ligne avec surlignage de la ligne courante
-- Barre d'outils avec icônes Nouveau, Ouvrir, Enregistrer, Enregistrer sous, Corbeille, Rechercher, Rechercher / Remplacer et retour à la ligne automatique (ce dernier activable/désactivable, actif par défaut, s'applique à tous les onglets)
 - Coloration syntaxique automatique selon l'extension : Python (`.py`), JSON (`.json`), Markdown (`.md`)
 - Recherche / remplacement (`Ctrl+F` / `Ctrl+H`) : suivant, précédent, remplacer, tout remplacer
-- Nouveaux onglets nommés par date/heure (`aammjj_hhmmssmm`)
 - `Ctrl+S` sur un onglet sans fichier associé l'enregistre directement dans `~/.noteeditor/docs/` (sous son nom par défaut), sans ouvrir de boîte de dialogue ; `Ctrl+Shift+S` (Enregistrer sous) permet de choisir un autre emplacement
-- Panneau « Brouillons » à gauche : liste tous les onglets archivés dans `~/.noteeditor` (ouverts marqués « (ouvert) »), avec recherche, tri (date/nom) et l'entrée de l'onglet actif surlignée ; double-clic pour rouvrir ou basculer dessus, clic droit pour la même palette d'actions que le menu contextuel des onglets (fermer / fermer les autres / fermer à droite / fermer tout, dupliquer, historique des versions), renommer (onglets sans fichier) ou mettre à la corbeille
-- Menu contextuel sur les onglets (clic droit) : fermer / fermer les autres / fermer à droite / fermer tout, dupliquer, renommer, historique des versions, mettre à la corbeille (l'onglet se ferme et la note quitte le panneau Brouillons)
 - Glisser-déposer un fichier dans la fenêtre pour l'ouvrir dans un nouvel onglet
 - Détection de modification externe : si le fichier ouvert change sur le disque (autre programme), l'appli propose de recharger
+- Panneau « Brouillons » à gauche : liste tous les onglets archivés dans `~/.noteeditor` (ouverts marqués « (ouvert) »), avec recherche, tri (date/nom) et l'entrée de l'onglet actif surlignée ; double-clic pour rouvrir ou basculer dessus, clic droit pour la même palette d'actions que le menu contextuel des onglets (fermer / fermer les autres / fermer à droite / fermer tout, dupliquer, historique des versions), renommer (onglets sans fichier) ou mettre à la corbeille
+- Corbeille : la suppression d'un brouillon est réversible (bouton « Corbeille... » ou menu Fichier), avec restauration ou suppression définitive
+- Historique des versions (10 dernières) : chaque enregistrement archive le contenu précédent du fichier, consultable et restaurable depuis le menu contextuel d'un onglet (clic droit)
+- Barre d'outils avec icônes Nouveau, Ouvrir, Enregistrer, Enregistrer sous, Corbeille, Rechercher, Rechercher / Remplacer et retour à la ligne automatique (ce dernier activable/désactivable, actif par défaut, s'applique à tous les onglets)
 - Barre de statut : position ligne/colonne, nombre de mots/caractères et encodage (UTF-8) de l'onglet actif
 - Menu Aide → À propos
 
