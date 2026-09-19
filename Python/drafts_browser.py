@@ -1,21 +1,12 @@
 import os
 
-from PyQt6.QtCore import QPoint, Qt, pyqtSignal
-from PyQt6.QtGui import QColor, QPainter, QPen, QPixmap, QPolygon
-from PyQt6.QtWidgets import (
-    QApplication,
-    QListWidget,
-    QListWidgetItem,
-    QMenu,
-    QStyle,
-    QStyledItemDelegate,
-    QStyleOptionViewItem,
-)
+from PyQt6.QtCore import QPoint, QSize, Qt, pyqtSignal
+from PyQt6.QtGui import QColor, QIcon, QPainter, QPen, QPixmap, QPolygon
+from PyQt6.QtWidgets import QListWidget, QListWidgetItem, QMenu
 
 import session
 
 PIN_ICON_SIZE = 14
-PIN_ICON_MARGIN = 6
 
 
 def pin_pixmap(size=PIN_ICON_SIZE, color=None):
@@ -43,34 +34,19 @@ def pin_pixmap(size=PIN_ICON_SIZE, color=None):
     return pixmap
 
 
-class _PinDelegate(QStyledItemDelegate):
-    """Dessine le nom de la note comme d'habitude, plus une petite punaise au
-    bord droit de la ligne quand la note est épinglée."""
-
-    def paint(self, painter, option, index):
-        entry = index.data(Qt.ItemDataRole.UserRole)
-        if not (entry and entry.get("pinned")):
-            super().paint(painter, option, index)
-            return
-
-        opt = QStyleOptionViewItem(option)
-        self.initStyleOption(opt, index)
-        widget = opt.widget
-        style = widget.style() if widget else QApplication.style()
-        # fond (y compris sélection) sur toute la ligne, puis texte sans la zone de la punaise
-        style.drawPrimitive(QStyle.PrimitiveElement.PE_PanelItemViewItem, opt, painter, widget)
-        text_opt = QStyleOptionViewItem(opt)
-        right = opt.rect.right()
-        if widget is not None:
-            right = min(right, widget.viewport().width() - 1)
-        text_opt.rect = opt.rect.adjusted(0, 0, -(opt.rect.right() - right + PIN_ICON_SIZE + 2 * PIN_ICON_MARGIN), 0)
-        super().paint(painter, text_opt, index)
-
-        selected = bool(opt.state & QStyle.StateFlag.State_Selected)
-        color = opt.palette.highlightedText().color() if selected else QColor(Qt.GlobalColor.darkGray)
-        x = right - PIN_ICON_SIZE - PIN_ICON_MARGIN + 1
-        y = opt.rect.top() + (opt.rect.height() - PIN_ICON_SIZE) // 2
-        painter.drawPixmap(x, y, pin_pixmap(PIN_ICON_SIZE, color))
+def _row_icon(pinned, selected_color):
+    """Icône à gauche du nom dans la liste : une punaise (grise, blanche quand la
+    ligne est sélectionnée) pour une note épinglée, sinon un carré transparent de
+    même taille, pour que tous les noms restent alignés."""
+    icon = QIcon()
+    if pinned:
+        icon.addPixmap(pin_pixmap(PIN_ICON_SIZE), QIcon.Mode.Normal)
+        icon.addPixmap(pin_pixmap(PIN_ICON_SIZE, selected_color), QIcon.Mode.Selected)
+    else:
+        blank = QPixmap(PIN_ICON_SIZE, PIN_ICON_SIZE)
+        blank.fill(Qt.GlobalColor.transparent)
+        icon.addPixmap(blank)
+    return icon
 
 
 class DraftsBrowser(QListWidget):
@@ -87,12 +63,7 @@ class DraftsBrowser(QListWidget):
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self._show_context_menu)
         self.itemDoubleClicked.connect(self._emit_open)
-        self.setItemDelegate(_PinDelegate(self))
-        # Pas de défilement horizontal : la punaise est ancrée au bord droit
-        # visible de la ligne. Les noms trop longs sont tronqués (« … »), le nom
-        # complet reste dans l'infobulle.
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.setTextElideMode(Qt.TextElideMode.ElideRight)
+        self.setIconSize(QSize(PIN_ICON_SIZE, PIN_ICON_SIZE))
         self._open_ids = set()
         self._sort_mode = "date"
         self._filter_text = ""
@@ -120,6 +91,7 @@ class DraftsBrowser(QListWidget):
                 continue
             display = label + " (ouvert)" if entry["id"] in self._open_ids else label
             item = QListWidgetItem(display)
+            item.setIcon(_row_icon(entry.get("pinned"), self.palette().highlightedText().color()))
             item.setToolTip(entry["file_path"] or label)
             item.setData(Qt.ItemDataRole.UserRole, entry)
             self.addItem(item)

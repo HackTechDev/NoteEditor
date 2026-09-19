@@ -89,9 +89,9 @@ adapter si le dépôt est cloné ailleurs.
 - **Épingler une note** (clic droit → *Épingler*, à la fois sur l'onglet et sur la
   note dans le panneau Brouillons) **bloque sa fermeture et sa mise à la corbeille**,
   jusqu'à ce qu'on la *détache* (clic droit → *Détacher*).
-  - Une **petite punaise** s'affiche à droite du nom de la note : dans l'onglet (à la
-    place de la croix de fermeture) et au bord droit de la ligne dans le panneau
-    Brouillons.
+  - Une **petite punaise** s'affiche à gauche du nom de la note : dans l'onglet (où
+    la croix de fermeture disparaît, puisqu'on ne peut pas le fermer) et dans le
+    panneau Brouillons, où tous les noms restent alignés.
   - Tout ce qui fermerait la note est bloqué : la croix, `Ctrl+W`, l'icône de la
     barre d'outils, « Fermer » du menu, et « Mettre à la corbeille ». Ces entrées de
     menu sont grisées. Un message dans la barre de statut explique le blocage.
@@ -154,8 +154,6 @@ sans confirmation.
   Dupliquer, Historique des versions) plus Renommer et Mettre à la corbeille. Les
   actions de fermeture sont grisées pour une note qui n'est pas ouverte, et
   « Fermer » comme « Mettre à la corbeille » le sont aussi pour une note épinglée.
-- Les noms trop longs pour la largeur du panneau sont tronqués (« … », le nom
-  complet est dans l'infobulle) : le panneau n'a pas de défilement horizontal.
 - **Renommer** ne s'applique qu'aux notes sans fichier associé.
 - Un brouillon n'est supprimé que manuellement, et seulement vers la corbeille.
 

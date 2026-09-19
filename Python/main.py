@@ -297,6 +297,7 @@ class MainWindow(QMainWindow):
         self.tabs.setTabsClosable(False)
         self.tabs.setMovable(True)
         self.tabs.setDocumentMode(True)
+        self.tabs.tabBar().setIconSize(QSize(14, 14))
         self.tabs.setStyleSheet(
             """
             QTabBar::tab {
@@ -956,23 +957,21 @@ class MainWindow(QMainWindow):
         event.acceptProposedAction()
 
     def _refresh_tab_button(self, editor):
-        """Bouton à droite du nom de l'onglet : la croix de fermeture, ou une
-        punaise (non cliquable) quand la note est épinglée et donc non fermable."""
+        """Décor de l'onglet : la croix de fermeture à droite du nom ou, quand la
+        note est épinglée (donc non fermable), une punaise à gauche du nom (icône
+        d'onglet native) et plus de croix."""
         index = self.tabs.indexOf(editor)
         if index == -1:
             return
-        widget = self._make_pin_indicator() if editor.pinned else self._make_close_button()
-        self.tabs.tabBar().setTabButton(index, QTabBar.ButtonPosition.RightSide, widget)
-
-    def _make_pin_indicator(self):
-        label = QLabel()
-        label.setPixmap(pin_pixmap(14))
-        label.setToolTip("Note épinglée (menu contextuel : Détacher)")
-        wrapper = QWidget()
-        layout = QHBoxLayout(wrapper)
-        layout.setContentsMargins(0, 0, 8, 0)
-        layout.addWidget(label)
-        return wrapper
+        bar = self.tabs.tabBar()
+        if editor.pinned:
+            bar.setTabButton(index, QTabBar.ButtonPosition.RightSide, None)
+            self.tabs.setTabIcon(index, QIcon(pin_pixmap(14)))
+            self.tabs.setTabToolTip(index, "Note épinglée (menu contextuel : Détacher)")
+        else:
+            self.tabs.setTabIcon(index, QIcon())
+            self.tabs.setTabToolTip(index, "")
+            bar.setTabButton(index, QTabBar.ButtonPosition.RightSide, self._make_close_button())
 
     def _set_pinned(self, draft_id, pinned):
         session.set_pinned(draft_id, pinned)

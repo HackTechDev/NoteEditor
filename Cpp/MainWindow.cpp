@@ -332,6 +332,7 @@ MainWindow::MainWindow(QWidget *parent)
     m_tabs->setTabsClosable(false);
     m_tabs->setMovable(true);
     m_tabs->setDocumentMode(true);
+    m_tabs->tabBar()->setIconSize(QSize(14, 14));
     m_tabs->setStyleSheet(R"(
         QTabBar::tab {
             background: #e1e1e1;
@@ -677,27 +678,24 @@ Editor *MainWindow::newTab(const QString &filePath, const QString &content, cons
     return editor;
 }
 
-// Bouton à droite du nom de l'onglet : la croix de fermeture, ou une punaise
-// (non cliquable) quand la note est épinglée et donc non fermable.
+// Décor de l'onglet : la croix de fermeture à droite du nom ou, quand la note
+// est épinglée (donc non fermable), une punaise à gauche du nom (icône d'onglet
+// native) et plus de croix.
 void MainWindow::refreshTabButton(Editor *editor)
 {
     const int index = m_tabs->indexOf(editor);
     if (index == -1)
         return;
-    m_tabs->tabBar()->setTabButton(index, QTabBar::RightSide,
-                                   editor->pinned ? makePinIndicator() : makeCloseButton());
-}
-
-QWidget *MainWindow::makePinIndicator()
-{
-    auto *label = new QLabel();
-    label->setPixmap(pinPixmap(14));
-    label->setToolTip("Note épinglée (menu contextuel : Détacher)");
-    auto *wrapper = new QWidget();
-    auto *layout = new QHBoxLayout(wrapper);
-    layout->setContentsMargins(0, 0, 8, 0);
-    layout->addWidget(label);
-    return wrapper;
+    QTabBar *bar = m_tabs->tabBar();
+    if (editor->pinned) {
+        bar->setTabButton(index, QTabBar::RightSide, nullptr);
+        m_tabs->setTabIcon(index, QIcon(pinPixmap(14)));
+        m_tabs->setTabToolTip(index, "Note épinglée (menu contextuel : Détacher)");
+    } else {
+        m_tabs->setTabIcon(index, QIcon());
+        m_tabs->setTabToolTip(index, QString());
+        bar->setTabButton(index, QTabBar::RightSide, makeCloseButton());
+    }
 }
 
 void MainWindow::setPinned(const QString &draftId, bool pinned)

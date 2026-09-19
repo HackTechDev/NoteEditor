@@ -1,58 +1,33 @@
 #include "DraftsBrowser.h"
 
-#include <QApplication>
 #include <QFileInfo>
+#include <QIcon>
 #include <QMenu>
 #include <QPainter>
 #include <QPen>
 #include <QPolygon>
-#include <QStyle>
-#include <QStyledItemDelegate>
-#include <QStyleOptionViewItem>
 #include <algorithm>
 
 namespace {
 
 constexpr int kPinIconSize = 14;
-constexpr int kPinIconMargin = 6;
-constexpr int kPinnedRole = Qt::UserRole + 1; // bool, set in refresh()
 
-// Dessine le nom de la note comme d'habitude, plus une petite punaise au bord
-// droit visible de la ligne quand la note est épinglée.
-class PinDelegate : public QStyledItemDelegate
+// Icône à gauche du nom dans la liste : une punaise (grise, blanche quand la
+// ligne est sélectionnée) pour une note épinglée, sinon un carré transparent de
+// même taille, pour que tous les noms restent alignés.
+QIcon rowIcon(bool pinned, const QColor &selectedColor)
 {
-public:
-    using QStyledItemDelegate::QStyledItemDelegate;
-
-    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override
-    {
-        if (!index.data(kPinnedRole).toBool()) {
-            QStyledItemDelegate::paint(painter, option, index);
-            return;
-        }
-
-        QStyleOptionViewItem opt(option);
-        initStyleOption(&opt, index);
-        const QWidget *widget = opt.widget;
-        QStyle *style = widget ? widget->style() : QApplication::style();
-        // fond (y compris sélection) sur toute la ligne, puis texte sans la zone de la punaise
-        style->drawPrimitive(QStyle::PE_PanelItemViewItem, &opt, painter, widget);
-
-        int right = opt.rect.right();
-        if (auto *view = qobject_cast<const QAbstractItemView *>(widget))
-            right = std::min(right, view->viewport()->width() - 1);
-
-        QStyleOptionViewItem textOpt(opt);
-        textOpt.rect = opt.rect.adjusted(0, 0, -(opt.rect.right() - right + kPinIconSize + 2 * kPinIconMargin), 0);
-        QStyledItemDelegate::paint(painter, textOpt, index);
-
-        const bool selected = opt.state & QStyle::State_Selected;
-        const QColor color = selected ? opt.palette.highlightedText().color() : QColor(Qt::darkGray);
-        const int x = right - kPinIconSize - kPinIconMargin + 1;
-        const int y = opt.rect.top() + (opt.rect.height() - kPinIconSize) / 2;
-        painter->drawPixmap(x, y, pinPixmap(kPinIconSize, color));
+    QIcon icon;
+    if (pinned) {
+        icon.addPixmap(pinPixmap(kPinIconSize), QIcon::Normal);
+        icon.addPixmap(pinPixmap(kPinIconSize, selectedColor), QIcon::Selected);
+    } else {
+        QPixmap blank(kPinIconSize, kPinIconSize);
+        blank.fill(Qt::transparent);
+        icon.addPixmap(blank);
     }
-};
+    return icon;
+}
 
 } // namespace
 
@@ -82,12 +57,7 @@ DraftsBrowser::DraftsBrowser(QWidget *parent)
     setContextMenuPolicy(Qt::CustomContextMenu);
     connect(this, &QListWidget::customContextMenuRequested, this, &DraftsBrowser::showContextMenu);
     connect(this, &QListWidget::itemDoubleClicked, this, &DraftsBrowser::emitOpen);
-    setItemDelegate(new PinDelegate(this));
-    // Pas de défilement horizontal : la punaise est ancrée au bord droit
-    // visible de la ligne. Les noms trop longs sont tronqués (« … »), le nom
-    // complet reste dans l'infobulle.
-    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    setTextElideMode(Qt::ElideRight);
+    setIconSize(QSize(kPinIconSize, kPinIconSize));
 }
 
 QString DraftsBrowser::labelFor(const Session::DraftEntry &entry)
@@ -135,7 +105,7 @@ void DraftsBrowser::refresh(const QSet<QString> &openIds)
         auto *item = new QListWidgetItem(display);
         item->setToolTip(!entry.filePath.isEmpty() ? entry.filePath : label);
         item->setData(Qt::UserRole, entry.id);
-        item->setData(kPinnedRole, entry.pinned);
+        item->setIcon(rowIcon(entry.pinned, palette().highlightedText().color()));
         addItem(item);
 
         m_entriesById[entry.id] = entry;
