@@ -7,7 +7,7 @@
 
 ## Fonctionnalités
 
-La liste détaillée et complète est dans [`FEATURES.md`](FEATURES.md). En résumé :
+La liste détaillée et complète est dans [`FEATURES.md`](FEATURES.md), et un didacticiel pas à pas pour apprendre à utiliser le logiciel dans [`TUTORIAL.md`](TUTORIAL.md). En résumé :
 
 - Session persistante : à la fermeture, tous les onglets (contenu, fichier associé, état modifié, onglet actif) sont sauvegardés automatiquement dans `~/.noteeditor` et restaurés tels quels au prochain lancement, ainsi que la taille et la position de la fenêtre sur l'écran (ignorée si elle n'est plus visible, p. ex. écran débranché) et la position du séparateur du panneau latéral
 - Chaque onglet est archivé dans `~/.noteeditor` dès sa création, et à nouveau en continu pendant la frappe (1,5s après la dernière touche), à sa fermeture (croix ou Ctrl+W, sans confirmation même en cas de modifications non enregistrées) et à la fermeture de l'appli
