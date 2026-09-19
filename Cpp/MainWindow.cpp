@@ -760,8 +760,20 @@ void MainWindow::trashDraftEntry(const Session::DraftEntry &entry)
         QString("Mettre « %1 » à la corbeille ?").arg(label),
         QMessageBox::Yes | QMessageBox::No);
     if (result == QMessageBox::Yes) {
+        const int index = tabIndexForId(entry.id);
+        if (index != -1) {
+            // La corbeille doit recevoir le texte à jour (l'autosave est
+            // différé), et l'onglet doit disparaître sans passer par closeTab(),
+            // qui réarchiverait le brouillon qu'on met à la corbeille.
+            auto *editor = qobject_cast<Editor *>(m_tabs->widget(index));
+            autosaveTab(editor);
+            m_tabs->removeTab(index);
+            editor->deleteLater();
+        }
         Session::trashDraft(entry.id);
         refreshDraftsBrowser();
+        repositionNewTabButton();
+        updateTitle();
     }
 }
 
@@ -947,6 +959,8 @@ void MainWindow::showTabContextMenu(const QPoint &pos)
     QAction *historyAction = (editor && !Session::listVersions(editor->sessionId).isEmpty())
         ? menu.addAction("Historique des versions...")
         : nullptr;
+    menu.addSeparator();
+    QAction *trashAction = menu.addAction("Mettre à la corbeille");
 
     QAction *chosen = menu.exec(bar->mapToGlobal(pos));
     if (chosen == closeAction)
@@ -963,6 +977,14 @@ void MainWindow::showTabContextMenu(const QPoint &pos)
         renameTab(index);
     else if (historyAction && chosen == historyAction)
         showVersionHistory(editor);
+    else if (editor && chosen == trashAction) {
+        Session::DraftEntry entry;
+        entry.id = editor->sessionId;
+        entry.filePath = editor->filePath;
+        entry.defaultName = editor->defaultName;
+        entry.modified = editor->document()->isModified();
+        trashDraftEntry(entry);
+    }
 }
 
 void MainWindow::checkCurrentExternalChange()

@@ -663,8 +663,17 @@ class MainWindow(QMainWindow):
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
         if result == QMessageBox.StandardButton.Yes:
+            index = self._tab_index_for_id(entry["id"])
+            if index is not None:
+                # La corbeille doit recevoir le texte à jour (l'autosave est
+                # différé), et l'onglet doit disparaître sans passer par
+                # close_tab(), qui réarchiverait le brouillon qu'on met à la corbeille.
+                self._autosave_tab(self.tabs.widget(index))
+                self.tabs.removeTab(index)
             session.trash_draft(entry["id"])
             self._refresh_drafts_browser()
+            self._reposition_new_tab_button()
+            self.update_title()
 
     def _show_trash(self):
         dialog = TrashDialog(self)
@@ -801,6 +810,8 @@ class MainWindow(QMainWindow):
         duplicate_action = menu.addAction("Dupliquer")
         rename_action = menu.addAction("Renommer...") if editor.file_path is None else None
         history_action = menu.addAction("Historique des versions...") if session.list_versions(editor.session_id) else None
+        menu.addSeparator()
+        trash_action = menu.addAction("Mettre à la corbeille")
 
         chosen = menu.exec(bar.mapToGlobal(pos))
         if chosen == close_action:
@@ -817,6 +828,15 @@ class MainWindow(QMainWindow):
             self._rename_tab(index)
         elif history_action is not None and chosen == history_action:
             self._show_version_history(editor)
+        elif chosen == trash_action:
+            self._trash_draft(
+                {
+                    "id": editor.session_id,
+                    "file_path": editor.file_path,
+                    "default_name": editor.default_name,
+                    "modified": editor.document().isModified(),
+                }
+            )
 
     def _check_current_external_change(self):
         self._check_external_change(self.current_editor())
