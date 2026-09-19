@@ -9,7 +9,6 @@ implémentées sont documentées dans `README.md`, pas ici.
 - **Police et taille configurables** : actuellement fixées en dur (Monospace 11) dans `editor_widget.py`. Un réglage (menu ou raccourci `Ctrl+molette`) rendrait l'appli plus confortable selon l'écran.
 - **Indentation automatique** et **correspondance des parenthèses/accolades** pour les fichiers de code.
 - **Plus de langages** pour la coloration syntaxique (`highlighters.py` ne couvre que Python/JSON/Markdown) : JS, HTML, CSS, YAML, Shell seraient des ajouts naturels.
-- **Aperçu Markdown** en volet séparé pour les fichiers `.md`.
 - **Correcteur orthographique** (via `pyspellchecker` ou l'intégration d'un dictionnaire système).
 
 ## Interface

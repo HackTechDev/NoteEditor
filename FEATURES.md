@@ -116,6 +116,20 @@ adapter si le dépôt est cloné ailleurs.
   prévues pour un fond clair.
 - **Retour automatique à la ligne**, activable et désactivable depuis la barre
   d'outils (activé par défaut, appliqué à tous les onglets).
+- **Aperçu Markdown** en volet séparé, à droite de l'éditeur, pour les fichiers
+  `.md` et `.markdown` :
+  - il s'active avec l'icône **Aperçu Markdown** de la barre d'outils, qui n'est
+    disponible que pour un onglet Markdown (un fichier dont l'extension est `.md`
+    ou `.markdown` ; une note sans fichier associé n'en est pas un tant qu'elle
+    n'a pas été enregistrée sous un tel nom) ;
+  - le rendu (titres, gras, italique, listes, cases à cocher, citations, code,
+    liens, images) se **met à jour en direct** pendant la frappe, avec un court
+    délai, et **conserve la position de défilement** ;
+  - le volet suit l'onglet actif : il se masque sur un onglet qui n'est pas
+    Markdown et revient sur un onglet Markdown, tant que l'icône est activée ;
+  - les images et liens relatifs sont résolus depuis le dossier du fichier, et les
+    liens externes s'ouvrent dans le navigateur ;
+  - le volet est masqué à chaque lancement.
 - Annuler / Rétablir, Couper / Copier / Coller, Tout sélectionner (menu Édition).
 
 ## 4. Fichiers
@@ -187,7 +201,7 @@ sans confirmation.
 
 Icônes (dessinées par l'application, sans fichier d'image), de gauche à droite :
 **Nouveau**, **Ouvrir**, **Enregistrer**, **Enregistrer sous**, **Fermer l'onglet**, **Épingler**, **Détacher**, **Corbeille**,
-**Rechercher**, **Rechercher / Remplacer**, **Retour automatique à la ligne**.
+**Rechercher**, **Rechercher / Remplacer**, **Retour automatique à la ligne**, **Aperçu Markdown**.
 
 ## 10. Barre de statut
 

@@ -20,6 +20,7 @@ from PyQt6.QtWidgets import (
     QSplitter,
     QTabBar,
     QTabWidget,
+    QTextBrowser,
     QToolBar,
     QToolButton,
     QVBoxLayout,
@@ -249,6 +250,31 @@ def _close_tab_icon():
     return QIcon(pixmap)
 
 
+def _preview_icon():
+    """Dessine une icône « fenêtre coupée en deux » (aperçu Markdown) : du texte
+    à gauche, son rendu (un titre et des lignes) à droite. Glyphes dessinés,
+    pas de fichier externe."""
+    pixmap = QPixmap(22, 22)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    pen = QPen(Qt.GlobalColor.darkGray)
+    pen.setWidth(2)
+    pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+    pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+    painter.setPen(pen)
+    painter.drawRect(2, 4, 18, 14)
+    painter.drawLine(11, 4, 11, 18)
+    painter.drawLine(5, 8, 8, 8)  # texte brut, à gauche
+    painter.drawLine(5, 11, 8, 11)
+    painter.drawLine(5, 14, 7, 14)
+    painter.drawLine(14, 8, 17, 8)  # rendu, à droite
+    painter.drawLine(14, 11, 17, 11)
+    painter.drawLine(14, 14, 16, 14)
+    painter.end()
+    return QIcon(pixmap)
+
+
 def _trash_icon():
     """Dessine une icône « poubelle » classique, dans le même esprit que
     _save_icon() : glyphes dessinés, pas de fichier externe."""
@@ -386,9 +412,27 @@ class MainWindow(QMainWindow):
         sidebar_layout.addWidget(self.drafts_browser)
         sidebar_layout.addWidget(self.trash_button)
 
+        # Le volet d'aperçu est unique et partagé (il suit l'onglet actif), dans un
+        # splitter interne : le splitter principal garde deux entrées, ce qui
+        # préserve le format de window.json.
+        self.preview = QTextBrowser()
+        self.preview.setOpenExternalLinks(True)
+        self.preview.hide()
+        self._preview_key = None
+        self._preview_timer = QTimer(self)
+        self._preview_timer.setSingleShot(True)
+        self._preview_timer.setInterval(250)
+        self._preview_timer.timeout.connect(self._render_preview)
+        self.editor_splitter = QSplitter()
+        self.editor_splitter.addWidget(self.tabs)
+        self.editor_splitter.addWidget(self.preview)
+        self.editor_splitter.setStretchFactor(0, 1)
+        self.editor_splitter.setStretchFactor(1, 1)
+        self.editor_splitter.setSizes([1, 1])
+
         self.splitter = QSplitter()
         self.splitter.addWidget(sidebar)
-        self.splitter.addWidget(self.tabs)
+        self.splitter.addWidget(self.editor_splitter)
         self.splitter.setStretchFactor(0, 0)
         self.splitter.setStretchFactor(1, 1)
         self.splitter.setSizes([180, 720])
@@ -522,6 +566,11 @@ class MainWindow(QMainWindow):
         self.word_wrap_action.setChecked(True)
         self.word_wrap_action.toggled.connect(self._set_word_wrap)
 
+        self.preview_action = QAction(_preview_icon(), "Aperçu Markdown", self)
+        self.preview_action.setCheckable(True)
+        self.preview_action.setEnabled(False)
+        self.preview_action.toggled.connect(lambda _: self._update_preview_state())
+
     def _create_toolbar(self):
         toolbar = QToolBar("Barre d'outils", self)
         toolbar.setMovable(False)
@@ -538,7 +587,54 @@ class MainWindow(QMainWindow):
         toolbar.addAction(self.replace_action)
         toolbar.addSeparator()
         toolbar.addAction(self.word_wrap_action)
+        toolbar.addAction(self.preview_action)
         self.addToolBar(toolbar)
+
+    @staticmethod
+    def _is_markdown(editor):
+        return (
+            editor is not None
+            and editor.file_path is not None
+            and os.path.splitext(editor.file_path)[1].lower() in (".md", ".markdown")
+        )
+
+    def _update_preview_state(self):
+        """Le volet n'est visible que si l'aperçu est activé ET que l'onglet actif
+        est un fichier Markdown ; l'icône n'est active que pour un tel onglet."""
+        editor = self.current_editor()
+        markdown = self._is_markdown(editor)
+        self.preview_action.setEnabled(markdown)
+        show = markdown and self.preview_action.isChecked()
+        was_visible = self.preview.isVisible()
+        same_note = markdown and self._preview_key is not None and self._preview_key[0] == editor.session_id
+        self.preview.setVisible(show)
+        if show:
+            if was_visible and same_note:
+                # simple changement d'état (ex. « modifié ») : rendu différé comme à la frappe
+                self._preview_timer.start()
+            else:
+                self._render_preview()
+
+    def _schedule_preview(self):
+        if self.preview.isVisible():
+            self._preview_timer.start()
+
+    def _render_preview(self):
+        editor = self.current_editor()
+        if not self._is_markdown(editor) or not self.preview.isVisible():
+            return
+        text = editor.toPlainText()
+        key = (editor.session_id, editor.file_path, text)
+        if key == self._preview_key:
+            return
+        same_note = self._preview_key is not None and self._preview_key[0] == editor.session_id
+        bar = self.preview.verticalScrollBar()
+        scroll = bar.value() if same_note else 0
+        self._preview_key = key
+        # les images et liens relatifs se résolvent depuis le dossier du fichier
+        self.preview.setSearchPaths([os.path.dirname(editor.file_path)])
+        self.preview.setMarkdown(text)
+        bar.setValue(scroll)
 
     def _set_word_wrap(self, enabled):
         self.word_wrap_enabled = enabled
@@ -635,6 +731,7 @@ class MainWindow(QMainWindow):
         editor.autosave_requested.connect(lambda: self._autosave_tab(editor))
         editor.cursorPositionChanged.connect(self._update_status_bar)
         editor.textChanged.connect(self._update_status_bar)
+        editor.textChanged.connect(self._schedule_preview)
         editor.setLineWrapMode(
             QPlainTextEdit.LineWrapMode.WidgetWidth if self.word_wrap_enabled else QPlainTextEdit.LineWrapMode.NoWrap
         )
@@ -1075,6 +1172,7 @@ class MainWindow(QMainWindow):
 
     def update_title(self):
         self._update_pin_action()
+        self._update_preview_state()
         editor = self.current_editor()
         if editor is None:
             self.setWindowTitle("Éditeur de texte")

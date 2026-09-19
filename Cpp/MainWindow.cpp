@@ -34,11 +34,13 @@
 #include <QRegularExpression>
 #include <QScreen>
 #include <QResizeEvent>
+#include <QScrollBar>
 #include <QSplitter>
 #include <QStatusBar>
 #include <QStringConverter>
 #include <QTabBar>
 #include <QTabWidget>
+#include <QTextBrowser>
 #include <QTextCursor>
 #include <QTextStream>
 #include <QTimer>
@@ -282,6 +284,32 @@ QIcon closeTabIcon()
     return QIcon(pixmap);
 }
 
+// Dessine une icône « fenêtre coupée en deux » (aperçu Markdown) : du texte à
+// gauche, son rendu (un titre et des lignes) à droite. Glyphes dessinés, pas
+// de fichier externe.
+QIcon previewIcon()
+{
+    QPixmap pixmap(22, 22);
+    pixmap.fill(Qt::transparent);
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+    QPen pen(Qt::darkGray);
+    pen.setWidth(2);
+    pen.setJoinStyle(Qt::RoundJoin);
+    pen.setCapStyle(Qt::RoundCap);
+    painter.setPen(pen);
+    painter.drawRect(2, 4, 18, 14);
+    painter.drawLine(11, 4, 11, 18);
+    painter.drawLine(5, 8, 8, 8); // texte brut, à gauche
+    painter.drawLine(5, 11, 8, 11);
+    painter.drawLine(5, 14, 7, 14);
+    painter.drawLine(14, 8, 17, 8); // rendu, à droite
+    painter.drawLine(14, 11, 17, 11);
+    painter.drawLine(14, 14, 16, 14);
+    painter.end();
+    return QIcon(pixmap);
+}
+
 // Dessine une icône « poubelle » classique, dans le même esprit que
 // saveIcon() : glyphes dessinés, pas de fichier externe.
 QIcon trashIcon()
@@ -412,9 +440,26 @@ MainWindow::MainWindow(QWidget *parent)
     sidebarLayout->addWidget(m_draftsBrowser);
     sidebarLayout->addWidget(m_trashButton);
 
+    // Le volet d'aperçu est unique et partagé (il suit l'onglet actif), dans un
+    // splitter interne : le splitter principal garde deux entrées, ce qui
+    // préserve le format de window.json.
+    m_preview = new QTextBrowser(this);
+    m_preview->setOpenExternalLinks(true);
+    m_preview->hide();
+    m_previewTimer = new QTimer(this);
+    m_previewTimer->setSingleShot(true);
+    m_previewTimer->setInterval(250);
+    connect(m_previewTimer, &QTimer::timeout, this, &MainWindow::renderPreview);
+    m_editorSplitter = new QSplitter(this);
+    m_editorSplitter->addWidget(m_tabs);
+    m_editorSplitter->addWidget(m_preview);
+    m_editorSplitter->setStretchFactor(0, 1);
+    m_editorSplitter->setStretchFactor(1, 1);
+    m_editorSplitter->setSizes({1, 1});
+
     m_splitter = new QSplitter(this);
     m_splitter->addWidget(sidebar);
-    m_splitter->addWidget(m_tabs);
+    m_splitter->addWidget(m_editorSplitter);
     m_splitter->setStretchFactor(0, 0);
     m_splitter->setStretchFactor(1, 1);
     m_splitter->setSizes({180, 720});
@@ -535,6 +580,11 @@ void MainWindow::createActions()
     m_wordWrapAction->setCheckable(true);
     m_wordWrapAction->setChecked(true);
     connect(m_wordWrapAction, &QAction::toggled, this, &MainWindow::setWordWrap);
+
+    m_previewAction = new QAction(previewIcon(), "Aperçu Markdown", this);
+    m_previewAction->setCheckable(true);
+    m_previewAction->setEnabled(false);
+    connect(m_previewAction, &QAction::toggled, this, [this](bool) { updatePreviewState(); });
 }
 
 void MainWindow::createToolBar()
@@ -554,6 +604,7 @@ void MainWindow::createToolBar()
     toolbar->addAction(m_replaceAction);
     toolbar->addSeparator();
     toolbar->addAction(m_wordWrapAction);
+    toolbar->addAction(m_previewAction);
     addToolBar(toolbar);
 }
 
@@ -668,6 +719,7 @@ Editor *MainWindow::newTab(const QString &filePath, const QString &content, cons
     editor->setLineWrapMode(m_wordWrapEnabled ? QPlainTextEdit::WidgetWidth : QPlainTextEdit::NoWrap);
     connect(editor, &QPlainTextEdit::cursorPositionChanged, this, &MainWindow::updateStatusBar);
     connect(editor, &QPlainTextEdit::textChanged, this, &MainWindow::updateStatusBar);
+    connect(editor, &QPlainTextEdit::textChanged, this, &MainWindow::schedulePreview);
 
     const QString label = !filePath.isEmpty() ? QFileInfo(filePath).fileName() : editor->defaultName;
     const int index = m_tabs->addTab(editor, label);
@@ -1204,9 +1256,67 @@ void MainWindow::setCurrentPinned(bool pinned)
         setPinned(editor->sessionId, pinned);
 }
 
+bool MainWindow::isMarkdown(const Editor *editor)
+{
+    if (!editor || editor->filePath.isEmpty())
+        return false;
+    const QString suffix = QFileInfo(editor->filePath).suffix().toLower();
+    return suffix == "md" || suffix == "markdown";
+}
+
+// Le volet n'est visible que si l'aperçu est activé ET que l'onglet actif est un
+// fichier Markdown ; l'icône n'est active que pour un tel onglet.
+void MainWindow::updatePreviewState()
+{
+    if (!m_previewAction)
+        return;
+    Editor *editor = currentEditor();
+    const bool markdown = isMarkdown(editor);
+    m_previewAction->setEnabled(markdown);
+    const bool show = markdown && m_previewAction->isChecked();
+    const bool wasVisible = m_preview->isVisible();
+    const bool sameNote = markdown && m_hasPreviewKey && m_previewNoteId == editor->sessionId;
+    m_preview->setVisible(show);
+    if (show) {
+        if (wasVisible && sameNote)
+            m_previewTimer->start(); // simple changement d'état (ex. « modifié ») : rendu différé comme à la frappe
+        else
+            renderPreview();
+    }
+}
+
+void MainWindow::schedulePreview()
+{
+    if (m_preview->isVisible())
+        m_previewTimer->start();
+}
+
+void MainWindow::renderPreview()
+{
+    Editor *editor = currentEditor();
+    if (!isMarkdown(editor) || !m_preview->isVisible())
+        return;
+    const QString text = editor->toPlainText();
+    if (m_hasPreviewKey && m_previewNoteId == editor->sessionId && m_previewPath == editor->filePath
+        && m_previewText == text)
+        return;
+    const bool sameNote = m_hasPreviewKey && m_previewNoteId == editor->sessionId;
+    QScrollBar *bar = m_preview->verticalScrollBar();
+    const int scroll = sameNote ? bar->value() : 0;
+    m_hasPreviewKey = true;
+    m_previewNoteId = editor->sessionId;
+    m_previewPath = editor->filePath;
+    m_previewText = text;
+    // les images et liens relatifs se résolvent depuis le dossier du fichier
+    m_preview->setSearchPaths({QFileInfo(editor->filePath).absolutePath()});
+    m_preview->setMarkdown(text);
+    bar->setValue(scroll);
+}
+
 void MainWindow::updateTitle()
 {
     updatePinAction();
+    updatePreviewState();
     Editor *editor = currentEditor();
     if (!editor) {
         setWindowTitle("Éditeur de note");

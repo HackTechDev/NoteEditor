@@ -17,6 +17,8 @@ class QDropEvent;
 class QLabel;
 class QLineEdit;
 class QSplitter;
+class QTextBrowser;
+class QTimer;
 class QTabWidget;
 class QListWidgetItem;
 
@@ -86,6 +88,10 @@ private:
     void setPinned(const QString &draftId, bool pinned);
     void updatePinAction();
     void setCurrentPinned(bool pinned);
+    static bool isMarkdown(const Editor *editor);
+    void updatePreviewState();
+    void schedulePreview();
+    void renderPreview();
     void closeTabByButton(QToolButton *button);
     QVector<QToolButton *> nativeScrollButtons() const;
     void repositionNewTabButton();
@@ -118,6 +124,11 @@ private:
     QComboBox *m_draftsSort;
     QToolButton *m_trashButton;
     QSplitter *m_splitter;
+    QSplitter *m_editorSplitter;
+    QTextBrowser *m_preview;
+    QTimer *m_previewTimer;
+    QString m_previewNoteId, m_previewPath, m_previewText;
+    bool m_hasPreviewKey = false;
     FindReplaceDialog *m_findDialog;
     QLabel *m_statusPosition;
     QLabel *m_statusCounts;
@@ -142,6 +153,7 @@ private:
     QAction *m_trashAction;
     QAction *m_pinAction = nullptr;
     QAction *m_unpinAction = nullptr;
+    QAction *m_previewAction = nullptr;
     QAction *m_wordWrapAction;
     bool m_wordWrapEnabled = true;
 };

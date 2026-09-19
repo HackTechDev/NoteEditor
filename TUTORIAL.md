@@ -84,7 +84,8 @@ prête à recevoir du texte.
 2. **La barre d'outils** : les actions les plus courantes en un clic. De gauche à
    droite : **Nouveau**, **Ouvrir**, **Enregistrer**, **Enregistrer sous**,
    **Fermer l'onglet**, **Épingler**, **Détacher**, **Corbeille**, **Rechercher**,
-   **Rechercher / Remplacer** et **Retour automatique à la ligne**. Laissez la
+   **Rechercher / Remplacer**, **Retour automatique à la ligne** et **Aperçu
+   Markdown**. Laissez la
    souris un instant sur une icône : une infobulle donne son nom.
 3. **Le panneau Brouillons** : la liste de toutes vos notes, ouvertes ou non
    (voir la [partie 7](#7-le-panneau-brouillons)).
@@ -252,7 +253,7 @@ Selon l'extension du fichier, le texte est coloré automatiquement :
 |---|---|
 | `.py`, `.pyw` | Python |
 | `.json` | JSON |
-| `.md`, `.markdown` | Markdown |
+| `.md`, `.markdown` | Markdown (avec, en plus, un [aperçu](#aperçu-markdown)) |
 
 Les autres fichiers restent en texte simple. La coloration se met à jour quand
 vous changez l'extension avec **Enregistrer sous** (essayez de passer un texte de
@@ -473,6 +474,34 @@ passer les longues lignes à la ligne suivante au lieu de dépasser de la fenêt
 Elle est **activée par défaut** ; cliquez dessus pour la désactiver. Le réglage
 s'applique à **tous** les onglets, mais il est de nouveau activé à chaque
 lancement.
+
+### Aperçu Markdown
+
+Pour un fichier Markdown (`.md` ou `.markdown`), l'icône **Aperçu Markdown** (la
+dernière de la barre d'outils, une fenêtre coupée en deux) affiche à **droite de
+l'éditeur** le texte tel qu'il apparaîtra une fois mis en forme : titres, gras,
+italique, listes, cases à cocher, citations, code, liens, images.
+
+- Le rendu se **met à jour en direct** pendant que vous tapez, et garde sa
+  position de défilement.
+- L'icône est **grisée** tant que l'onglet actif n'est pas un fichier Markdown. Une
+  note qui n'est pas encore liée à un fichier n'en est pas un : faites d'abord
+  **Enregistrer sous** avec un nom en `.md` (par exemple `journal.md`).
+- Le volet suit l'onglet actif : il disparaît sur un onglet qui n'est pas Markdown
+  et réapparaît quand vous revenez sur un onglet Markdown, tant que l'icône reste
+  enfoncée. Recliquez sur l'icône pour le masquer.
+- Les images et liens relatifs (`![](image.png)`) sont cherchés dans le dossier du
+  fichier ; les liens vers le web s'ouvrent dans votre navigateur.
+- Le volet est masqué à chaque lancement de l'application.
+
+**À essayer**
+
+1. Créez une note et écrivez `# Mon journal`, une ligne avec du `**gras**`, puis une
+   liste avec des `- éléments`.
+2. **Enregistrer sous** (`Ctrl+Maj+S`), nom `journal.md`. La coloration du texte
+   apparaît et l'icône **Aperçu Markdown** devient active.
+3. Cliquez dessus : le rendu s'affiche à droite. Modifiez le texte à gauche et
+   regardez le rendu suivre.
 
 ### Numéros de ligne
 

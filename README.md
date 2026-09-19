@@ -18,6 +18,7 @@ La liste détaillée et complète est dans [`FEATURES.md`](FEATURES.md), et un d
 - Notes épinglées : « Épingler » (menu contextuel d'un onglet ou du panneau Brouillons) bloque la fermeture et la mise à la corbeille de la note, jusqu'à « Détacher » ; une petite punaise s'affiche à gauche de son nom (dans l'onglet, où la croix de fermeture disparaît, et dans le panneau), et l'état est restauré avec la session
 - Numéros de ligne avec surlignage de la ligne courante
 - Coloration syntaxique automatique selon l'extension : Python (`.py`), JSON (`.json`), Markdown (`.md`)
+- Aperçu Markdown en volet séparé pour les fichiers `.md` / `.markdown` (icône de la barre d'outils, désactivée pour les autres onglets) : le rendu, mis à jour en direct pendant la frappe, s'affiche à droite de l'éditeur
 - Recherche / remplacement (`Ctrl+F` / `Ctrl+H`) : suivant, précédent, remplacer, tout remplacer
 - `Ctrl+S` sur un onglet sans fichier associé l'enregistre directement dans `~/.noteeditor/docs/` (sous son nom par défaut), sans ouvrir de boîte de dialogue ; `Ctrl+Shift+S` (Enregistrer sous) permet de choisir un autre emplacement
 - Glisser-déposer un fichier dans la fenêtre pour l'ouvrir dans un nouvel onglet
@@ -25,7 +26,7 @@ La liste détaillée et complète est dans [`FEATURES.md`](FEATURES.md), et un d
 - Panneau « Brouillons » à gauche : liste tous les onglets archivés dans `~/.noteeditor` (ouverts marqués « (ouvert) »), avec recherche, tri (date/nom) et l'entrée de l'onglet actif surlignée ; double-clic pour rouvrir ou basculer dessus, clic droit pour la même palette d'actions que le menu contextuel des onglets (fermer / fermer les autres / fermer à droite / fermer tout, dupliquer, historique des versions), renommer (onglets sans fichier) ou mettre à la corbeille
 - Corbeille : la suppression d'un brouillon est réversible (bouton « Corbeille... » avec son icône en bas du panneau Brouillons, ou menu Fichier), avec restauration ou suppression définitive, y compris de plusieurs brouillons à la fois (sélection multiple)
 - Historique des versions (10 dernières) : chaque enregistrement archive le contenu précédent du fichier, consultable et restaurable depuis le menu contextuel d'un onglet (clic droit)
-- Barre d'outils avec icônes Nouveau, Ouvrir, Enregistrer, Enregistrer sous, Fermer l'onglet, Épingler, Détacher, Corbeille, Rechercher, Rechercher / Remplacer et retour à la ligne automatique (ce dernier activable/désactivable, actif par défaut, s'applique à tous les onglets)
+- Barre d'outils avec icônes Nouveau, Ouvrir, Enregistrer, Enregistrer sous, Fermer l'onglet, Épingler, Détacher, Corbeille, Rechercher, Rechercher / Remplacer, retour à la ligne automatique (activable/désactivable, actif par défaut, s'applique à tous les onglets) et Aperçu Markdown
 - Barre de statut : position ligne/colonne, nombre de mots/caractères et encodage (UTF-8) de l'onglet actif
 - Menu Aide → À propos
 
