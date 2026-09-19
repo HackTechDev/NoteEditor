@@ -196,6 +196,29 @@ def _find_icon():
     return QIcon(pixmap)
 
 
+def _replace_icon():
+    """Dessine une icône « loupe + flèche » (Rechercher / Remplacer), dans le
+    même esprit que _find_icon() : une loupe réduite, avec une petite flèche
+    vers la droite (« remplacer par ») pour la distinguer de Rechercher."""
+    pixmap = QPixmap(22, 22)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    pen = QPen(Qt.GlobalColor.darkGray)
+    pen.setWidth(2)
+    pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+    pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+    painter.setPen(pen)
+    painter.drawEllipse(2, 2, 9, 9)
+    painter.drawLine(10, 10, 13, 13)
+    # petite flèche vers la droite, en bas
+    painter.drawLine(11, 17, 20, 17)
+    painter.drawLine(17, 14, 20, 17)
+    painter.drawLine(17, 20, 20, 17)
+    painter.end()
+    return QIcon(pixmap)
+
+
 def _trash_icon():
     """Dessine une icône « poubelle » classique, dans le même esprit que
     _save_icon() : glyphes dessinés, pas de fichier externe."""
@@ -441,7 +464,7 @@ class MainWindow(QMainWindow):
         self.find_action.setShortcut(QKeySequence.StandardKey.Find)
         self.find_action.triggered.connect(self.find_dialog.show_for_find)
 
-        self.replace_action = QAction("Rechercher / &Remplacer...", self)
+        self.replace_action = QAction(_replace_icon(), "Rechercher / &Remplacer...", self)
         self.replace_action.setShortcut(QKeySequence("Ctrl+H"))
         self.replace_action.triggered.connect(self.find_dialog.show_for_replace)
 
@@ -470,6 +493,7 @@ class MainWindow(QMainWindow):
         toolbar.addAction(self.trash_action)
         toolbar.addSeparator()
         toolbar.addAction(self.find_action)
+        toolbar.addAction(self.replace_action)
         toolbar.addSeparator()
         toolbar.addAction(self.word_wrap_action)
         self.addToolBar(toolbar)

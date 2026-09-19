@@ -229,6 +229,30 @@ QIcon findIcon()
     return QIcon(pixmap);
 }
 
+// Dessine une icône « loupe + flèche » (Rechercher / Remplacer), dans le même
+// esprit que findIcon() : une loupe réduite, avec une petite flèche vers la
+// droite (« remplacer par ») pour la distinguer de Rechercher.
+QIcon replaceIcon()
+{
+    QPixmap pixmap(22, 22);
+    pixmap.fill(Qt::transparent);
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+    QPen pen(Qt::darkGray);
+    pen.setWidth(2);
+    pen.setJoinStyle(Qt::RoundJoin);
+    pen.setCapStyle(Qt::RoundCap);
+    painter.setPen(pen);
+    painter.drawEllipse(2, 2, 9, 9);
+    painter.drawLine(10, 10, 13, 13);
+    // petite flèche vers la droite, en bas
+    painter.drawLine(11, 17, 20, 17);
+    painter.drawLine(17, 14, 20, 17);
+    painter.drawLine(17, 20, 20, 17);
+    painter.end();
+    return QIcon(pixmap);
+}
+
 // Dessine une icône « poubelle » classique, dans le même esprit que
 // saveIcon() : glyphes dessinés, pas de fichier externe.
 QIcon trashIcon()
@@ -455,7 +479,7 @@ void MainWindow::createActions()
     m_findAction->setShortcut(QKeySequence::Find);
     connect(m_findAction, &QAction::triggered, m_findDialog, &FindReplaceDialog::showForFind);
 
-    m_replaceAction = new QAction("Rechercher / &Remplacer...", this);
+    m_replaceAction = new QAction(replaceIcon(), "Rechercher / &Remplacer...", this);
     m_replaceAction->setShortcut(QKeySequence("Ctrl+H"));
     connect(m_replaceAction, &QAction::triggered, m_findDialog, &FindReplaceDialog::showForReplace);
 
@@ -486,6 +510,7 @@ void MainWindow::createToolBar()
     toolbar->addAction(m_trashAction);
     toolbar->addSeparator();
     toolbar->addAction(m_findAction);
+    toolbar->addAction(m_replaceAction);
     toolbar->addSeparator();
     toolbar->addAction(m_wordWrapAction);
     addToolBar(toolbar);
