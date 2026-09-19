@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=NoteEditor (C++)
+Comment=Éditeur de texte à onglets
+Exec=/home/util01/APP/NoteEditor/Cpp/build/NoteEditor
+Path=/home/util01/APP/NoteEditor/Cpp
+Terminal=false
+Categories=Utility;TextEditor;

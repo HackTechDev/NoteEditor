@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=NoteEditor (Python)
+Comment=Éditeur de texte à onglets
+Exec=python3 /home/util01/APP/NoteEditor/Python/main.py
+Path=/home/util01/APP/NoteEditor/Python
+Terminal=false
+Categories=Utility;TextEditor;
