@@ -1,6 +1,7 @@
 #include "TrashDialog.h"
 #include "Session.h"
 
+#include <QAbstractItemView>
 #include <QDateTime>
 #include <QFileInfo>
 #include <QHBoxLayout>
@@ -34,6 +35,7 @@ TrashDialog::TrashDialog(QWidget *parent)
     resize(420, 360);
 
     m_listWidget = new QListWidget(this);
+    m_listWidget->setSelectionMode(QAbstractItemView::ExtendedSelection);
     m_restoreBtn = new QPushButton("Restaurer", this);
     m_purgeBtn = new QPushButton("Supprimer définitivement", this);
     auto *closeBtn = new QPushButton("Fermer", this);
@@ -68,34 +70,44 @@ void TrashDialog::refresh()
 
 void TrashDialog::restoreSelected()
 {
-    QListWidgetItem *item = m_listWidget->currentItem();
-    if (!item)
+    const QList<QListWidgetItem *> items = m_listWidget->selectedItems();
+    if (items.isEmpty())
         return;
-    Session::restoreDraft(item->data(Qt::UserRole).toString());
+    for (QListWidgetItem *item : items)
+        Session::restoreDraft(item->data(Qt::UserRole).toString());
     refresh();
     emit restored();
 }
 
 void TrashDialog::purgeSelected()
 {
-    QListWidgetItem *item = m_listWidget->currentItem();
-    if (!item)
+    const QList<QListWidgetItem *> items = m_listWidget->selectedItems();
+    if (items.isEmpty())
         return;
-    const QString id = item->data(Qt::UserRole).toString();
 
-    Session::TrashEntry entry;
-    for (const Session::TrashEntry &e : Session::listTrash()) {
-        if (e.id == id) {
-            entry = e;
-            break;
+    QStringList ids;
+    for (QListWidgetItem *item : items)
+        ids << item->data(Qt::UserRole).toString();
+
+    QString question;
+    if (ids.size() == 1) {
+        Session::TrashEntry entry;
+        for (const Session::TrashEntry &e : Session::listTrash()) {
+            if (e.id == ids.first()) {
+                entry = e;
+                break;
+            }
         }
+        question = QString("Supprimer définitivement « %1 » ? Cette action est irréversible.").arg(labelFor(entry));
+    } else {
+        question = QString("Supprimer définitivement ces %1 brouillons ? Cette action est irréversible.").arg(ids.size());
     }
 
-    const auto result = QMessageBox::question(this, "Supprimer définitivement",
-        QString("Supprimer définitivement « %1 » ? Cette action est irréversible.").arg(labelFor(entry)),
+    const auto result = QMessageBox::question(this, "Supprimer définitivement", question,
         QMessageBox::Yes | QMessageBox::No);
     if (result == QMessageBox::Yes) {
-        Session::purgeDraft(id);
+        for (const QString &id : ids)
+            Session::purgeDraft(id);
         refresh();
     }
 }

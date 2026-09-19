@@ -169,6 +169,11 @@ sans confirmation.
   et entrée du menu Fichier ouvrent la fenêtre de la corbeille.
 - Depuis la corbeille : **Restaurer** une note (elle réapparaît dans les
   brouillons) ou la **supprimer définitivement**.
+- **Sélection multiple** : `Ctrl+clic` ajoute ou retire une note, `Maj+clic`
+  sélectionne une plage, `Ctrl+A` sélectionne tout. **Restaurer** et **Supprimer
+  définitivement** s'appliquent alors à toute la sélection ; la suppression
+  définitive ne demande qu'**une seule confirmation**, qui indique le nombre de
+  brouillons concernés.
 
 ## 8. Historique des versions
 

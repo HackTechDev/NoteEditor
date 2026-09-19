@@ -3,6 +3,7 @@ from datetime import datetime
 
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import (
+    QAbstractItemView,
     QDialog,
     QHBoxLayout,
     QListWidget,
@@ -37,6 +38,7 @@ class TrashDialog(QDialog):
         self.resize(420, 360)
 
         self.list_widget = QListWidget(self)
+        self.list_widget.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
 
         self.restore_btn = QPushButton("Restaurer", self)
         self.purge_btn = QPushButton("Supprimer définitivement", self)
@@ -66,28 +68,33 @@ class TrashDialog(QDialog):
             item.setData(Qt.ItemDataRole.UserRole, entry)
             self.list_widget.addItem(item)
 
-    def _selected_entry(self):
-        item = self.list_widget.currentItem()
-        return item.data(Qt.ItemDataRole.UserRole) if item else None
+    def _selected_entries(self):
+        return [item.data(Qt.ItemDataRole.UserRole) for item in self.list_widget.selectedItems()]
 
     def _restore_selected(self):
-        entry = self._selected_entry()
-        if entry is None:
+        entries = self._selected_entries()
+        if not entries:
             return
-        session.restore_draft(entry["id"])
+        for entry in entries:
+            session.restore_draft(entry["id"])
         self.refresh()
         self.restored.emit()
 
     def _purge_selected(self):
-        entry = self._selected_entry()
-        if entry is None:
+        entries = self._selected_entries()
+        if not entries:
             return
+        if len(entries) == 1:
+            question = f"Supprimer définitivement « {_label_for(entries[0])} » ? Cette action est irréversible."
+        else:
+            question = f"Supprimer définitivement ces {len(entries)} brouillons ? Cette action est irréversible."
         result = QMessageBox.question(
             self,
             "Supprimer définitivement",
-            f"Supprimer définitivement « {_label_for(entry)} » ? Cette action est irréversible.",
+            question,
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
         if result == QMessageBox.StandardButton.Yes:
-            session.purge_draft(entry["id"])
+            for entry in entries:
+                session.purge_draft(entry["id"])
             self.refresh()
