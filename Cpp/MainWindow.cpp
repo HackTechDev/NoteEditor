@@ -399,6 +399,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     m_trashButton = new QToolButton(this);
     m_trashButton->setText("Corbeille...");
+    m_trashButton->setIcon(trashIcon());
+    m_trashButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     connect(m_trashButton, &QToolButton::clicked, this, &MainWindow::showTrash);
 
     auto *sidebar = new QWidget(this);

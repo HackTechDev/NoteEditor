@@ -373,6 +373,8 @@ class MainWindow(QMainWindow):
 
         self.trash_button = QToolButton()
         self.trash_button.setText("Corbeille...")
+        self.trash_button.setIcon(_trash_icon())
+        self.trash_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
         self.trash_button.clicked.connect(self._show_trash)
 
         sidebar = QWidget()

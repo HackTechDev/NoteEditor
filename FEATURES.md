@@ -165,7 +165,7 @@ sans confirmation.
 
 - **Mettre à la corbeille** demande une confirmation, retire la note des onglets et
   du panneau Brouillons, et la déplace dans la corbeille sans la détruire.
-- Bouton **Corbeille...** en bas du panneau Brouillons, icône de la barre d'outils
+- Bouton **Corbeille...** (avec son icône de poubelle) en bas du panneau Brouillons, icône de la barre d'outils
   et entrée du menu Fichier ouvrent la fenêtre de la corbeille.
 - Depuis la corbeille : **Restaurer** une note (elle réapparaît dans les
   brouillons) ou la **supprimer définitivement**.
