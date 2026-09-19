@@ -229,6 +229,28 @@ QIcon findIcon()
     return QIcon(pixmap);
 }
 
+// Dessine une icône « poubelle » classique, dans le même esprit que
+// saveIcon() : glyphes dessinés, pas de fichier externe.
+QIcon trashIcon()
+{
+    QPixmap pixmap(22, 22);
+    pixmap.fill(Qt::transparent);
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+    QPen pen(Qt::darkGray);
+    pen.setWidth(2);
+    pen.setJoinStyle(Qt::RoundJoin);
+    pen.setCapStyle(Qt::RoundCap);
+    painter.setPen(pen);
+    painter.drawLine(3, 6, 19, 6); // couvercle
+    painter.drawPolyline(QPolygon({QPoint(8, 6), QPoint(8, 3), QPoint(14, 3), QPoint(14, 6)})); // poignée
+    painter.drawPolygon(QPolygon({QPoint(5, 6), QPoint(6, 19), QPoint(16, 19), QPoint(17, 6)})); // cuve
+    painter.drawLine(9, 10, 9, 15);
+    painter.drawLine(13, 10, 13, 15);
+    painter.end();
+    return QIcon(pixmap);
+}
+
 } // namespace
 
 CornerToolButton::CornerToolButton(int height, QWidget *parent)
@@ -444,7 +466,7 @@ void MainWindow::createActions()
     m_aboutAction = new QAction("À &propos...", this);
     connect(m_aboutAction, &QAction::triggered, this, &MainWindow::showAbout);
 
-    m_trashAction = new QAction("&Corbeille...", this);
+    m_trashAction = new QAction(trashIcon(), "&Corbeille...", this);
     connect(m_trashAction, &QAction::triggered, this, &MainWindow::showTrash);
 
     m_wordWrapAction = new QAction(wordWrapIcon(), "Retour automatique à la ligne", this);
@@ -461,6 +483,7 @@ void MainWindow::createToolBar()
     toolbar->addAction(m_openAction);
     toolbar->addAction(m_saveAction);
     toolbar->addAction(m_saveAsAction);
+    toolbar->addAction(m_trashAction);
     toolbar->addSeparator();
     toolbar->addAction(m_findAction);
     toolbar->addSeparator();

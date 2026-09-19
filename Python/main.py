@@ -196,6 +196,27 @@ def _find_icon():
     return QIcon(pixmap)
 
 
+def _trash_icon():
+    """Dessine une icône « poubelle » classique, dans le même esprit que
+    _save_icon() : glyphes dessinés, pas de fichier externe."""
+    pixmap = QPixmap(22, 22)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    pen = QPen(Qt.GlobalColor.darkGray)
+    pen.setWidth(2)
+    pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+    pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+    painter.setPen(pen)
+    painter.drawLine(3, 6, 19, 6)  # couvercle
+    painter.drawPolyline(QPolygon([QPoint(8, 6), QPoint(8, 3), QPoint(14, 3), QPoint(14, 6)]))  # poignée
+    painter.drawPolygon(QPolygon([QPoint(5, 6), QPoint(6, 19), QPoint(16, 19), QPoint(17, 6)]))  # cuve
+    painter.drawLine(9, 10, 9, 15)
+    painter.drawLine(13, 10, 13, 15)
+    painter.end()
+    return QIcon(pixmap)
+
+
 class _CornerToolButton(QToolButton):
     """QToolButton dont le sizeHint force sa taille, pour que QTabWidget le
     dimensionne correctement en widget de coin (il se base sur sizeHint(), pas
@@ -431,7 +452,7 @@ class MainWindow(QMainWindow):
         self.about_action = QAction("À &propos...", self)
         self.about_action.triggered.connect(self.show_about)
 
-        self.trash_action = QAction("&Corbeille...", self)
+        self.trash_action = QAction(_trash_icon(), "&Corbeille...", self)
         self.trash_action.triggered.connect(self._show_trash)
 
         self.word_wrap_action = QAction(_word_wrap_icon(), "Retour automatique à la ligne", self)
@@ -446,6 +467,7 @@ class MainWindow(QMainWindow):
         toolbar.addAction(self.open_action)
         toolbar.addAction(self.save_action)
         toolbar.addAction(self.save_as_action)
+        toolbar.addAction(self.trash_action)
         toolbar.addSeparator()
         toolbar.addAction(self.find_action)
         toolbar.addSeparator()
