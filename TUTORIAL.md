@@ -239,7 +239,10 @@ Utilisez-la pour ranger la note ailleurs, par exemple dans vos Documents.
 
 ### Ouvrir un fichier
 
-- **`Ctrl+O`** (ou l'icône **Ouvrir**) : choisissez un fichier.
+- **`Ctrl+O`** (ou l'icône **Ouvrir**) : choisissez un fichier. La fenêtre affiche
+  par défaut les fichiers **texte (`.txt`) et Markdown (`.md`)** ; la liste
+  déroulante des types permet de n'afficher que l'un des deux, ou de choisir
+  **Tous les fichiers** pour voir les autres (`.py`, `.json`, `.markdown`...).
 - **Glisser-déposer** : faites glisser un fichier depuis votre gestionnaire de
   fichiers jusque dans la fenêtre.
 - Ouvrir un fichier **déjà ouvert** ne crée pas de doublon : l'application

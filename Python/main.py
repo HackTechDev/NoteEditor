@@ -1184,7 +1184,12 @@ class MainWindow(QMainWindow):
         self._highlight_active_draft()
 
     def open_file(self):
-        path, _ = QFileDialog.getOpenFileName(self, "Ouvrir un fichier", "", "Fichiers texte (*.txt);;Tous les fichiers (*)")
+        path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Ouvrir un fichier",
+            "",
+            "Fichiers texte et Markdown (*.txt *.md);;Fichiers texte (*.txt);;Fichiers Markdown (*.md);;Tous les fichiers (*)",
+        )
         if path:
             self._open_path(path)
 

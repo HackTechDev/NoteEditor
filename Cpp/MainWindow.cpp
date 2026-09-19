@@ -1331,8 +1331,9 @@ void MainWindow::updateTitle()
 
 void MainWindow::openFile()
 {
-    const QString path = QFileDialog::getOpenFileName(this, "Ouvrir un fichier", QString(),
-                                                        "Fichiers texte (*.txt);;Tous les fichiers (*)");
+    const QString path = QFileDialog::getOpenFileName(
+        this, "Ouvrir un fichier", QString(),
+        "Fichiers texte et Markdown (*.txt *.md);;Fichiers texte (*.txt);;Fichiers Markdown (*.md);;Tous les fichiers (*)");
     if (!path.isEmpty())
         openPath(path);
 }

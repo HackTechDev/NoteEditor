@@ -134,7 +134,8 @@ adapter si le dépôt est cloné ailleurs.
 
 ## 4. Fichiers
 
-- **Nouveau** (`Ctrl+N`), **Ouvrir** (`Ctrl+O`), **Enregistrer** (`Ctrl+S`),
+- **Nouveau** (`Ctrl+N`), **Ouvrir** (`Ctrl+O`, qui affiche par défaut les fichiers
+  `.txt` et `.md`, avec des filtres séparés et « Tous les fichiers »), **Enregistrer** (`Ctrl+S`),
   **Enregistrer sous** (`Ctrl+Maj+S`), **Fermer l'onglet** (`Ctrl+W`),
   **Quitter** (`Ctrl+Q`).
 - **`Ctrl+S` sur une note sans fichier associé** l'enregistre directement dans
