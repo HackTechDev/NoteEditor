@@ -219,6 +219,36 @@ def _replace_icon():
     return QIcon(pixmap)
 
 
+def _close_tab_icon():
+    """Dessine une icône « onglet + croix » (Fermer l'onglet), dans le même
+    esprit que _save_icon() : un onglet aux coins supérieurs coupés, avec une
+    croix à l'intérieur, pour la distinguer des autres icônes de page."""
+    pixmap = QPixmap(22, 22)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    pen = QPen(Qt.GlobalColor.darkGray)
+    pen.setWidth(2)
+    pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+    pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+    painter.setPen(pen)
+    tab = QPolygon(
+        [
+            QPoint(3, 19),
+            QPoint(3, 6),
+            QPoint(6, 3),
+            QPoint(16, 3),
+            QPoint(19, 6),
+            QPoint(19, 19),
+        ]
+    )
+    painter.drawPolygon(tab)
+    painter.drawLine(8, 9, 14, 15)
+    painter.drawLine(14, 9, 8, 15)
+    painter.end()
+    return QIcon(pixmap)
+
+
 def _trash_icon():
     """Dessine une icône « poubelle » classique, dans le même esprit que
     _save_icon() : glyphes dessinés, pas de fichier externe."""
@@ -428,7 +458,7 @@ class MainWindow(QMainWindow):
         self.save_as_action.setShortcut(QKeySequence.StandardKey.SaveAs)
         self.save_as_action.triggered.connect(self.save_file_as)
 
-        self.close_tab_action = QAction("&Fermer l'onglet", self)
+        self.close_tab_action = QAction(_close_tab_icon(), "&Fermer l'onglet", self)
         self.close_tab_action.setShortcut(QKeySequence.StandardKey.Close)
         self.close_tab_action.triggered.connect(lambda: self.close_tab(self.tabs.currentIndex()))
 
@@ -490,6 +520,7 @@ class MainWindow(QMainWindow):
         toolbar.addAction(self.open_action)
         toolbar.addAction(self.save_action)
         toolbar.addAction(self.save_as_action)
+        toolbar.addAction(self.close_tab_action)
         toolbar.addAction(self.trash_action)
         toolbar.addSeparator()
         toolbar.addAction(self.find_action)

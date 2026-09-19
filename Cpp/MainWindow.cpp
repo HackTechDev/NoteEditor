@@ -253,6 +253,35 @@ QIcon replaceIcon()
     return QIcon(pixmap);
 }
 
+// Dessine une icône « onglet + croix » (Fermer l'onglet), dans le même esprit
+// que saveIcon() : un onglet aux coins supérieurs coupés, avec une croix à
+// l'intérieur, pour la distinguer des autres icônes de page.
+QIcon closeTabIcon()
+{
+    QPixmap pixmap(22, 22);
+    pixmap.fill(Qt::transparent);
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+    QPen pen(Qt::darkGray);
+    pen.setWidth(2);
+    pen.setJoinStyle(Qt::RoundJoin);
+    pen.setCapStyle(Qt::RoundCap);
+    painter.setPen(pen);
+    const QPolygon tab({
+        QPoint(3, 19),
+        QPoint(3, 6),
+        QPoint(6, 3),
+        QPoint(16, 3),
+        QPoint(19, 6),
+        QPoint(19, 19),
+    });
+    painter.drawPolygon(tab);
+    painter.drawLine(8, 9, 14, 15);
+    painter.drawLine(14, 9, 8, 15);
+    painter.end();
+    return QIcon(pixmap);
+}
+
 // Dessine une icône « poubelle » classique, dans le même esprit que
 // saveIcon() : glyphes dessinés, pas de fichier externe.
 QIcon trashIcon()
@@ -443,7 +472,7 @@ void MainWindow::createActions()
     m_saveAsAction->setShortcut(QKeySequence::SaveAs);
     connect(m_saveAsAction, &QAction::triggered, this, &MainWindow::saveFileAs);
 
-    m_closeTabAction = new QAction("&Fermer l'onglet", this);
+    m_closeTabAction = new QAction(closeTabIcon(), "&Fermer l'onglet", this);
     m_closeTabAction->setShortcut(QKeySequence::Close);
     connect(m_closeTabAction, &QAction::triggered, this, [this] { closeTab(m_tabs->currentIndex()); });
 
@@ -507,6 +536,7 @@ void MainWindow::createToolBar()
     toolbar->addAction(m_openAction);
     toolbar->addAction(m_saveAction);
     toolbar->addAction(m_saveAsAction);
+    toolbar->addAction(m_closeTabAction);
     toolbar->addAction(m_trashAction);
     toolbar->addSeparator();
     toolbar->addAction(m_findAction);

@@ -157,7 +157,7 @@ sans confirmation.
 ## 9. Barre d'outils
 
 Icônes (dessinées par l'application, sans fichier d'image), de gauche à droite :
-**Nouveau**, **Ouvrir**, **Enregistrer**, **Enregistrer sous**, **Corbeille**,
+**Nouveau**, **Ouvrir**, **Enregistrer**, **Enregistrer sous**, **Fermer l'onglet**, **Corbeille**,
 **Rechercher**, **Rechercher / Remplacer**, **Retour automatique à la ligne**.
 
 ## 10. Barre de statut
