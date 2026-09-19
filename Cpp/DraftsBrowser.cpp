@@ -51,6 +51,30 @@ QPixmap pinPixmap(int size, const QColor &color)
     return pixmap;
 }
 
+QPixmap unpinPixmap(int size, const QColor &color)
+{
+    // La punaise, puis un trait diagonal dont le contour est effacé dans la
+    // punaise pour rester lisible à petite taille.
+    QPixmap pixmap = pinPixmap(size, color);
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.scale(size / 22.0, size / 22.0);
+    QPen knockout(color);
+    knockout.setWidth(5);
+    knockout.setCapStyle(Qt::RoundCap);
+    painter.setCompositionMode(QPainter::CompositionMode_Clear);
+    painter.setPen(knockout);
+    painter.drawLine(4, 3, 18, 19);
+    painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+    QPen stroke(color);
+    stroke.setWidth(2);
+    stroke.setCapStyle(Qt::RoundCap);
+    painter.setPen(stroke);
+    painter.drawLine(4, 3, 18, 19);
+    painter.end();
+    return pixmap;
+}
+
 DraftsBrowser::DraftsBrowser(QWidget *parent)
     : QListWidget(parent)
 {

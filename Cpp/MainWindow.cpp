@@ -521,8 +521,10 @@ void MainWindow::createActions()
     connect(m_aboutAction, &QAction::triggered, this, &MainWindow::showAbout);
 
     m_pinAction = new QAction(QIcon(pinPixmap(22)), "Épingler l'onglet", this);
-    m_pinAction->setCheckable(true);
-    connect(m_pinAction, &QAction::triggered, this, &MainWindow::toggleCurrentPin);
+    connect(m_pinAction, &QAction::triggered, this, [this] { setCurrentPinned(true); });
+
+    m_unpinAction = new QAction(QIcon(unpinPixmap(22)), "Détacher l'onglet", this);
+    connect(m_unpinAction, &QAction::triggered, this, [this] { setCurrentPinned(false); });
 
     m_trashAction = new QAction(trashIcon(), "&Corbeille...", this);
     connect(m_trashAction, &QAction::triggered, this, &MainWindow::showTrash);
@@ -543,6 +545,7 @@ void MainWindow::createToolBar()
     toolbar->addAction(m_saveAsAction);
     toolbar->addAction(m_closeTabAction);
     toolbar->addAction(m_pinAction);
+    toolbar->addAction(m_unpinAction);
     toolbar->addAction(m_trashAction);
     toolbar->addSeparator();
     toolbar->addAction(m_findAction);
@@ -1185,19 +1188,18 @@ QString MainWindow::tabLabel(Editor *editor) const
 
 void MainWindow::updatePinAction()
 {
-    if (!m_pinAction)
+    if (!m_pinAction || !m_unpinAction)
         return;
     Editor *editor = currentEditor();
     const bool pinned = editor && editor->pinned;
-    m_pinAction->setEnabled(editor != nullptr);
-    m_pinAction->setChecked(pinned);
-    m_pinAction->setText(pinned ? "Détacher l'onglet" : "Épingler l'onglet");
+    m_pinAction->setEnabled(editor && !pinned);
+    m_unpinAction->setEnabled(pinned);
 }
 
-void MainWindow::toggleCurrentPin()
+void MainWindow::setCurrentPinned(bool pinned)
 {
     if (Editor *editor = currentEditor())
-        setPinned(editor->sessionId, !editor->pinned);
+        setPinned(editor->sessionId, pinned);
 }
 
 void MainWindow::updateTitle()

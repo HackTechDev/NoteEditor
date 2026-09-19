@@ -34,6 +34,30 @@ def pin_pixmap(size=PIN_ICON_SIZE, color=None):
     return pixmap
 
 
+def unpin_pixmap(size=PIN_ICON_SIZE, color=None):
+    """Punaise barrée (Détacher) : la punaise, puis un trait diagonal dont le
+    contour est effacé dans la punaise pour rester lisible à petite taille."""
+    pixmap = pin_pixmap(size, color)
+    color = color or QColor(Qt.GlobalColor.darkGray)
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    painter.scale(size / 22, size / 22)
+    knockout = QPen(color)
+    knockout.setWidth(5)
+    knockout.setCapStyle(Qt.PenCapStyle.RoundCap)
+    painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Clear)
+    painter.setPen(knockout)
+    painter.drawLine(4, 3, 18, 19)
+    painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceOver)
+    stroke = QPen(color)
+    stroke.setWidth(2)
+    stroke.setCapStyle(Qt.PenCapStyle.RoundCap)
+    painter.setPen(stroke)
+    painter.drawLine(4, 3, 18, 19)
+    painter.end()
+    return pixmap
+
+
 def _row_icon(pinned, selected_color):
     """Icône à gauche du nom dans la liste : une punaise (grise, blanche quand la
     ligne est sélectionnée) pour une note épinglée, sinon un carré transparent de

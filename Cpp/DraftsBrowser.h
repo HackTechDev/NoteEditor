@@ -12,6 +12,9 @@
 // Small filled push-pin glyph, used next to pinned notes (sidebar and tab).
 QPixmap pinPixmap(int size = 14, const QColor &color = Qt::darkGray);
 
+// Same push-pin, struck through (the "Détacher" toolbar icon).
+QPixmap unpinPixmap(int size = 14, const QColor &color = Qt::darkGray);
+
 // Sidebar listing every known draft (open or closed). Mirrors
 // Python/drafts_browser.py.
 class DraftsBrowser : public QListWidget

@@ -27,7 +27,7 @@ from PyQt6.QtWidgets import (
 )
 
 import session
-from drafts_browser import DraftsBrowser, pin_pixmap
+from drafts_browser import DraftsBrowser, pin_pixmap, unpin_pixmap
 from editor_widget import Editor
 from find_replace import FindReplaceDialog
 from trash_dialog import TrashDialog
@@ -507,8 +507,10 @@ class MainWindow(QMainWindow):
         self.about_action.triggered.connect(self.show_about)
 
         self.pin_action = QAction(QIcon(pin_pixmap(22)), "Épingler l'onglet", self)
-        self.pin_action.setCheckable(True)
-        self.pin_action.triggered.connect(self._toggle_current_pin)
+        self.pin_action.triggered.connect(lambda: self._set_current_pinned(True))
+
+        self.unpin_action = QAction(QIcon(unpin_pixmap(22)), "Détacher l'onglet", self)
+        self.unpin_action.triggered.connect(lambda: self._set_current_pinned(False))
 
         self.trash_action = QAction(_trash_icon(), "&Corbeille...", self)
         self.trash_action.triggered.connect(self._show_trash)
@@ -527,6 +529,7 @@ class MainWindow(QMainWindow):
         toolbar.addAction(self.save_as_action)
         toolbar.addAction(self.close_tab_action)
         toolbar.addAction(self.pin_action)
+        toolbar.addAction(self.unpin_action)
         toolbar.addAction(self.trash_action)
         toolbar.addSeparator()
         toolbar.addAction(self.find_action)
@@ -1060,14 +1063,13 @@ class MainWindow(QMainWindow):
     def _update_pin_action(self):
         editor = self.current_editor()
         pinned = editor is not None and editor.pinned
-        self.pin_action.setEnabled(editor is not None)
-        self.pin_action.setChecked(pinned)
-        self.pin_action.setText("Détacher l'onglet" if pinned else "Épingler l'onglet")
+        self.pin_action.setEnabled(editor is not None and not pinned)
+        self.unpin_action.setEnabled(pinned)
 
-    def _toggle_current_pin(self):
+    def _set_current_pinned(self, pinned):
         editor = self.current_editor()
         if editor is not None:
-            self._set_pinned(editor.session_id, not editor.pinned)
+            self._set_pinned(editor.session_id, pinned)
 
     def update_title(self):
         self._update_pin_action()
