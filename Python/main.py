@@ -506,6 +506,10 @@ class MainWindow(QMainWindow):
         self.about_action = QAction("À &propos...", self)
         self.about_action.triggered.connect(self.show_about)
 
+        self.pin_action = QAction(QIcon(pin_pixmap(22)), "Épingler l'onglet", self)
+        self.pin_action.setCheckable(True)
+        self.pin_action.triggered.connect(self._toggle_current_pin)
+
         self.trash_action = QAction(_trash_icon(), "&Corbeille...", self)
         self.trash_action.triggered.connect(self._show_trash)
 
@@ -522,6 +526,7 @@ class MainWindow(QMainWindow):
         toolbar.addAction(self.save_action)
         toolbar.addAction(self.save_as_action)
         toolbar.addAction(self.close_tab_action)
+        toolbar.addAction(self.pin_action)
         toolbar.addAction(self.trash_action)
         toolbar.addSeparator()
         toolbar.addAction(self.find_action)
@@ -982,6 +987,7 @@ class MainWindow(QMainWindow):
             self._refresh_tab_button(editor)
             self._reposition_new_tab_button()
         self._refresh_drafts_browser()
+        self._update_pin_action()
 
     def _make_close_button(self):
         button = QToolButton()
@@ -1051,7 +1057,20 @@ class MainWindow(QMainWindow):
         name = os.path.basename(editor.file_path) if editor.file_path else editor.default_name
         return "*" + name if editor.document().isModified() else name
 
+    def _update_pin_action(self):
+        editor = self.current_editor()
+        pinned = editor is not None and editor.pinned
+        self.pin_action.setEnabled(editor is not None)
+        self.pin_action.setChecked(pinned)
+        self.pin_action.setText("Détacher l'onglet" if pinned else "Épingler l'onglet")
+
+    def _toggle_current_pin(self):
+        editor = self.current_editor()
+        if editor is not None:
+            self._set_pinned(editor.session_id, not editor.pinned)
+
     def update_title(self):
+        self._update_pin_action()
         editor = self.current_editor()
         if editor is None:
             self.setWindowTitle("Éditeur de texte")

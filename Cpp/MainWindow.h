@@ -84,6 +84,8 @@ private:
     QWidget *makeCloseButton();
     void refreshTabButton(Editor *editor);
     void setPinned(const QString &draftId, bool pinned);
+    void updatePinAction();
+    void toggleCurrentPin();
     void closeTabByButton(QToolButton *button);
     QVector<QToolButton *> nativeScrollButtons() const;
     void repositionNewTabButton();
@@ -138,6 +140,7 @@ private:
     QAction *m_findNextAction;
     QAction *m_aboutAction;
     QAction *m_trashAction;
+    QAction *m_pinAction = nullptr;
     QAction *m_wordWrapAction;
     bool m_wordWrapEnabled = true;
 };

@@ -100,6 +100,9 @@ adapter si le dépôt est cloné ailleurs.
   - Quitter l'application n'est pas bloqué : une note épinglée est restaurée
     épinglée au lancement suivant. On peut aussi épingler une note fermée depuis le
     panneau Brouillons.
+  - L'icône **Épingler** de la barre d'outils bascule Épingler / Détacher pour
+    l'onglet actif : elle est en surbrillance quand l'onglet actif est épinglé, et
+    grisée quand il n'y a aucun onglet.
   - Renommer, dupliquer (la copie n'est pas épinglée) et l'historique des versions
     restent possibles.
 
@@ -177,7 +180,7 @@ sans confirmation.
 ## 9. Barre d'outils
 
 Icônes (dessinées par l'application, sans fichier d'image), de gauche à droite :
-**Nouveau**, **Ouvrir**, **Enregistrer**, **Enregistrer sous**, **Fermer l'onglet**, **Corbeille**,
+**Nouveau**, **Ouvrir**, **Enregistrer**, **Enregistrer sous**, **Fermer l'onglet**, **Épingler**, **Corbeille**,
 **Rechercher**, **Rechercher / Remplacer**, **Retour automatique à la ligne**.
 
 ## 10. Barre de statut

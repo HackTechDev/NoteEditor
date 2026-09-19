@@ -520,6 +520,10 @@ void MainWindow::createActions()
     m_aboutAction = new QAction("À &propos...", this);
     connect(m_aboutAction, &QAction::triggered, this, &MainWindow::showAbout);
 
+    m_pinAction = new QAction(QIcon(pinPixmap(22)), "Épingler l'onglet", this);
+    m_pinAction->setCheckable(true);
+    connect(m_pinAction, &QAction::triggered, this, &MainWindow::toggleCurrentPin);
+
     m_trashAction = new QAction(trashIcon(), "&Corbeille...", this);
     connect(m_trashAction, &QAction::triggered, this, &MainWindow::showTrash);
 
@@ -538,6 +542,7 @@ void MainWindow::createToolBar()
     toolbar->addAction(m_saveAction);
     toolbar->addAction(m_saveAsAction);
     toolbar->addAction(m_closeTabAction);
+    toolbar->addAction(m_pinAction);
     toolbar->addAction(m_trashAction);
     toolbar->addSeparator();
     toolbar->addAction(m_findAction);
@@ -709,6 +714,7 @@ void MainWindow::setPinned(const QString &draftId, bool pinned)
         repositionNewTabButton();
     }
     refreshDraftsBrowser();
+    updatePinAction();
 }
 
 QWidget *MainWindow::makeCloseButton()
@@ -1177,8 +1183,26 @@ QString MainWindow::tabLabel(Editor *editor) const
     return editor->document()->isModified() ? "*" + name : name;
 }
 
+void MainWindow::updatePinAction()
+{
+    if (!m_pinAction)
+        return;
+    Editor *editor = currentEditor();
+    const bool pinned = editor && editor->pinned;
+    m_pinAction->setEnabled(editor != nullptr);
+    m_pinAction->setChecked(pinned);
+    m_pinAction->setText(pinned ? "Détacher l'onglet" : "Épingler l'onglet");
+}
+
+void MainWindow::toggleCurrentPin()
+{
+    if (Editor *editor = currentEditor())
+        setPinned(editor->sessionId, !editor->pinned);
+}
+
 void MainWindow::updateTitle()
 {
+    updatePinAction();
     Editor *editor = currentEditor();
     if (!editor) {
         setWindowTitle("Éditeur de note");
