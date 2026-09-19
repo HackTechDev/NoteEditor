@@ -46,6 +46,7 @@ public:
     QString filePath;    // empty == no associated file
     QString defaultName; // empty == not applicable (has filePath instead)
     QString sessionId;
+    bool pinned = false; // mirrors index.json, see Session::isPinned()
     qint64 diskMTime = -1; // -1 == unknown / not tracked yet
 
 signals:

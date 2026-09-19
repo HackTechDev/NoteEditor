@@ -110,6 +110,16 @@ static QJsonObject metaToJson(const QString &filePath, const QString &defaultNam
     return o;
 }
 
+// The "pinned" flag is owned by setPinned(), not by the tab snapshots that
+// rewrite the rest of an index entry: carry it over.
+static QJsonObject mergedMeta(const QJsonObject &index, const TabSnapshot &info)
+{
+    QJsonObject meta = metaToJson(info.filePath, info.defaultName, info.modified);
+    if (index.value(info.id).toObject().value("pinned").toBool(false))
+        meta["pinned"] = true;
+    return meta;
+}
+
 void saveSession(const QVector<TabSnapshot> &tabs, const QString &activeId)
 {
     QDir().mkpath(draftsDir());
@@ -124,7 +134,7 @@ void saveSession(const QVector<TabSnapshot> &tabs, const QString &activeId)
         entry["id"] = info.id;
         entries.append(entry);
 
-        index[info.id] = metaToJson(info.filePath, info.defaultName, info.modified);
+        index[info.id] = mergedMeta(index, info);
     }
 
     QJsonObject sessionObj;
@@ -141,7 +151,7 @@ void saveDraft(const TabSnapshot &info)
     writeTextFile(draftsDir() + "/" + info.id + ".txt", info.content);
 
     QJsonObject index = loadJsonObject(indexFile());
-    index[info.id] = metaToJson(info.filePath, info.defaultName, info.modified);
+    index[info.id] = mergedMeta(index, info);
     writeJsonObject(indexFile(), index);
 }
 
@@ -219,6 +229,7 @@ QVector<DraftEntry> listDrafts()
         entry.filePath = fromJsonOrEmpty(meta.value("file_path"));
         entry.defaultName = fromJsonOrEmpty(meta.value("default_name"));
         entry.modified = meta.contains("modified") ? meta.value("modified").toBool(true) : true;
+        entry.pinned = meta.value("pinned").toBool(false);
         entry.mtimeMs = fi.lastModified().toMSecsSinceEpoch();
         items.append(entry);
     }
@@ -246,6 +257,23 @@ void deleteDraft(const QString &draftId)
         index.remove(draftId);
         writeJsonObject(indexFile(), index);
     }
+}
+
+bool isPinned(const QString &draftId)
+{
+    return loadJsonObject(indexFile()).value(draftId).toObject().value("pinned").toBool(false);
+}
+
+void setPinned(const QString &draftId, bool pinned)
+{
+    QJsonObject index = loadJsonObject(indexFile());
+    QJsonObject entry = index.value(draftId).toObject();
+    if (pinned)
+        entry["pinned"] = true;
+    else
+        entry.remove("pinned");
+    index[draftId] = entry;
+    writeJsonObject(indexFile(), index);
 }
 
 void renameDraft(const QString &draftId, const QString &newDefaultName)

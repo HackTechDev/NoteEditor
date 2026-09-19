@@ -2,10 +2,15 @@
 
 #include "Session.h"
 
+#include <QColor>
 #include <QHash>
 #include <QListWidget>
+#include <QPixmap>
 #include <QSet>
 #include <QString>
+
+// Small filled push-pin glyph, used next to pinned notes (sidebar and tab).
+QPixmap pinPixmap(int size = 14, const QColor &color = Qt::darkGray);
 
 // Sidebar listing every known draft (open or closed). Mirrors
 // Python/drafts_browser.py.
@@ -29,7 +34,7 @@ signals:
     void deleteRequested(const Session::DraftEntry &entry);
     void renameRequested(const Session::DraftEntry &entry);
     // Actions shared with the tab context menu: "close", "close_others",
-    // "close_right", "close_all", "duplicate", "history".
+    // "close_right", "close_all", "duplicate", "history", "toggle_pin".
     void actionRequested(const QString &action, const Session::DraftEntry &entry);
 
 private slots:

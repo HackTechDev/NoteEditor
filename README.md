@@ -14,7 +14,8 @@ La liste détaillée et complète est dans [`FEATURES.md`](FEATURES.md). En rés
 - Onglets multiples (fermables, réordonnables), onglet actif bien visible
 - Bouton **+** pour créer un nouvel onglet, collé juste après le dernier onglet (style Gedit) ; se déplace automatiquement à côté des flèches de défilement quand les onglets débordent de la largeur disponible
 - Nouveaux onglets nommés par date/heure (`aammjj_hhmmssmm`)
-- Menu contextuel sur les onglets (clic droit) : fermer / fermer les autres / fermer à droite / fermer tout, dupliquer, renommer, historique des versions, mettre à la corbeille (l'onglet se ferme et la note quitte le panneau Brouillons)
+- Menu contextuel sur les onglets (clic droit) : fermer / fermer les autres / fermer à droite / fermer tout, dupliquer, renommer, historique des versions, mettre à la corbeille (l'onglet se ferme et la note quitte le panneau Brouillons), épingler / détacher
+- Notes épinglées : « Épingler » (menu contextuel d'un onglet ou du panneau Brouillons) bloque la fermeture et la mise à la corbeille de la note, jusqu'à « Détacher » ; une petite punaise s'affiche à droite de son nom (dans l'onglet, à la place de la croix, et dans le panneau), et l'état est restauré avec la session
 - Numéros de ligne avec surlignage de la ligne courante
 - Coloration syntaxique automatique selon l'extension : Python (`.py`), JSON (`.json`), Markdown (`.md`)
 - Recherche / remplacement (`Ctrl+F` / `Ctrl+H`) : suivant, précédent, remplacer, tout remplacer

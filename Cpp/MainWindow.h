@@ -82,6 +82,9 @@ private:
     void createStatusBar();
     QToolButton *buildNewTabButton(QWidget *parent);
     QWidget *makeCloseButton();
+    QWidget *makePinIndicator();
+    void refreshTabButton(Editor *editor);
+    void setPinned(const QString &draftId, bool pinned);
     void closeTabByButton(QToolButton *button);
     QVector<QToolButton *> nativeScrollButtons() const;
     void repositionNewTabButton();

@@ -43,6 +43,35 @@ def _save_trash_index(index):
         json.dump(index, f, ensure_ascii=False, indent=2)
 
 
+def _merged_meta(index, info):
+    """Index entry for a tab, keeping the "pinned" flag it may already carry:
+    it is owned by set_pinned(), not by the tab snapshots that rewrite the rest."""
+    meta = {
+        "file_path": info["file_path"],
+        "default_name": info["default_name"],
+        "modified": info["modified"],
+    }
+    if index.get(info["id"], {}).get("pinned"):
+        meta["pinned"] = True
+    return meta
+
+
+def is_pinned(draft_id):
+    return bool(_load_index().get(draft_id, {}).get("pinned"))
+
+
+def set_pinned(draft_id, pinned):
+    """Pins/unpins a draft. A pinned draft can be neither closed nor trashed."""
+    index = _load_index()
+    entry = index.get(draft_id, {})
+    if pinned:
+        entry["pinned"] = True
+    else:
+        entry.pop("pinned", None)
+    index[draft_id] = entry
+    _save_index(index)
+
+
 def save_session(tabs_info, active_id=None):
     os.makedirs(DRAFTS_DIR, exist_ok=True)
 
@@ -60,11 +89,7 @@ def save_session(tabs_info, active_id=None):
                 "modified": info["modified"],
             }
         )
-        index[info["id"]] = {
-            "file_path": info["file_path"],
-            "default_name": info["default_name"],
-            "modified": info["modified"],
-        }
+        index[info["id"]] = _merged_meta(index, info)
 
     with open(SESSION_FILE, "w", encoding="utf-8") as f:
         json.dump({"active_id": active_id, "tabs": entries}, f, ensure_ascii=False, indent=2)
@@ -80,11 +105,7 @@ def save_draft(info):
         f.write(info["content"])
 
     index = _load_index()
-    index[info["id"]] = {
-        "file_path": info["file_path"],
-        "default_name": info["default_name"],
-        "modified": info["modified"],
-    }
+    index[info["id"]] = _merged_meta(index, info)
     _save_index(index)
 
 
@@ -145,6 +166,7 @@ def list_drafts():
                 "file_path": meta.get("file_path"),
                 "default_name": meta.get("default_name"),
                 "modified": meta.get("modified", True),
+                "pinned": bool(meta.get("pinned")),
                 "mtime": mtime,
             }
         )

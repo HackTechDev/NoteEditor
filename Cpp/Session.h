@@ -25,6 +25,7 @@ struct DraftEntry {
     QString filePath;
     QString defaultName;
     bool modified = true;
+    bool pinned = false;
     qint64 mtimeMs = 0;
 };
 
@@ -69,6 +70,10 @@ QVector<TabSnapshot> loadSession(QString *activeId);
 QVector<DraftEntry> listDrafts();
 
 QString readDraft(const QString &draftId);
+
+// A pinned draft can be neither closed nor trashed. Stored in index.json.
+bool isPinned(const QString &draftId);
+void setPinned(const QString &draftId, bool pinned);
 
 // Permanently removes a draft (file + index entry), no trash involved.
 void deleteDraft(const QString &draftId);

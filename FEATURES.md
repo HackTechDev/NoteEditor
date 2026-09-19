@@ -30,6 +30,8 @@ question « Enregistrer les modifications ? » à la fermeture, et rien n'est pe
   enregistrée n'est plus visible (par exemple un second écran débranché depuis),
   elle est ignorée et la fenêtre s'ouvre à l'emplacement par défaut.
 - **La position du séparateur** entre le panneau Brouillons et la zone d'édition.
+- **L'état « épinglé »** des notes (voir la section Onglets) : une note épinglée le
+  reste d'un lancement à l'autre.
 
 Ne sont pas restaurés : la position du curseur dans chaque onglet, l'historique
 annuler/rétablir, et l'état de l'option de retour à la ligne (activée à chaque
@@ -81,8 +83,25 @@ adapter si le dépôt est cloné ailleurs.
   - Dupliquer (nouvel onglet avec le même texte)
   - Renommer (pour les notes qui n'ont pas de fichier associé)
   - Historique des versions (quand des versions existent)
+  - Épingler / Détacher (voir ci-dessous)
   - Mettre à la corbeille (après confirmation : la note quitte les onglets et le
     panneau Brouillons)
+- **Épingler une note** (clic droit → *Épingler*, à la fois sur l'onglet et sur la
+  note dans le panneau Brouillons) **bloque sa fermeture et sa mise à la corbeille**,
+  jusqu'à ce qu'on la *détache* (clic droit → *Détacher*).
+  - Une **petite punaise** s'affiche à droite du nom de la note : dans l'onglet (à la
+    place de la croix de fermeture) et au bord droit de la ligne dans le panneau
+    Brouillons.
+  - Tout ce qui fermerait la note est bloqué : la croix, `Ctrl+W`, l'icône de la
+    barre d'outils, « Fermer » du menu, et « Mettre à la corbeille ». Ces entrées de
+    menu sont grisées. Un message dans la barre de statut explique le blocage.
+  - Les fermetures en lot (« Fermer les autres », « Fermer à droite », « Fermer
+    tout ») **ignorent** les notes épinglées et ferment les autres.
+  - Quitter l'application n'est pas bloqué : une note épinglée est restaurée
+    épinglée au lancement suivant. On peut aussi épingler une note fermée depuis le
+    panneau Brouillons.
+  - Renommer, dupliquer (la copie n'est pas épinglée) et l'historique des versions
+    restent possibles.
 
 ## 3. Édition
 
@@ -131,9 +150,12 @@ sans confirmation.
 - L'entrée de l'onglet actif est **surlignée** dans la liste.
 - **Recherche** par nom et **tri** par date ou par nom.
 - **Menu contextuel** (clic droit) : les mêmes actions que le menu des onglets
-  (Fermer, Fermer les autres, Fermer à droite, Fermer tout, Dupliquer, Historique
-  des versions) plus Renommer et Mettre à la corbeille. Les actions de fermeture
-  sont grisées pour une note qui n'est pas ouverte.
+  (Fermer, Fermer les autres, Fermer à droite, Fermer tout, Épingler / Détacher,
+  Dupliquer, Historique des versions) plus Renommer et Mettre à la corbeille. Les
+  actions de fermeture sont grisées pour une note qui n'est pas ouverte, et
+  « Fermer » comme « Mettre à la corbeille » le sont aussi pour une note épinglée.
+- Les noms trop longs pour la largeur du panneau sont tronqués (« … », le nom
+  complet est dans l'infobulle) : le panneau n'a pas de défilement horizontal.
 - **Renommer** ne s'applique qu'aux notes sans fichier associé.
 - Un brouillon n'est supprimé que manuellement, et seulement vers la corbeille.
 
@@ -180,7 +202,7 @@ Pour l'onglet actif : **ligne et colonne** du curseur, **nombre de mots** et de
 | Élément | Rôle |
 |---|---|
 | `session.json` | Onglets ouverts et onglet actif (lu au lancement, réécrit à la fermeture) |
-| `index.json` | Métadonnées de toutes les notes archivées (alimente le panneau Brouillons) |
+| `index.json` | Métadonnées de toutes les notes archivées, dont l'état « épinglé » (alimente le panneau Brouillons) |
 | `drafts/` | Texte de chaque note, conservé même après la fermeture de son onglet |
 | `docs/` | Fichiers réels créés par `Ctrl+S` depuis une note sans fichier associé |
 | `trash/` et `trash_index.json` | Notes mises à la corbeille |

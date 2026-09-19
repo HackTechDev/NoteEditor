@@ -651,6 +651,7 @@ Editor *MainWindow::newTab(const QString &filePath, const QString &content, cons
     editor->setFilePath(filePath);
     editor->defaultName = filePath.isEmpty() ? (!defaultName.isEmpty() ? defaultName : timestampName()) : QString();
     editor->document()->setModified(modified);
+    editor->pinned = Session::isPinned(editor->sessionId);
     connect(editor->document(), &QTextDocument::modificationChanged, this, [this](bool) { updateTitle(); });
     connect(editor, &Editor::autosaveRequested, this, [this, editor] { autosaveTab(editor); });
     editor->setLineWrapMode(m_wordWrapEnabled ? QPlainTextEdit::WidgetWidth : QPlainTextEdit::NoWrap);
@@ -659,7 +660,7 @@ Editor *MainWindow::newTab(const QString &filePath, const QString &content, cons
 
     const QString label = !filePath.isEmpty() ? QFileInfo(filePath).fileName() : editor->defaultName;
     const int index = m_tabs->addTab(editor, label);
-    m_tabs->tabBar()->setTabButton(index, QTabBar::RightSide, makeCloseButton());
+    refreshTabButton(editor);
     m_tabs->setCurrentIndex(index);
     editor->setFocus();
 
@@ -674,6 +675,42 @@ Editor *MainWindow::newTab(const QString &filePath, const QString &content, cons
     refreshDraftsBrowser();
     repositionNewTabButton();
     return editor;
+}
+
+// Bouton à droite du nom de l'onglet : la croix de fermeture, ou une punaise
+// (non cliquable) quand la note est épinglée et donc non fermable.
+void MainWindow::refreshTabButton(Editor *editor)
+{
+    const int index = m_tabs->indexOf(editor);
+    if (index == -1)
+        return;
+    m_tabs->tabBar()->setTabButton(index, QTabBar::RightSide,
+                                   editor->pinned ? makePinIndicator() : makeCloseButton());
+}
+
+QWidget *MainWindow::makePinIndicator()
+{
+    auto *label = new QLabel();
+    label->setPixmap(pinPixmap(14));
+    label->setToolTip("Note épinglée (menu contextuel : Détacher)");
+    auto *wrapper = new QWidget();
+    auto *layout = new QHBoxLayout(wrapper);
+    layout->setContentsMargins(0, 0, 8, 0);
+    layout->addWidget(label);
+    return wrapper;
+}
+
+void MainWindow::setPinned(const QString &draftId, bool pinned)
+{
+    Session::setPinned(draftId, pinned);
+    const int index = tabIndexForId(draftId);
+    if (index != -1) {
+        auto *editor = qobject_cast<Editor *>(m_tabs->widget(index));
+        editor->pinned = pinned;
+        refreshTabButton(editor);
+        repositionNewTabButton();
+    }
+    refreshDraftsBrowser();
 }
 
 QWidget *MainWindow::makeCloseButton()
@@ -808,6 +845,10 @@ void MainWindow::openDraft(const Session::DraftEntry &entry)
 
 void MainWindow::trashDraftEntry(const Session::DraftEntry &entry)
 {
+    if (Session::isPinned(entry.id)) {
+        statusBar()->showMessage("Note épinglée : détachez-la pour la mettre à la corbeille.", 3000);
+        return;
+    }
     const QString label = !entry.filePath.isEmpty()
         ? QFileInfo(entry.filePath).fileName()
         : (!entry.defaultName.isEmpty() ? entry.defaultName : entry.id.left(8));
@@ -946,6 +987,8 @@ void MainWindow::handleDraftsContextAction(const QString &action, const Session:
         duplicateDraftEntry(entry);
     } else if (action == "history") {
         showVersionHistoryForEntry(entry);
+    } else if (action == "toggle_pin") {
+        setPinned(entry.id, !Session::isPinned(entry.id));
     }
 }
 
@@ -1004,11 +1047,13 @@ void MainWindow::showTabContextMenu(const QPoint &pos)
 
     QMenu menu(this);
     QAction *closeAction = menu.addAction("Fermer");
+    closeAction->setEnabled(editor && !editor->pinned);
     QAction *closeOthersAction = menu.addAction("Fermer les autres");
     QAction *closeRightAction = menu.addAction("Fermer à droite");
     closeRightAction->setEnabled(index < m_tabs->count() - 1);
     QAction *closeAllAction = menu.addAction("Fermer tout");
     menu.addSeparator();
+    QAction *pinAction = editor ? menu.addAction(editor->pinned ? "Détacher" : "Épingler") : nullptr;
     QAction *duplicateAction = menu.addAction("Dupliquer");
     QAction *renameAction = (editor && editor->filePath.isEmpty()) ? menu.addAction("Renommer...") : nullptr;
     QAction *historyAction = (editor && !Session::listVersions(editor->sessionId).isEmpty())
@@ -1016,6 +1061,7 @@ void MainWindow::showTabContextMenu(const QPoint &pos)
         : nullptr;
     menu.addSeparator();
     QAction *trashAction = menu.addAction("Mettre à la corbeille");
+    trashAction->setEnabled(editor && !editor->pinned);
 
     QAction *chosen = menu.exec(bar->mapToGlobal(pos));
     if (chosen == closeAction)
@@ -1026,6 +1072,8 @@ void MainWindow::showTabContextMenu(const QPoint &pos)
         closeTabsToTheRight(index);
     else if (chosen == closeAllAction)
         closeAllTabs();
+    else if (pinAction && chosen == pinAction)
+        setPinned(editor->sessionId, !editor->pinned);
     else if (chosen == duplicateAction)
         duplicateTab(index);
     else if (renameAction && chosen == renameAction)
@@ -1240,6 +1288,13 @@ void MainWindow::closeTab(int index)
     auto *editor = qobject_cast<Editor *>(m_tabs->widget(index));
     if (!editor)
         return;
+    if (editor->pinned) {
+        // Seul point de passage de toutes les fermetures (croix, Ctrl+W, menus,
+        // « fermer les autres/à droite/tout ») : les notes épinglées sont
+        // simplement ignorées par les fermetures en lot.
+        statusBar()->showMessage("Note épinglée : détachez-la pour la fermer.", 3000);
+        return;
+    }
     if (editor->document()->isModified()) {
         Session::TabSnapshot snap;
         snap.id = editor->sessionId;

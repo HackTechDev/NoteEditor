@@ -27,7 +27,7 @@ from PyQt6.QtWidgets import (
 )
 
 import session
-from drafts_browser import DraftsBrowser
+from drafts_browser import DraftsBrowser, pin_pixmap
 from editor_widget import Editor
 from find_replace import FindReplaceDialog
 from trash_dialog import TrashDialog
@@ -619,6 +619,7 @@ class MainWindow(QMainWindow):
         editor.set_file_path(file_path)
         editor.default_name = None if file_path else (default_name or self._timestamp_name())
         editor.document().setModified(modified)
+        editor.pinned = session.is_pinned(editor.session_id)
         editor.document().modificationChanged.connect(lambda _: self.update_title())
         editor.autosave_requested.connect(lambda: self._autosave_tab(editor))
         editor.cursorPositionChanged.connect(self._update_status_bar)
@@ -629,7 +630,7 @@ class MainWindow(QMainWindow):
 
         label = os.path.basename(file_path) if file_path else editor.default_name
         index = self.tabs.addTab(editor, label)
-        self.tabs.tabBar().setTabButton(index, QTabBar.ButtonPosition.RightSide, self._make_close_button())
+        self._refresh_tab_button(editor)
         self.tabs.setCurrentIndex(index)
         editor.setFocus()
 
@@ -710,6 +711,9 @@ class MainWindow(QMainWindow):
         )
 
     def _trash_draft(self, entry):
+        if session.is_pinned(entry["id"]):
+            self.statusBar().showMessage("Note épinglée : détachez-la pour la mettre à la corbeille.", 3000)
+            return
         label = os.path.basename(entry["file_path"]) if entry.get("file_path") else entry.get("default_name") or entry["id"][:8]
         result = QMessageBox.question(
             self,
@@ -847,6 +851,8 @@ class MainWindow(QMainWindow):
             self._duplicate_draft_entry(entry)
         elif action == "history":
             self._show_version_history_for_entry(entry)
+        elif action == "toggle_pin":
+            self._set_pinned(entry["id"], not session.is_pinned(entry["id"]))
 
     def _show_tab_context_menu(self, pos):
         bar = self.tabs.tabBar()
@@ -857,16 +863,19 @@ class MainWindow(QMainWindow):
 
         menu = QMenu(self)
         close_action = menu.addAction("Fermer")
+        close_action.setEnabled(not editor.pinned)
         close_others_action = menu.addAction("Fermer les autres")
         close_right_action = menu.addAction("Fermer à droite")
         close_right_action.setEnabled(index < self.tabs.count() - 1)
         close_all_action = menu.addAction("Fermer tout")
         menu.addSeparator()
+        pin_action = menu.addAction("Détacher" if editor.pinned else "Épingler")
         duplicate_action = menu.addAction("Dupliquer")
         rename_action = menu.addAction("Renommer...") if editor.file_path is None else None
         history_action = menu.addAction("Historique des versions...") if session.list_versions(editor.session_id) else None
         menu.addSeparator()
         trash_action = menu.addAction("Mettre à la corbeille")
+        trash_action.setEnabled(not editor.pinned)
 
         chosen = menu.exec(bar.mapToGlobal(pos))
         if chosen == close_action:
@@ -877,6 +886,8 @@ class MainWindow(QMainWindow):
             self._close_tabs_to_the_right(index)
         elif chosen == close_all_action:
             self._close_all_tabs()
+        elif chosen == pin_action:
+            self._set_pinned(editor.session_id, not editor.pinned)
         elif chosen == duplicate_action:
             self._duplicate_tab(index)
         elif rename_action is not None and chosen == rename_action:
@@ -943,6 +954,35 @@ class MainWindow(QMainWindow):
             if path:
                 self._open_path(path)
         event.acceptProposedAction()
+
+    def _refresh_tab_button(self, editor):
+        """Bouton à droite du nom de l'onglet : la croix de fermeture, ou une
+        punaise (non cliquable) quand la note est épinglée et donc non fermable."""
+        index = self.tabs.indexOf(editor)
+        if index == -1:
+            return
+        widget = self._make_pin_indicator() if editor.pinned else self._make_close_button()
+        self.tabs.tabBar().setTabButton(index, QTabBar.ButtonPosition.RightSide, widget)
+
+    def _make_pin_indicator(self):
+        label = QLabel()
+        label.setPixmap(pin_pixmap(14))
+        label.setToolTip("Note épinglée (menu contextuel : Détacher)")
+        wrapper = QWidget()
+        layout = QHBoxLayout(wrapper)
+        layout.setContentsMargins(0, 0, 8, 0)
+        layout.addWidget(label)
+        return wrapper
+
+    def _set_pinned(self, draft_id, pinned):
+        session.set_pinned(draft_id, pinned)
+        index = self._tab_index_for_id(draft_id)
+        if index is not None:
+            editor = self.tabs.widget(index)
+            editor.pinned = pinned
+            self._refresh_tab_button(editor)
+            self._reposition_new_tab_button()
+        self._refresh_drafts_browser()
 
     def _make_close_button(self):
         button = QToolButton()
@@ -1103,6 +1143,12 @@ class MainWindow(QMainWindow):
     def close_tab(self, index):
         editor = self.tabs.widget(index)
         if editor is None:
+            return
+        if editor.pinned:
+            # Seul point de passage de toutes les fermetures (croix, Ctrl+W,
+            # menus, « fermer les autres/à droite/tout ») : les notes épinglées
+            # sont simplement ignorées par les fermetures en lot.
+            self.statusBar().showMessage("Note épinglée : détachez-la pour la fermer.", 3000)
             return
         if editor.document().isModified():
             session.save_draft(
