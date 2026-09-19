@@ -358,7 +358,7 @@ QString readVersion(const QString &draftId, const QString &stamp)
     return QString::fromUtf8(f.readAll());
 }
 
-void saveWindowState(int width, int height, const QList<int> &splitterSizes)
+void saveWindowState(int width, int height, const QList<int> &splitterSizes, int x, int y)
 {
     QDir().mkpath(configDir());
     QJsonObject obj;
@@ -368,6 +368,8 @@ void saveWindowState(int width, int height, const QList<int> &splitterSizes)
     for (int s : splitterSizes)
         sizesArray.append(s);
     obj["splitter_sizes"] = sizesArray;
+    obj["x"] = x;
+    obj["y"] = y;
     writeJsonObject(windowFile(), obj);
 }
 
@@ -386,6 +388,11 @@ WindowState loadWindowState()
     state.height = obj.value("height").toInt(0);
     for (const QJsonValue &v : obj.value("splitter_sizes").toArray())
         state.splitterSizes.append(v.toInt());
+    state.hasPosition = obj.contains("x") && obj.contains("y");
+    if (state.hasPosition) {
+        state.x = obj.value("x").toInt(0);
+        state.y = obj.value("y").toInt(0);
+    }
     state.valid = state.width > 0 && state.height > 0;
     return state;
 }

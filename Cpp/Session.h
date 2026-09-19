@@ -42,6 +42,9 @@ struct WindowState {
     int width = 0;
     int height = 0;
     QList<int> splitterSizes;
+    int x = 0;
+    int y = 0;
+    bool hasPosition = false; // false for a window.json saved before x/y existed
     bool valid = false;
 };
 
@@ -94,8 +97,9 @@ QStringList listVersions(const QString &draftId);
 
 QString readVersion(const QString &draftId, const QString &stamp);
 
-// Persists the window size and sidebar-splitter position across launches.
-void saveWindowState(int width, int height, const QList<int> &splitterSizes);
+// Persists the window size, screen position and sidebar-splitter position
+// across launches.
+void saveWindowState(int width, int height, const QList<int> &splitterSizes, int x, int y);
 
 WindowState loadWindowState();
 

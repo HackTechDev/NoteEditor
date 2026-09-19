@@ -271,18 +271,18 @@ def read_version(draft_id, stamp):
         return f.read()
 
 
-def save_window_state(width, height, splitter_sizes):
-    """Persists the window size and sidebar-splitter position across launches."""
+def save_window_state(width, height, splitter_sizes, x=None, y=None):
+    """Persists the window size, screen position and sidebar-splitter position
+    across launches. x/y are optional: omitted from the file when unknown."""
     os.makedirs(CONFIG_DIR, exist_ok=True)
+    state = {"width": width, "height": height, "splitter_sizes": list(splitter_sizes)}
+    if x is not None and y is not None:
+        state["x"] = x
+        state["y"] = y
     with open(WINDOW_FILE, "w", encoding="utf-8") as f:
-        json.dump(
-            {"width": width, "height": height, "splitter_sizes": list(splitter_sizes)},
-            f,
-            ensure_ascii=False,
-            indent=2,
-        )
+        json.dump(state, f, ensure_ascii=False, indent=2)
 
 
 def load_window_state():
-    """Returns {"width", "height", "splitter_sizes"} or None if never saved."""
+    """Returns {"width", "height", "splitter_sizes"[, "x", "y"]} or None if never saved."""
     return _load_json(WINDOW_FILE, None)

@@ -16,6 +16,7 @@
 #include <QFile>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QGuiApplication>
 #include <QHBoxLayout>
 #include <QIcon>
 #include <QInputDialog>
@@ -31,6 +32,7 @@
 #include <QPolygon>
 #include <QPlainTextEdit>
 #include <QRegularExpression>
+#include <QScreen>
 #include <QResizeEvent>
 #include <QSplitter>
 #include <QStatusBar>
@@ -43,6 +45,8 @@
 #include <QToolBar>
 #include <QUrl>
 #include <QVBoxLayout>
+
+#include <algorithm>
 
 namespace {
 
@@ -341,6 +345,17 @@ MainWindow::MainWindow(QWidget *parent)
     const Session::WindowState windowState = Session::loadWindowState();
     if (windowState.valid) {
         resize(windowState.width, windowState.height);
+        if (windowState.hasPosition) {
+            // Ignore a saved position that no longer lands on any screen (e.g.
+            // an external monitor that has since been unplugged).
+            const QRect saved(windowState.x, windowState.y, windowState.width, windowState.height);
+            const QList<QScreen *> screens = QGuiApplication::screens();
+            const bool visible = std::any_of(screens.begin(), screens.end(), [&](QScreen *screen) {
+                return screen->availableGeometry().intersects(saved);
+            });
+            if (visible)
+                move(windowState.x, windowState.y);
+        }
         if (!windowState.splitterSizes.isEmpty())
             m_splitter->setSizes(windowState.splitterSizes);
     }
@@ -1165,7 +1180,7 @@ void MainWindow::saveSessionToDisk()
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     saveSessionToDisk();
-    Session::saveWindowState(width(), height(), m_splitter->sizes());
+    Session::saveWindowState(width(), height(), m_splitter->sizes(), x(), y());
     event->accept();
 }
 

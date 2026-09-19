@@ -3,7 +3,7 @@ import os
 import sys
 from datetime import datetime
 
-from PyQt6.QtCore import Qt, QPoint, QSize, QTimer
+from PyQt6.QtCore import Qt, QPoint, QRect, QSize, QTimer
 from PyQt6.QtGui import QAction, QIcon, QKeySequence, QPainter, QPen, QPixmap, QPolygon
 from PyQt6.QtWidgets import (
     QApplication,
@@ -323,6 +323,10 @@ class MainWindow(QMainWindow):
             height = window_state.get("height")
             if width and height:
                 self.resize(width, height)
+                x = window_state.get("x")
+                y = window_state.get("y")
+                if x is not None and y is not None and self._is_visible_on_a_screen(x, y, width, height):
+                    self.move(x, y)
             sizes = window_state.get("splitter_sizes")
             if sizes:
                 self.splitter.setSizes(sizes)
@@ -1034,9 +1038,18 @@ class MainWindow(QMainWindow):
         active_id = active_editor.session_id if active_editor is not None else None
         session.save_session(tabs_info, active_id)
 
+    @staticmethod
+    def _is_visible_on_a_screen(x, y, width, height):
+        # Ignore a saved position that no longer lands on any screen (e.g. an
+        # external monitor that has since been unplugged).
+        rect = QRect(x, y, width, height)
+        return any(screen.availableGeometry().intersects(rect) for screen in QApplication.screens())
+
     def closeEvent(self, event):
         self._save_session()
-        session.save_window_state(self.width(), self.height(), self.splitter.sizes())
+        session.save_window_state(
+            self.width(), self.height(), self.splitter.sizes(), self.x(), self.y()
+        )
         event.accept()
 
     def resizeEvent(self, event):
