@@ -757,11 +757,25 @@ void MainWindow::refreshTabButton(Editor *editor)
     if (editor->pinned) {
         bar->setTabButton(index, QTabBar::RightSide, nullptr);
         m_tabs->setTabIcon(index, QIcon(pinPixmap(14)));
-        m_tabs->setTabToolTip(index, "Note épinglée (menu contextuel : Détacher)");
     } else {
         m_tabs->setTabIcon(index, QIcon());
-        m_tabs->setTabToolTip(index, QString());
         bar->setTabButton(index, QTabBar::RightSide, makeCloseButton());
+    }
+    refreshTabTooltips();
+}
+
+// Même infobulle que dans le panneau Brouillons : le chemin du fichier.
+void MainWindow::refreshTabTooltips()
+{
+    for (int i = 0; i < m_tabs->count(); ++i) {
+        auto *editor = qobject_cast<Editor *>(m_tabs->widget(i));
+        if (!editor)
+            continue;
+        const QString name = !editor->filePath.isEmpty() ? QFileInfo(editor->filePath).fileName() : editor->defaultName;
+        QString tip = pathTooltip(editor->filePath, name, editor->sessionId);
+        if (editor->pinned)
+            tip += "\nNote épinglée (menu contextuel : Détacher)";
+        m_tabs->setTabToolTip(i, tip);
     }
 }
 
@@ -1344,6 +1358,7 @@ void MainWindow::renderPreview()
 
 void MainWindow::updateTitle()
 {
+    refreshTabTooltips();
     updatePinAction();
     updatePreviewState();
     Editor *editor = currentEditor();

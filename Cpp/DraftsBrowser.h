@@ -10,6 +10,10 @@
 #include <QString>
 #include <QVector>
 
+// Tooltip text of a note (sidebar and tab): its file path; for a note without a
+// file, where its draft is stored.
+QString pathTooltip(const QString &filePath, const QString &label, const QString &draftId);
+
 // Small filled push-pin glyph, used next to pinned notes (sidebar and tab).
 QPixmap pinPixmap(int size = 14, const QColor &color = Qt::darkGray);
 
@@ -49,7 +53,6 @@ private slots:
 
 private:
     static QString labelFor(const Session::DraftEntry &entry);
-    static QString tooltipFor(const Session::DraftEntry &entry, const QString &label);
 
     QHash<QString, Session::DraftEntry> m_entriesById;
     QSet<QString> m_openIds;

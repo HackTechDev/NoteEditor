@@ -87,6 +87,7 @@ private:
     QToolButton *buildNewTabButton(QWidget *parent);
     QWidget *makeCloseButton();
     void refreshTabButton(Editor *editor);
+    void refreshTabTooltips();
     void setPinned(const QString &draftId, bool pinned);
     void updatePinAction();
     void setCurrentPinned(bool pinned);

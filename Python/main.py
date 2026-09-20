@@ -28,7 +28,7 @@ from PyQt6.QtWidgets import (
 )
 
 import session
-from drafts_browser import DraftsBrowser, pin_pixmap, unpin_pixmap
+from drafts_browser import DraftsBrowser, path_tooltip, pin_pixmap, unpin_pixmap
 from editor_widget import Editor
 from find_replace import FindReplaceDialog
 from trash_dialog import TrashDialog
@@ -1094,11 +1094,22 @@ class MainWindow(QMainWindow):
         if editor.pinned:
             bar.setTabButton(index, QTabBar.ButtonPosition.RightSide, None)
             self.tabs.setTabIcon(index, QIcon(pin_pixmap(14)))
-            self.tabs.setTabToolTip(index, "Note épinglée (menu contextuel : Détacher)")
         else:
             self.tabs.setTabIcon(index, QIcon())
-            self.tabs.setTabToolTip(index, "")
             bar.setTabButton(index, QTabBar.ButtonPosition.RightSide, self._make_close_button())
+        self._refresh_tab_tooltips()
+
+    def _tab_tooltip(self, editor):
+        """Même infobulle que dans le panneau Brouillons : le chemin du fichier."""
+        name = os.path.basename(editor.file_path) if editor.file_path else editor.default_name
+        tip = path_tooltip(editor.file_path, name, editor.session_id)
+        if editor.pinned:
+            tip += "\nNote épinglée (menu contextuel : Détacher)"
+        return tip
+
+    def _refresh_tab_tooltips(self):
+        for i in range(self.tabs.count()):
+            self.tabs.setTabToolTip(i, self._tab_tooltip(self.tabs.widget(i)))
 
     def _set_pinned(self, draft_id, pinned):
         session.set_pinned(draft_id, pinned)
@@ -1191,6 +1202,7 @@ class MainWindow(QMainWindow):
             self._set_pinned(editor.session_id, pinned)
 
     def update_title(self):
+        self._refresh_tab_tooltips()
         self._update_pin_action()
         self._update_preview_state()
         editor = self.current_editor()

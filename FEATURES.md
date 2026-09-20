@@ -82,6 +82,10 @@ adapter si le dépôt est cloné ailleurs.
 - Un **nouvel onglet est nommé par la date et l'heure** de sa création, au format
   `aammjj_hhmmssmm` (année, mois, jour, heure, minute, seconde, centièmes).
 - Le titre de la fenêtre reprend le nom de l'onglet actif.
+- **Infobulle au survol d'un onglet** : la même que dans le panneau Brouillons, c'est-à-dire
+  le **chemin complet du fichier** (ou, pour une note sans fichier, l'emplacement de son
+  brouillon). Pour une note épinglée, une ligne l'indique en plus. Elle se met à jour
+  après un « Enregistrer sous », un renommage ou un changement d'état épinglé.
 - **Menu contextuel** (clic droit sur un onglet) :
   - Fermer, Fermer les autres, Fermer à droite, Fermer tout
   - Dupliquer (nouvel onglet avec le même texte)

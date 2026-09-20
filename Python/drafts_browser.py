@@ -58,6 +58,15 @@ def unpin_pixmap(size=PIN_ICON_SIZE, color=None):
     return pixmap
 
 
+def path_tooltip(file_path, label, draft_id):
+    """Texte d'infobulle d'une note (panneau et onglet) : le chemin de son fichier ;
+    pour une note sans fichier, où son brouillon est stocké."""
+    if file_path:
+        return file_path
+    backup = os.path.join(session.DRAFTS_DIR, draft_id + ".txt")
+    return f"{label}\nPas encore enregistrée dans un fichier\nBrouillon : {backup}"
+
+
 def _row_icon(pinned, selected_color):
     """Icône à gauche du nom dans la liste : une punaise (grise, blanche quand la
     ligne est sélectionnée) pour une note épinglée, sinon un carré transparent de
@@ -123,17 +132,9 @@ class DraftsBrowser(QListWidget):
             display = label + " (ouvert)" if entry["id"] in self._open_ids else label
             item = QListWidgetItem(display)
             item.setIcon(_row_icon(entry.get("pinned"), self.palette().highlightedText().color()))
-            item.setToolTip(self._tooltip_for(entry, label))
+            item.setToolTip(path_tooltip(entry["file_path"], label, entry["id"]))
             item.setData(Qt.ItemDataRole.UserRole, entry)
             self.addItem(item)
-
-    @staticmethod
-    def _tooltip_for(entry, label):
-        """Chemin du fichier ; pour une note sans fichier, l'emplacement de son brouillon."""
-        if entry["file_path"]:
-            return entry["file_path"]
-        backup = os.path.join(session.DRAFTS_DIR, entry["id"] + ".txt")
-        return f"{label}\nPas encore enregistrée dans un fichier\nBrouillon : {backup}"
 
     @staticmethod
     def _label_for(entry):

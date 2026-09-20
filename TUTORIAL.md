@@ -322,8 +322,9 @@ simplement sur son onglet. La note de l'onglet actif est surlignée dans la list
 
 ### Voir le chemin d'un fichier
 
-Laissez la souris **un instant** sur une note du panneau (il faut compter environ
-une seconde) : une petite infobulle affiche le **chemin complet du fichier**. C'est
+Laissez la souris **un instant** sur une note du panneau **ou sur son onglet** (il
+faut compter environ une seconde) : une petite infobulle affiche le **chemin complet
+du fichier**. C'est
 pratique quand plusieurs fichiers portent le même nom dans des dossiers différents.
 Pour une note qui n'est pas encore enregistrée dans un fichier, l'infobulle le dit
 et indique où son brouillon est stocké. Les infobulles fonctionnent aussi quand la

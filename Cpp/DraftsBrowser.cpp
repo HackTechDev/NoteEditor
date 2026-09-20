@@ -31,6 +31,14 @@ QIcon rowIcon(bool pinned, const QColor &selectedColor)
 
 } // namespace
 
+QString pathTooltip(const QString &filePath, const QString &label, const QString &draftId)
+{
+    if (!filePath.isEmpty())
+        return filePath;
+    return QString("%1\nPas encore enregistrée dans un fichier\nBrouillon : %2")
+        .arg(label, Session::draftsDir() + "/" + draftId + ".txt");
+}
+
 QPixmap pinPixmap(int size, const QColor &color)
 {
     QPixmap pixmap(size, size);
@@ -85,15 +93,6 @@ DraftsBrowser::DraftsBrowser(QWidget *parent)
     setSelectionMode(QAbstractItemView::ExtendedSelection);
 }
 
-// Chemin du fichier ; pour une note sans fichier, l'emplacement de son brouillon.
-QString DraftsBrowser::tooltipFor(const Session::DraftEntry &entry, const QString &label)
-{
-    if (!entry.filePath.isEmpty())
-        return entry.filePath;
-    return QString("%1\nPas encore enregistrée dans un fichier\nBrouillon : %2")
-        .arg(label, Session::draftsDir() + "/" + entry.id + ".txt");
-}
-
 QString DraftsBrowser::labelFor(const Session::DraftEntry &entry)
 {
     if (!entry.filePath.isEmpty())
@@ -139,7 +138,7 @@ void DraftsBrowser::refresh(const QSet<QString> &openIds)
             display += " (ouvert)";
 
         auto *item = new QListWidgetItem(display);
-        item->setToolTip(tooltipFor(entry, label));
+        item->setToolTip(pathTooltip(entry.filePath, label, entry.id));
         item->setData(Qt::UserRole, entry.id);
         item->setIcon(rowIcon(entry.pinned, palette().highlightedText().color()));
         addItem(item);
