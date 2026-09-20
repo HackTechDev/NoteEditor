@@ -286,6 +286,15 @@ simplement sur son onglet. La note de l'onglet actif est surlignée dans la list
 - La liste déroulante à côté trie par **Date** (les plus récentes d'abord) ou par
   **Nom**.
 
+### Voir le chemin d'un fichier
+
+Laissez la souris **un instant** sur une note du panneau (il faut compter environ
+une seconde) : une petite infobulle affiche le **chemin complet du fichier**. C'est
+pratique quand plusieurs fichiers portent le même nom dans des dossiers différents.
+Pour une note qui n'est pas encore enregistrée dans un fichier, l'infobulle le dit
+et indique où son brouillon est stocké. Les infobulles fonctionnent aussi quand la
+fenêtre n'est pas au premier plan.
+
 ### Le menu contextuel
 
 Un **clic droit sur une note** du panneau propose les mêmes actions que sur un

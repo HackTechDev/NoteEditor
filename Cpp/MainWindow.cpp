@@ -355,6 +355,9 @@ MainWindow::MainWindow(QWidget *parent)
 {
     setWindowTitle("Éditeur de note");
     resize(900, 650);
+    // Qt n'affiche pas les infobulles d'une fenêtre inactive (focus ailleurs,
+    // lancement automatique au démarrage...) : on les veut toujours.
+    setAttribute(Qt::WA_AlwaysShowToolTips);
 
     m_tabs = new QTabWidget(this);
     m_tabs->setTabsClosable(false);

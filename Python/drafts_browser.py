@@ -116,9 +116,17 @@ class DraftsBrowser(QListWidget):
             display = label + " (ouvert)" if entry["id"] in self._open_ids else label
             item = QListWidgetItem(display)
             item.setIcon(_row_icon(entry.get("pinned"), self.palette().highlightedText().color()))
-            item.setToolTip(entry["file_path"] or label)
+            item.setToolTip(self._tooltip_for(entry, label))
             item.setData(Qt.ItemDataRole.UserRole, entry)
             self.addItem(item)
+
+    @staticmethod
+    def _tooltip_for(entry, label):
+        """Chemin du fichier ; pour une note sans fichier, l'emplacement de son brouillon."""
+        if entry["file_path"]:
+            return entry["file_path"]
+        backup = os.path.join(session.DRAFTS_DIR, entry["id"] + ".txt")
+        return f"{label}\nPas encore enregistrée dans un fichier\nBrouillon : {backup}"
 
     @staticmethod
     def _label_for(entry):

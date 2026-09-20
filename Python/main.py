@@ -318,6 +318,9 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Éditeur de note")
         self.resize(900, 650)
+        # Qt n'affiche pas les infobulles d'une fenêtre inactive (focus ailleurs,
+        # lancement automatique au démarrage...) : on les veut toujours.
+        self.setAttribute(Qt.WidgetAttribute.WA_AlwaysShowToolTips, True)
 
         self.tabs = QTabWidget()
         self.tabs.setTabsClosable(False)

@@ -46,6 +46,7 @@ private slots:
 
 private:
     static QString labelFor(const Session::DraftEntry &entry);
+    static QString tooltipFor(const Session::DraftEntry &entry, const QString &label);
 
     QHash<QString, Session::DraftEntry> m_entriesById;
     QSet<QString> m_openIds;

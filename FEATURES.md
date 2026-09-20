@@ -174,6 +174,10 @@ sans confirmation.
   bascule simplement sur son onglet.
 - L'entrée de l'onglet actif est **surlignée** dans la liste.
 - **Recherche** par nom et **tri** par date ou par nom.
+- **Infobulle au survol** : laisser la souris sur une note affiche le **chemin
+  complet de son fichier** ; pour une note pas encore enregistrée dans un fichier,
+  l'infobulle indique où son brouillon est stocké. Les infobulles s'affichent même
+  quand la fenêtre de l'application n'est pas au premier plan.
 - **Menu contextuel** (clic droit) : les mêmes actions que le menu des onglets
   (Fermer, Fermer les autres, Fermer à droite, Fermer tout, Épingler / Détacher,
   Dupliquer, Historique des versions) plus Renommer et Mettre à la corbeille. Les
