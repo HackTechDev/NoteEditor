@@ -1058,6 +1058,12 @@ class MainWindow(QMainWindow):
         rename_action = menu.addAction("Renommer...") if editor.file_path is None else None
         history_action = menu.addAction("Historique des versions...") if session.list_versions(editor.session_id) else None
         menu.addSeparator()
+        # le nom marche pour toute note (fichier ou nom de la note) ; le chemin
+        # n'existe que pour une note liée à un fichier
+        copy_name_action = menu.addAction("Copier le nom du fichier")
+        copy_path_action = menu.addAction("Copier le chemin complet du fichier")
+        copy_path_action.setEnabled(bool(editor.file_path))
+        menu.addSeparator()
         trash_action = menu.addAction("Mettre à la corbeille")
         trash_action.setEnabled(not editor.pinned)
 
@@ -1078,6 +1084,11 @@ class MainWindow(QMainWindow):
             self._rename_tab(index)
         elif history_action is not None and chosen == history_action:
             self._show_version_history(editor)
+        elif chosen == copy_name_action:
+            name = os.path.basename(editor.file_path) if editor.file_path else editor.default_name
+            QApplication.clipboard().setText(name)
+        elif chosen == copy_path_action:
+            QApplication.clipboard().setText(editor.file_path)
         elif chosen == trash_action:
             self._trash_draft(
                 {

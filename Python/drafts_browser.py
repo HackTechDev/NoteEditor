@@ -2,7 +2,7 @@ import os
 
 from PyQt6.QtCore import QPoint, QSize, Qt, pyqtSignal
 from PyQt6.QtGui import QColor, QIcon, QPainter, QPen, QPixmap, QPolygon
-from PyQt6.QtWidgets import QAbstractItemView, QListWidget, QListWidgetItem, QMenu
+from PyQt6.QtWidgets import QAbstractItemView, QApplication, QListWidget, QListWidgetItem, QMenu
 
 import session
 
@@ -224,6 +224,13 @@ class DraftsBrowser(QListWidget):
         history_action.setEnabled(has_history)
         menu.addSeparator()
 
+        # le nom marche pour toute note (fichier ou nom de la note) ; le chemin
+        # n'existe que pour une note liée à un fichier
+        copy_name_action = menu.addAction("Copier le nom du fichier")
+        copy_path_action = menu.addAction("Copier le chemin complet du fichier")
+        copy_path_action.setEnabled(bool(entry.get("file_path")))
+        menu.addSeparator()
+
         delete_action = menu.addAction("Mettre à la corbeille")
         delete_action.setEnabled(not is_pinned)
 
@@ -246,3 +253,7 @@ class DraftsBrowser(QListWidget):
             self.action_requested.emit("history", entry)
         elif chosen == pin_action:
             self.action_requested.emit("toggle_pin", entry)
+        elif chosen == copy_name_action:
+            QApplication.clipboard().setText(self._label_for(entry))
+        elif chosen == copy_path_action:
+            QApplication.clipboard().setText(entry["file_path"])

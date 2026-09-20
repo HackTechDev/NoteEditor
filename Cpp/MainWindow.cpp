@@ -7,6 +7,7 @@
 
 #include <QAction>
 #include <QApplication>
+#include <QClipboard>
 #include <QCloseEvent>
 #include <QComboBox>
 #include <QDateTime>
@@ -1257,6 +1258,12 @@ void MainWindow::showTabContextMenu(const QPoint &pos)
         ? menu.addAction("Historique des versions...")
         : nullptr;
     menu.addSeparator();
+    // le nom marche pour toute note (fichier ou nom de la note) ; le chemin
+    // n'existe que pour une note liée à un fichier
+    QAction *copyNameAction = menu.addAction("Copier le nom du fichier");
+    QAction *copyPathAction = menu.addAction("Copier le chemin complet du fichier");
+    copyPathAction->setEnabled(editor && !editor->filePath.isEmpty());
+    menu.addSeparator();
     QAction *trashAction = menu.addAction("Mettre à la corbeille");
     trashAction->setEnabled(editor && !editor->pinned);
 
@@ -1277,6 +1284,11 @@ void MainWindow::showTabContextMenu(const QPoint &pos)
         renameTab(index);
     else if (historyAction && chosen == historyAction)
         showVersionHistory(editor);
+    else if (editor && chosen == copyNameAction)
+        QApplication::clipboard()->setText(!editor->filePath.isEmpty() ? QFileInfo(editor->filePath).fileName()
+                                                                       : editor->defaultName);
+    else if (editor && chosen == copyPathAction)
+        QApplication::clipboard()->setText(editor->filePath);
     else if (editor && chosen == trashAction) {
         Session::DraftEntry entry;
         entry.id = editor->sessionId;

@@ -1,5 +1,7 @@
 #include "DraftsBrowser.h"
 
+#include <QApplication>
+#include <QClipboard>
 #include <QFileInfo>
 #include <QIcon>
 #include <QMenu>
@@ -247,6 +249,13 @@ void DraftsBrowser::showContextMenu(const QPoint &pos)
     historyAction->setEnabled(hasHistory);
     menu.addSeparator();
 
+    // le nom marche pour toute note (fichier ou nom de la note) ; le chemin
+    // n'existe que pour une note liée à un fichier
+    QAction *copyNameAction = menu.addAction("Copier le nom du fichier");
+    QAction *copyPathAction = menu.addAction("Copier le chemin complet du fichier");
+    copyPathAction->setEnabled(!entry.filePath.isEmpty());
+    menu.addSeparator();
+
     QAction *deleteAction = menu.addAction("Mettre à la corbeille");
     deleteAction->setEnabled(!isPinned);
 
@@ -269,4 +278,8 @@ void DraftsBrowser::showContextMenu(const QPoint &pos)
         emit actionRequested("history", entry);
     else if (chosen == pinAction)
         emit actionRequested("toggle_pin", entry);
+    else if (chosen == copyNameAction)
+        QApplication::clipboard()->setText(labelFor(entry));
+    else if (chosen == copyPathAction)
+        QApplication::clipboard()->setText(entry.filePath);
 }

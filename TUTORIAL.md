@@ -214,6 +214,8 @@ Faites un **clic droit sur un onglet** :
 | **Dupliquer** | Crée une nouvelle note avec le même texte |
 | **Renommer...** | Change le nom (notes sans fichier associé) |
 | **Historique des versions...** | Affiche les anciennes versions (partie 10) |
+| **Copier le nom du fichier** | Copie dans le presse-papiers le nom du fichier (ou le nom de la note s'il n'y a pas de fichier) |
+| **Copier le chemin complet du fichier** | Copie le chemin complet, nom compris (grisé pour une note sans fichier) |
 | **Mettre à la corbeille** | Met la note à la corbeille (partie 9) |
 
 **À essayer :** créez quatre onglets, faites un clic droit sur le deuxième, puis
@@ -371,8 +373,8 @@ corbeille** : trois partent à la corbeille, l'épinglée reste.
 
 Un **clic droit sur une note** du panneau propose les mêmes actions que sur un
 onglet (Fermer, Fermer les autres, Fermer à droite, Fermer tout, Épingler /
-Détacher, Dupliquer, Historique des versions...), plus **Renommer...** et
-**Mettre à la corbeille**. Les entrées de fermeture sont grisées pour une note
+Détacher, Dupliquer, Historique des versions..., Copier le nom du fichier, Copier le
+chemin complet du fichier), plus **Renommer...** et **Mettre à la corbeille**. Les entrées de fermeture sont grisées pour une note
 qui n'est pas ouverte.
 
 Si un nom est trop long pour la largeur du panneau, faites défiler la liste
