@@ -1104,7 +1104,7 @@ class MainWindow(QMainWindow):
         name = os.path.basename(editor.file_path) if editor.file_path else editor.default_name
         tip = path_tooltip(editor.file_path, name, editor.session_id)
         if editor.pinned:
-            tip += "\nNote épinglée (menu contextuel : Détacher)"
+            tip += "\nNote épinglée"
         return tip
 
     def _refresh_tab_tooltips(self):

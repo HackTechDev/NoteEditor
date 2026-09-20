@@ -774,7 +774,7 @@ void MainWindow::refreshTabTooltips()
         const QString name = !editor->filePath.isEmpty() ? QFileInfo(editor->filePath).fileName() : editor->defaultName;
         QString tip = pathTooltip(editor->filePath, name, editor->sessionId);
         if (editor->pinned)
-            tip += "\nNote épinglée (menu contextuel : Détacher)";
+            tip += "\nNote épinglée";
         m_tabs->setTabToolTip(i, tip);
     }
 }
