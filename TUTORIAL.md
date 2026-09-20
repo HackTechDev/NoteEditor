@@ -333,7 +333,11 @@ simplement sur son onglet. La note de l'onglet actif est surlignée dans la list
 
 ### Rechercher et trier
 
-- Le champ **Rechercher...** filtre la liste par nom pendant que vous tapez.
+- Le champ **Rechercher...** filtre la liste pendant que vous tapez, **par nom ou par
+  contenu** : une note apparaît si son nom *ou son texte* contient ce que vous avez
+  saisi. Tapez un mot dont vous vous souvenez pour retrouver une note dont vous ne
+  vous rappelez plus le nom. (Les fichiers extérieurs à `~/.noteeditor` que vous avez
+  fermés ne sont pas listés, donc pas cherchés.)
 - La liste déroulante à côté trie par **Date** (les plus récentes d'abord) ou par
   **Nom**.
 
@@ -422,6 +426,9 @@ sont grisées quand aucun onglet n'est ouvert.
 
 - Une **petite punaise** apparaît **à gauche du nom** de la note, dans l'onglet et
   dans le panneau Brouillons.
+- Les **onglets épinglés se regroupent à gauche** de la barre d'onglets, avant les
+  autres. Si vous faites glisser un onglet de l'autre côté de la limite, il revient
+  de son côté quand vous relâchez la souris.
 - L'onglet épinglé **n'a plus de croix** de fermeture.
 - La fermeture est refusée par tous les moyens : `Ctrl+W`, l'icône Fermer
   l'onglet, l'entrée **Fermer** du menu. Un message dans la barre de statut vous

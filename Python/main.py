@@ -3,7 +3,7 @@ import os
 import sys
 from datetime import datetime
 
-from PyQt6.QtCore import Qt, QPoint, QRect, QSize, QTimer
+from PyQt6.QtCore import QEvent, Qt, QPoint, QRect, QSize, QTimer
 from PyQt6.QtGui import QAction, QIcon, QKeySequence, QPainter, QPen, QPixmap, QPolygon
 from PyQt6.QtWidgets import (
     QApplication,
@@ -370,6 +370,10 @@ class MainWindow(QMainWindow):
         self.tabs.currentChanged.connect(self.update_title)
         self.tabs.currentChanged.connect(self._check_current_external_change)
         self.tabs.currentChanged.connect(self._update_status_bar)
+        self._normalizing_tabs = False
+        # les onglets épinglés restent groupés à gauche : après un glisser-déposer
+        # on remet l'ordre en place au relâchement de la souris (pas pendant le geste)
+        self.tabs.tabBar().installEventFilter(self)
         self.tabs.tabBar().setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.tabs.tabBar().customContextMenuRequested.connect(self._show_tab_context_menu)
 
@@ -404,6 +408,7 @@ class MainWindow(QMainWindow):
 
         self.drafts_search = QLineEdit()
         self.drafts_search.setPlaceholderText("Rechercher...")
+        self.drafts_search.setToolTip("Filtre les notes par nom ou par contenu")
         self.drafts_search.textChanged.connect(self.drafts_browser.set_filter_text)
 
         self.drafts_sort = QComboBox()
@@ -768,6 +773,8 @@ class MainWindow(QMainWindow):
         index = self.tabs.addTab(editor, label)
         self._refresh_tab_button(editor)
         self.tabs.setCurrentIndex(index)
+        if editor.pinned:
+            self._normalize_tab_order()
         editor.setFocus()
 
         session.save_draft(
@@ -782,6 +789,32 @@ class MainWindow(QMainWindow):
         self._refresh_drafts_browser()
         self._reposition_new_tab_button()
         return editor
+
+    def eventFilter(self, obj, event):
+        if obj is self.tabs.tabBar() and event.type() == QEvent.Type.MouseButtonRelease:
+            QTimer.singleShot(0, self._normalize_tab_order)
+        return super().eventFilter(obj, event)
+
+    def _normalize_tab_order(self):
+        """Regroupe les onglets épinglés à gauche, sans changer l'ordre relatif des
+        épinglés entre eux ni des autres (partition stable)."""
+        if self._normalizing_tabs:
+            return
+        self._normalizing_tabs = True
+        try:
+            bar = self.tabs.tabBar()
+            target = 0
+            moved = False
+            for i in range(self.tabs.count()):
+                if self.tabs.widget(i).pinned:
+                    if i != target:
+                        bar.moveTab(i, target)
+                        moved = True
+                    target += 1
+            if moved:
+                self._reposition_new_tab_button()
+        finally:
+            self._normalizing_tabs = False
 
     def _reposition_new_tab_button(self):
         QTimer.singleShot(0, self._toggle_new_tab_button_mode)
@@ -1187,6 +1220,7 @@ class MainWindow(QMainWindow):
             self._refresh_tab_button(editor)
 
     def _finish_pin_change(self):
+        self._normalize_tab_order()
         self._reposition_new_tab_button()
         self._refresh_drafts_browser()
         self._update_pin_action()
@@ -1256,8 +1290,7 @@ class MainWindow(QMainWindow):
         if not entries:
             self.new_tab()
             return
-        active_index = 0
-        for i, entry in enumerate(entries):
+        for entry in entries:
             editor = self.new_tab(
                 file_path=entry.get("file_path"),
                 content=entry.get("content", ""),
@@ -1272,9 +1305,9 @@ class MainWindow(QMainWindow):
                     pass
             if "cursor" in entry:
                 editor.restore_view(entry["cursor"], entry.get("scroll", 0))
-            if entry.get("id") == active_id:
-                active_index = i
-        self.tabs.setCurrentIndex(active_index)
+        self._normalize_tab_order()
+        active = self._tab_index_for_id(active_id) if active_id else None
+        self.tabs.setCurrentIndex(active if active is not None else 0)
 
     def tab_label(self, editor):
         name = os.path.basename(editor.file_path) if editor.file_path else editor.default_name

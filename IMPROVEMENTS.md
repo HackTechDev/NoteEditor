@@ -17,11 +17,6 @@ implémentées sont documentées dans `README.md` et `FEATURES.md`, pas ici.
 - **Thème sombre**, avec bascule manuelle ou suivi du thème système — les couleurs sont actuellement pensées uniquement pour un fond clair (`highlighters.py`, styles des onglets, aperçu Markdown).
 - **Palette de commandes** (`Ctrl+Maj+P`) pour retrouver rapidement une action sans fouiller les menus.
 
-## Panneau Brouillons
-
-- **Rechercher dans le contenu des notes** : le champ de recherche du panneau ne filtre que sur les noms ; pouvoir retrouver une note par un mot de son texte serait très utile quand on en accumule beaucoup.
-- **Regrouper les onglets épinglés à gauche** : aujourd'hui une note épinglée garde sa place dans la barre d'onglets ; les mettre en tête (comme dans un navigateur) les rendrait plus repérables.
-
 ## Session et fichiers
 
 - **Ouvrir le dossier du fichier** dans le gestionnaire de fichiers depuis le menu contextuel d'un onglet ou d'une note, en complément de « Copier le chemin complet du fichier ».

@@ -405,6 +405,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_tabs, &QTabWidget::currentChanged, this, &MainWindow::updateTitle);
     connect(m_tabs, &QTabWidget::currentChanged, this, &MainWindow::checkCurrentExternalChange);
     connect(m_tabs, &QTabWidget::currentChanged, this, &MainWindow::updateStatusBar);
+    // les onglets épinglés restent groupés à gauche : après un glisser-déposer on
+    // remet l'ordre en place au relâchement de la souris (pas pendant le geste)
+    m_tabs->tabBar()->installEventFilter(this);
     m_tabs->tabBar()->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(m_tabs->tabBar(), &QTabBar::customContextMenuRequested, this, &MainWindow::showTabContextMenu);
 
@@ -432,6 +435,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     m_draftsSearch = new QLineEdit(this);
     m_draftsSearch->setPlaceholderText("Rechercher...");
+    m_draftsSearch->setToolTip("Filtre les notes par nom ou par contenu");
     connect(m_draftsSearch, &QLineEdit::textChanged, m_draftsBrowser, &DraftsBrowser::setFilterText);
 
     m_draftsSort = new QComboBox(this);
@@ -752,6 +756,8 @@ Editor *MainWindow::newTab(const QString &filePath, const QString &content, cons
     const int index = m_tabs->addTab(editor, label);
     refreshTabButton(editor);
     m_tabs->setCurrentIndex(index);
+    if (editor->pinned)
+        normalizeTabOrder(); // note épinglée rouverte : dans le groupe de gauche
     editor->setFocus();
 
     Session::TabSnapshot snap;
@@ -814,6 +820,7 @@ void MainWindow::applyPinned(const QString &draftId, bool pinned)
 
 void MainWindow::finishPinChange()
 {
+    normalizeTabOrder();
     repositionNewTabButton();
     refreshDraftsBrowser();
     updatePinAction();
@@ -1370,7 +1377,6 @@ void MainWindow::restoreSession()
         newTab();
         return;
     }
-    int activeIndex = 0;
     for (int i = 0; i < entries.size(); ++i) {
         const Session::TabSnapshot &entry = entries[i];
         Editor *editor = newTab(entry.filePath, entry.content, entry.defaultName, entry.id, entry.modified);
@@ -1378,16 +1384,48 @@ void MainWindow::restoreSession()
             editor->diskMTime = QFileInfo(entry.filePath).lastModified().toMSecsSinceEpoch();
         if (entry.cursor >= 0)
             editor->restoreView(entry.cursor, entry.scroll);
-        if (entry.id == activeId)
-            activeIndex = i;
     }
-    m_tabs->setCurrentIndex(activeIndex);
+    normalizeTabOrder();
+    const int activeIndex = activeId.isEmpty() ? -1 : tabIndexForId(activeId);
+    m_tabs->setCurrentIndex(activeIndex != -1 ? activeIndex : 0);
 }
 
 QString MainWindow::tabLabel(Editor *editor) const
 {
     const QString name = !editor->filePath.isEmpty() ? QFileInfo(editor->filePath).fileName() : editor->defaultName;
     return editor->document()->isModified() ? "*" + name : name;
+}
+
+bool MainWindow::eventFilter(QObject *watched, QEvent *event)
+{
+    if (watched == m_tabs->tabBar() && event->type() == QEvent::MouseButtonRelease)
+        QTimer::singleShot(0, this, &MainWindow::normalizeTabOrder);
+    return QMainWindow::eventFilter(watched, event);
+}
+
+// Regroupe les onglets épinglés à gauche, sans changer l'ordre relatif des
+// épinglés entre eux ni des autres (partition stable).
+void MainWindow::normalizeTabOrder()
+{
+    if (m_normalizingTabs)
+        return;
+    m_normalizingTabs = true;
+    QTabBar *bar = m_tabs->tabBar();
+    int target = 0;
+    bool moved = false;
+    for (int i = 0; i < m_tabs->count(); ++i) {
+        auto *editor = qobject_cast<Editor *>(m_tabs->widget(i));
+        if (editor && editor->pinned) {
+            if (i != target) {
+                bar->moveTab(i, target);
+                moved = true;
+            }
+            ++target;
+        }
+    }
+    if (moved)
+        repositionNewTabButton();
+    m_normalizingTabs = false;
 }
 
 void MainWindow::updatePinAction()

@@ -58,6 +58,14 @@ private:
     static QString labelFor(const Session::DraftEntry &entry);
 
     QHash<QString, Session::DraftEntry> m_entriesById;
+    // id -> (stamp mtime/taille, texte en minuscules) : la recherche dans le contenu
+    // ne relit un brouillon que s'il a changé depuis la frappe précédente
+    struct ContentCache {
+        QString stamp;
+        QString textLower;
+    };
+    QHash<QString, ContentCache> m_contentCache;
+    bool contentMatches(const QString &draftId, const QString &needle);
     QSet<QString> m_openIds;
     QString m_sortMode = "date";
     QString m_filterText;

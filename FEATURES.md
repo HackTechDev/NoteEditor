@@ -113,6 +113,11 @@ adapter si le dépôt est cloné ailleurs.
     menu sont grisées. Un message dans la barre de statut explique le blocage.
   - Les fermetures en lot (« Fermer les autres », « Fermer à droite », « Fermer
     tout ») **ignorent** les notes épinglées et ferment les autres.
+  - Les **onglets épinglés sont regroupés à gauche** de la barre d'onglets : épingler
+    une note la place à la fin du groupe épinglé, la détacher la remet en tête des
+    autres, et une note épinglée que l'on rouvre rejoint le groupe de gauche. Si l'on
+    glisse un onglet de l'autre côté de la limite, il revient de son côté au
+    relâchement de la souris. L'ordre est restauré tel quel au lancement suivant.
   - Quitter l'application n'est pas bloqué : une note épinglée est restaurée
     épinglée au lancement suivant. On peut aussi épingler une note fermée depuis le
     panneau Brouillons.
@@ -221,7 +226,11 @@ ouverts.
     le message), et le texte le plus récent de chaque note ouverte part à la
     corbeille.
 - L'entrée de l'onglet actif est **surlignée** dans la liste.
-- **Recherche** par nom et **tri** par date ou par nom.
+- **Recherche** par nom **ou par contenu** : le champ filtre les notes dont le nom
+  *ou le texte* contient ce que l'on tape (sans tenir compte des majuscules et
+  minuscules ; les accents, eux, doivent correspondre, comme pour les noms). Elle porte sur le texte archivé de chaque
+  note ; les fichiers extérieurs fermés, qui ne sont plus listés, ne sont pas
+  concernés. Et **tri** par date ou par nom.
 - **Infobulle au survol** : laisser la souris sur une note affiche le **chemin
   complet de son fichier** ; pour une note pas encore enregistrée dans un fichier,
   l'infobulle indique où son brouillon est stocké. Les infobulles s'affichent même

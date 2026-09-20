@@ -57,6 +57,7 @@ public:
 protected:
     void closeEvent(QCloseEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
+    bool eventFilter(QObject *watched, QEvent *event) override;
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dropEvent(QDropEvent *event) override;
 
@@ -96,6 +97,7 @@ private:
     void afterTrash();
     void trashEntries(const QVector<Session::DraftEntry> &entries);
     void updatePinAction();
+    void normalizeTabOrder();
     void setCurrentPinned(bool pinned);
     static bool isMarkdown(const Editor *editor);
     void updatePreviewState();
@@ -170,4 +172,5 @@ private:
     QAction *m_previewAction = nullptr;
     QAction *m_wordWrapAction;
     bool m_wordWrapEnabled = true;
+    bool m_normalizingTabs = false;
 };

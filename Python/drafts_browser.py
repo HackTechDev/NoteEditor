@@ -104,6 +104,9 @@ class DraftsBrowser(QListWidget):
         self._open_ids = set()
         self._sort_mode = "date"
         self._filter_text = ""
+        # id -> ((mtime, taille), texte en minuscules) : la recherche dans le contenu
+        # ne relit un brouillon que s'il a changé depuis la frappe précédente
+        self._content_cache = {}
 
     def set_sort_mode(self, mode):
         self._sort_mode = mode
@@ -122,9 +125,11 @@ class DraftsBrowser(QListWidget):
             entries.sort(key=lambda e: self._label_for(e).lower())
 
         needle = self._filter_text.strip().lower()
+        if not needle:
+            self._content_cache.clear()  # rien à garder en mémoire hors recherche
         for entry in entries:
             label = self._label_for(entry)
-            if needle and needle not in label.lower():
+            if needle and needle not in label.lower() and not self._content_matches(entry["id"], needle):
                 continue
             if entry["id"] not in self._open_ids and session.is_external_file(entry["file_path"]):
                 # un fichier extérieur à ~/.noteeditor n'est listé que tant qu'il est
@@ -136,6 +141,25 @@ class DraftsBrowser(QListWidget):
             item.setToolTip(path_tooltip(entry["file_path"], label, entry["id"]))
             item.setData(Qt.ItemDataRole.UserRole, entry)
             self.addItem(item)
+
+    def _content_matches(self, draft_id, needle):
+        """Le texte de la note (son brouillon) contient-il la recherche ?"""
+        path = os.path.join(session.DRAFTS_DIR, draft_id + ".txt")
+        try:
+            st = os.stat(path)
+        except OSError:
+            return False
+        stamp = (st.st_mtime_ns, st.st_size)
+        cached = self._content_cache.get(draft_id)
+        if cached is None or cached[0] != stamp:
+            try:
+                with open(path, "r", encoding="utf-8", errors="replace") as f:
+                    text = f.read().lower()
+            except OSError:
+                return False
+            cached = (stamp, text)
+            self._content_cache[draft_id] = cached
+        return needle in cached[1]
 
     @staticmethod
     def _label_for(entry):

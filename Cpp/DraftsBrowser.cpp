@@ -2,6 +2,7 @@
 
 #include <QApplication>
 #include <QClipboard>
+#include <QFile>
 #include <QFileInfo>
 #include <QIcon>
 #include <QMenu>
@@ -128,9 +129,11 @@ void DraftsBrowser::refresh(const QSet<QString> &openIds)
     }
 
     const QString needle = m_filterText.trimmed().toLower();
+    if (needle.isEmpty())
+        m_contentCache.clear(); // rien à garder en mémoire hors recherche
     for (const Session::DraftEntry &entry : entries) {
         const QString label = labelFor(entry);
-        if (!needle.isEmpty() && !label.toLower().contains(needle))
+        if (!needle.isEmpty() && !label.toLower().contains(needle) && !contentMatches(entry.id, needle))
             continue;
         if (!m_openIds.contains(entry.id) && Session::isExternalFile(entry.filePath))
             continue; // un fichier extérieur à ~/.noteeditor n'est listé que tant qu'il est ouvert
@@ -147,6 +150,25 @@ void DraftsBrowser::refresh(const QSet<QString> &openIds)
 
         m_entriesById[entry.id] = entry;
     }
+}
+
+// Le texte de la note (son brouillon) contient-il la recherche ?
+bool DraftsBrowser::contentMatches(const QString &draftId, const QString &needle)
+{
+    const QString path = Session::draftsDir() + "/" + draftId + ".txt";
+    const QFileInfo info(path);
+    if (!info.exists())
+        return false;
+    const QString stamp = QString::number(info.lastModified().toMSecsSinceEpoch()) + ":" + QString::number(info.size());
+    auto it = m_contentCache.find(draftId);
+    if (it == m_contentCache.end() || it->stamp != stamp) {
+        QFile f(path);
+        if (!f.open(QIODevice::ReadOnly))
+            return false;
+        m_contentCache[draftId] = {stamp, QString::fromUtf8(f.readAll()).toLower()};
+        it = m_contentCache.find(draftId);
+    }
+    return it->textLower.contains(needle);
 }
 
 void DraftsBrowser::selectIds(const QStringList &draftIds)
