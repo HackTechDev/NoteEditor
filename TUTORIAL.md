@@ -341,11 +341,21 @@ simplement sur son onglet. La note de l'onglet actif est surlignée dans la list
 
 Laissez la souris **un instant** sur une note du panneau **ou sur son onglet** (il
 faut compter environ une seconde) : une petite infobulle affiche le **chemin complet
-du fichier**. C'est
-pratique quand plusieurs fichiers portent le même nom dans des dossiers différents.
-Pour une note qui n'est pas encore enregistrée dans un fichier, l'infobulle le dit
-et indique où son brouillon est stocké. Les infobulles fonctionnent aussi quand la
-fenêtre n'est pas au premier plan.
+du fichier**. C'est pratique quand plusieurs fichiers portent le même nom dans des
+dossiers différents. Pour une note qui n'est pas encore enregistrée dans un fichier,
+l'infobulle le dit et indique où son brouillon est stocké. Les infobulles
+fonctionnent aussi quand la fenêtre n'est pas au premier plan.
+
+Pour **réutiliser ce chemin ailleurs** (un terminal, un message, un autre programme),
+faites un **clic droit** sur la note, dans le panneau ou sur son onglet, puis :
+
+- **Copier le nom du fichier** : place le nom (par exemple `rapport.md`) dans le
+  presse-papiers ;
+- **Copier le chemin complet du fichier** : place le chemin complet, nom compris
+  (par exemple `/home/vous/Documents/rapport.md`). Cette entrée est grisée pour une
+  note qui n'est pas liée à un fichier.
+
+Collez ensuite avec `Ctrl+V`.
 
 ### Agir sur plusieurs notes d'un coup
 
@@ -763,6 +773,11 @@ restaurées au lancement suivant).
 L'onglet actif n'est pas un fichier Markdown. L'aperçu n'est disponible que pour un
 fichier dont l'extension est `.md` ou `.markdown` ; une note qui n'est pas encore liée
 à un fichier n'en est pas un. Faites **Enregistrer sous** avec un nom en `.md`.
+
+**Comment récupérer le chemin d'un fichier pour le coller ailleurs ?**
+Clic droit sur la note (dans le panneau ou sur son onglet) → **Copier le chemin
+complet du fichier**, puis `Ctrl+V` là où vous en avez besoin. **Copier le nom du
+fichier** ne copie que le nom.
 
 **J'ai deux versions de l'application, laquelle choisir ?**
 Peu importe : elles font la même chose et partagent vos notes. Utilisez celle qui
