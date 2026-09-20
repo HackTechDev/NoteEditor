@@ -256,7 +256,8 @@ ouverts.
   quand la fenêtre de l'application n'est pas au premier plan.
 - **Menu contextuel** (clic droit) : les mêmes actions que le menu des onglets
   (Fermer, Fermer les autres, Fermer à droite, Fermer tout, Épingler / Détacher,
-  Dupliquer, Historique des versions) plus Renommer et Mettre à la corbeille. Les
+  Mémoriser à la fermeture, Dupliquer, Historique des versions) plus Renommer et
+  Mettre à la corbeille. Les
   actions de fermeture sont grisées pour une note qui n'est pas ouverte, et
   « Fermer » comme « Mettre à la corbeille » le sont aussi pour une note épinglée.
 - **Renommer** ne s'applique qu'aux notes sans fichier associé.

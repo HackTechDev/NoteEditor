@@ -18,8 +18,13 @@ implémentées sont documentées dans `README.md` et `FEATURES.md`, pas ici.
 - **Raccourci pour rouvrir la dernière note fermée** (par exemple `Ctrl+Maj+T`, comme dans un navigateur) : les notes fermées récemment sont déjà listées dans le menu Fichier, un raccourci les rendrait accessibles sans la souris.
 - **Palette de commandes** (`Ctrl+Maj+P`) pour retrouver rapidement une action sans fouiller les menus.
 
+## Panneau Brouillons
+
+- **Recherche plus tolérante** : elle distingue aujourd'hui les accents (« zebulon » ne trouve pas « zébulon »), ne cherche que dans le texte archivé et ne montre pas où le mot a été trouvé ; ignorer les accents et afficher un extrait de la ligne correspondante l'améliorerait.
+
 ## Session et fichiers
 
+- **Taille de la liste « Notes fermées récemment » configurable** : elle est fixée à 10 entrées.
 - **Ouvrir le dossier du fichier** dans le gestionnaire de fichiers depuis le menu contextuel d'un onglet ou d'une note, en complément de « Copier le chemin complet du fichier ».
 - **Restaurer l'historique annuler/rétablir et la sélection de texte** : seuls le texte, le curseur et le défilement reviennent, on ne peut pas annuler une frappe faite avant la fermeture.
 

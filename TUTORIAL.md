@@ -412,9 +412,10 @@ corbeille** : trois partent à la corbeille, l'épinglée reste.
 
 Un **clic droit sur une note** du panneau propose les mêmes actions que sur un
 onglet (Fermer, Fermer les autres, Fermer à droite, Fermer tout, Épingler /
-Détacher, Dupliquer, Historique des versions..., Copier le nom du fichier, Copier le
-chemin complet du fichier), plus **Renommer...** et **Mettre à la corbeille**. Les entrées de fermeture sont grisées pour une note
-qui n'est pas ouverte.
+Détacher, Mémoriser à la fermeture, Dupliquer, Historique des versions..., Copier le
+nom du fichier, Copier le chemin complet du fichier), plus **Renommer...** et
+**Mettre à la corbeille**. Les entrées de fermeture sont grisées pour une note qui
+n'est pas ouverte.
 
 Si un nom est trop long pour la largeur du panneau, faites défiler la liste
 horizontalement, ou élargissez le panneau en déplaçant le séparateur.
@@ -812,6 +813,19 @@ fichier dont l'extension est `.md` ou `.markdown` ; une note qui n'est pas encor
 Clic droit sur la note (dans le panneau ou sur son onglet) → **Copier le chemin
 complet du fichier**, puis `Ctrl+V` là où vous en avez besoin. **Copier le nom du
 fichier** ne copie que le nom.
+
+**Ma note vide n'apparaît pas dans « Notes fermées récemment ».**
+C'est voulu : une note **sans texte et sans fichier** n'a rien à rouvrir, elle n'est
+donc pas mémorisée par défaut. Pour la retrouver quand même, faites un clic droit sur
+son onglet (ou sur elle dans le panneau Brouillons) et cochez **Mémoriser à la
+fermeture** avant de la fermer.
+
+**La recherche du panneau ne trouve pas un mot que je sais avoir écrit.**
+Vérifiez d'abord les **accents** : la recherche ignore les majuscules mais pas les
+accents, donc « zebulon » ne trouve pas « zébulon ». Elle ne porte aussi que sur les
+notes **listées** dans le panneau : un fichier extérieur à `~/.noteeditor` que vous avez
+fermé n'y figure plus, donc n'est pas cherché (rouvrez-le par **Fichier → Notes
+fermées récemment** ou **Ouvrir**).
 
 **J'ai deux versions de l'application, laquelle choisir ?**
 Peu importe : elles font la même chose et partagent vos notes. Utilisez celle qui
