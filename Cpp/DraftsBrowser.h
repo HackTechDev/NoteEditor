@@ -47,7 +47,8 @@ signals:
     void deleteRequested(const Session::DraftEntry &entry);
     void renameRequested(const Session::DraftEntry &entry);
     // Actions shared with the tab context menu: "close", "close_others",
-    // "close_right", "close_all", "duplicate", "history", "toggle_pin".
+    // "close_right", "close_all", "duplicate", "history", "toggle_pin",
+    // "open_folder".
     void actionRequested(const QString &action, const Session::DraftEntry &entry);
     // Action sur plusieurs notes sélectionnées d'un coup : "close", "pin",
     // "unpin" ou "trash".

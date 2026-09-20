@@ -24,7 +24,6 @@ implémentées sont documentées dans `README.md` et `FEATURES.md`, pas ici.
 
 ## Session et fichiers
 
-- **Ouvrir le dossier du fichier** dans le gestionnaire de fichiers depuis le menu contextuel d'un onglet ou d'une note, en complément de « Copier le chemin complet du fichier ».
 - **Restaurer l'historique annuler/rétablir et la sélection de texte** : seuls le texte, le curseur et le défilement reviennent, on ne peut pas annuler une frappe faite avant la fermeture.
 
 ## Fiabilité et code

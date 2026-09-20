@@ -8,6 +8,7 @@
 #include <QAction>
 #include <QApplication>
 #include <QClipboard>
+#include <QDesktopServices>
 #include <QCloseEvent>
 #include <QComboBox>
 #include <QDateTime>
@@ -1184,6 +1185,8 @@ void MainWindow::handleDraftsContextAction(const QString &action, const Session:
         showVersionHistoryForEntry(entry);
     } else if (action == "toggle_pin") {
         setPinned(entry.id, !Session::isPinned(entry.id));
+    } else if (action == "open_folder") {
+        openFolderOf(entry.filePath);
     }
 }
 
@@ -1281,6 +1284,8 @@ void MainWindow::showTabContextMenu(const QPoint &pos)
     QAction *copyNameAction = menu.addAction("Copier le nom du fichier");
     QAction *copyPathAction = menu.addAction("Copier le chemin complet du fichier");
     copyPathAction->setEnabled(editor && !editor->filePath.isEmpty());
+    QAction *openFolderAction = menu.addAction("Ouvrir le dossier du fichier");
+    openFolderAction->setEnabled(editor && !editor->filePath.isEmpty());
     menu.addSeparator();
     QAction *trashAction = menu.addAction("Mettre à la corbeille");
     trashAction->setEnabled(editor && !editor->pinned);
@@ -1309,6 +1314,8 @@ void MainWindow::showTabContextMenu(const QPoint &pos)
                                                                        : editor->defaultName);
     else if (editor && chosen == copyPathAction)
         QApplication::clipboard()->setText(editor->filePath);
+    else if (editor && chosen == openFolderAction)
+        openFolderOf(editor->filePath);
     else if (editor && chosen == trashAction) {
         Session::DraftEntry entry;
         entry.id = editor->sessionId;
@@ -1439,6 +1446,18 @@ void MainWindow::normalizeTabOrder()
     if (moved)
         repositionNewTabButton();
     m_normalizingTabs = false;
+}
+
+// Ouvre le dossier du fichier dans le gestionnaire de fichiers du bureau.
+void MainWindow::openFolderOf(const QString &filePath)
+{
+    const QString folder = filePath.isEmpty() ? QString() : QFileInfo(filePath).absolutePath();
+    if (folder.isEmpty() || !QFileInfo(folder).isDir()) {
+        statusBar()->showMessage("Dossier introuvable : " + (folder.isEmpty() ? QString("(aucun fichier)") : folder), 4000);
+        return;
+    }
+    if (!QDesktopServices::openUrl(QUrl::fromLocalFile(folder)))
+        statusBar()->showMessage("Impossible d'ouvrir le dossier : " + folder, 4000);
 }
 
 // Remplit le sous-menu des notes fermées récemment (la plus récente d'abord).

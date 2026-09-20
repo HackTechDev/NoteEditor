@@ -3,8 +3,8 @@ import os
 import sys
 from datetime import datetime
 
-from PyQt6.QtCore import QEvent, Qt, QPoint, QRect, QSize, QTimer
-from PyQt6.QtGui import QAction, QIcon, QKeySequence, QPainter, QPen, QPixmap, QPolygon
+from PyQt6.QtCore import QEvent, Qt, QPoint, QRect, QSize, QTimer, QUrl
+from PyQt6.QtGui import QAction, QDesktopServices, QIcon, QKeySequence, QPainter, QPen, QPixmap, QPolygon
 from PyQt6.QtWidgets import (
     QApplication,
     QComboBox,
@@ -706,6 +706,15 @@ class MainWindow(QMainWindow):
 
         self.status_encoding.setText("UTF-8")
 
+    def _open_folder_of(self, file_path):
+        """Ouvre le dossier du fichier dans le gestionnaire de fichiers du bureau."""
+        folder = os.path.dirname(file_path) if file_path else ""
+        if not folder or not os.path.isdir(folder):
+            self.statusBar().showMessage("Dossier introuvable : " + (folder or "(aucun fichier)"), 4000)
+            return
+        if not QDesktopServices.openUrl(QUrl.fromLocalFile(folder)):
+            self.statusBar().showMessage("Impossible d'ouvrir le dossier : " + folder, 4000)
+
     def _refresh_recent_menu(self):
         """Remplit le sous-menu des notes fermées récemment (le plus récent d'abord)."""
         self.recent_menu.clear()
@@ -1118,6 +1127,8 @@ class MainWindow(QMainWindow):
             self._show_version_history_for_entry(entry)
         elif action == "toggle_pin":
             self._set_pinned(entry["id"], not session.is_pinned(entry["id"]))
+        elif action == "open_folder":
+            self._open_folder_of(entry.get("file_path"))
 
     def _show_tab_context_menu(self, pos):
         bar = self.tabs.tabBar()
@@ -1149,6 +1160,8 @@ class MainWindow(QMainWindow):
         copy_name_action = menu.addAction("Copier le nom du fichier")
         copy_path_action = menu.addAction("Copier le chemin complet du fichier")
         copy_path_action.setEnabled(bool(editor.file_path))
+        open_folder_action = menu.addAction("Ouvrir le dossier du fichier")
+        open_folder_action.setEnabled(bool(editor.file_path))
         menu.addSeparator()
         trash_action = menu.addAction("Mettre à la corbeille")
         trash_action.setEnabled(not editor.pinned)
@@ -1177,6 +1190,8 @@ class MainWindow(QMainWindow):
             QApplication.clipboard().setText(name)
         elif chosen == copy_path_action:
             QApplication.clipboard().setText(editor.file_path)
+        elif chosen == open_folder_action:
+            self._open_folder_of(editor.file_path)
         elif chosen == trash_action:
             self._trash_draft(
                 {

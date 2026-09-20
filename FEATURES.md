@@ -106,6 +106,9 @@ adapter si le dépôt est cloné ailleurs.
     presse-papiers, prêts à coller) : le nom fonctionne pour toute note (nom du fichier,
     ou nom de la note si elle n'a pas de fichier), le chemin n'est disponible que pour
     une note liée à un fichier
+  - **Ouvrir le dossier du fichier** : ouvre le dossier qui contient le fichier dans le
+    gestionnaire de fichiers du bureau (grisé pour une note sans fichier ; un message
+    s'affiche dans la barre de statut si le dossier n'existe plus)
   - Mettre à la corbeille (après confirmation : la note quitte les onglets et le
     panneau Brouillons)
 - **Épingler une note** (clic droit → *Épingler*, à la fois sur l'onglet et sur la
@@ -266,7 +269,8 @@ ouverts.
   actions de fermeture sont grisées pour une note qui n'est pas ouverte, et
   « Fermer » comme « Mettre à la corbeille » le sont aussi pour une note épinglée.
 - **Renommer** ne s'applique qu'aux notes sans fichier associé.
-- **Copier le nom du fichier** et **Copier le chemin complet du fichier** : les mêmes
+- **Copier le nom du fichier**, **Copier le chemin complet du fichier** et **Ouvrir le
+  dossier du fichier** : les mêmes
   entrées que dans le menu des onglets, pour la note sur laquelle on a cliqué.
 - Un brouillon n'est supprimé que manuellement, et seulement vers la corbeille.
 

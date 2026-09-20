@@ -217,6 +217,7 @@ Faites un **clic droit sur un onglet** :
 | **Historique des versions...** | Affiche les anciennes versions (partie 10) |
 | **Copier le nom du fichier** | Copie dans le presse-papiers le nom du fichier (ou le nom de la note s'il n'y a pas de fichier) |
 | **Copier le chemin complet du fichier** | Copie le chemin complet, nom compris (grisé pour une note sans fichier) |
+| **Ouvrir le dossier du fichier** | Ouvre le dossier qui contient le fichier dans le gestionnaire de fichiers (grisé pour une note sans fichier) |
 | **Mettre à la corbeille** | Met la note à la corbeille (partie 9) |
 
 **À essayer :** créez quatre onglets, faites un clic droit sur le deuxième, puis
@@ -385,7 +386,9 @@ faites un **clic droit** sur la note, dans le panneau ou sur son onglet, puis :
   presse-papiers ;
 - **Copier le chemin complet du fichier** : place le chemin complet, nom compris
   (par exemple `/home/vous/Documents/rapport.md`). Cette entrée est grisée pour une
-  note qui n'est pas liée à un fichier.
+  note qui n'est pas liée à un fichier ;
+- **Ouvrir le dossier du fichier** : ouvre le dossier du fichier dans le gestionnaire de
+  fichiers du bureau (grisé lui aussi sans fichier).
 
 Collez ensuite avec `Ctrl+V`.
 
@@ -416,7 +419,7 @@ corbeille** : trois partent à la corbeille, l'épinglée reste.
 Un **clic droit sur une note** du panneau propose les mêmes actions que sur un
 onglet (Fermer, Fermer les autres, Fermer à droite, Fermer tout, Épingler /
 Détacher, Mémoriser à la fermeture, Dupliquer, Historique des versions..., Copier le
-nom du fichier, Copier le chemin complet du fichier), plus **Renommer...** et
+nom du fichier, Copier le chemin complet du fichier, Ouvrir le dossier du fichier), plus **Renommer...** et
 **Mettre à la corbeille**. Les entrées de fermeture sont grisées pour une note qui
 n'est pas ouverte.
 

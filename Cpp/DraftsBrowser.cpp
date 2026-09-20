@@ -286,6 +286,8 @@ void DraftsBrowser::showContextMenu(const QPoint &pos)
     QAction *copyNameAction = menu.addAction("Copier le nom du fichier");
     QAction *copyPathAction = menu.addAction("Copier le chemin complet du fichier");
     copyPathAction->setEnabled(!entry.filePath.isEmpty());
+    QAction *openFolderAction = menu.addAction("Ouvrir le dossier du fichier");
+    openFolderAction->setEnabled(!entry.filePath.isEmpty());
     menu.addSeparator();
 
     QAction *deleteAction = menu.addAction("Mettre à la corbeille");
@@ -316,4 +318,6 @@ void DraftsBrowser::showContextMenu(const QPoint &pos)
         QApplication::clipboard()->setText(labelFor(entry));
     else if (chosen == copyPathAction)
         QApplication::clipboard()->setText(entry.filePath);
+    else if (chosen == openFolderAction)
+        emit actionRequested("open_folder", entry);
 }

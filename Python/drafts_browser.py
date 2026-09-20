@@ -94,7 +94,7 @@ class DraftsBrowser(QListWidget):
     rename_requested = pyqtSignal(dict)
     # Actions partagées avec le menu contextuel des onglets : "close",
     # "close_others", "close_right", "close_all", "duplicate", "history",
-    # "toggle_pin".
+    # "toggle_pin", "open_folder".
     action_requested = pyqtSignal(str, dict)
     # Action sur plusieurs notes sélectionnées d'un coup : ("close" | "pin" |
     # "unpin" | "trash", liste de dict).
@@ -264,6 +264,8 @@ class DraftsBrowser(QListWidget):
         copy_name_action = menu.addAction("Copier le nom du fichier")
         copy_path_action = menu.addAction("Copier le chemin complet du fichier")
         copy_path_action.setEnabled(bool(entry.get("file_path")))
+        open_folder_action = menu.addAction("Ouvrir le dossier du fichier")
+        open_folder_action.setEnabled(bool(entry.get("file_path")))
         menu.addSeparator()
 
         delete_action = menu.addAction("Mettre à la corbeille")
@@ -294,3 +296,5 @@ class DraftsBrowser(QListWidget):
             QApplication.clipboard().setText(self._label_for(entry))
         elif chosen == copy_path_action:
             QApplication.clipboard().setText(entry["file_path"])
+        elif chosen == open_folder_action:
+            self.action_requested.emit("open_folder", entry)
