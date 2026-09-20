@@ -17,10 +17,6 @@ implémentées sont documentées dans `README.md` et `FEATURES.md`, pas ici.
 - **Thème sombre**, avec bascule manuelle ou suivi du thème système — les couleurs sont actuellement pensées uniquement pour un fond clair (`highlighters.py`, styles des onglets, aperçu Markdown).
 - **Palette de commandes** (`Ctrl+Maj+P`) pour retrouver rapidement une action sans fouiller les menus.
 
-## Panneau Brouillons
-
-- **Actions groupées** : la sélection multiple du panneau ne permet aujourd'hui que « Fermer les N notes » ; y ajouter « Mettre à la corbeille », « Épingler » et « Détacher » pour plusieurs notes à la fois.
-
 ## Session et fichiers
 
 - **Restaurer l'historique annuler/rétablir et la sélection de texte** : seuls le texte, le curseur et le défilement reviennent, on ne peut pas annuler une frappe faite avant la fermeture.

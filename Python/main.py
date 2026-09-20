@@ -400,7 +400,7 @@ class MainWindow(QMainWindow):
         self.drafts_browser.delete_requested.connect(self._trash_draft)
         self.drafts_browser.rename_requested.connect(self._rename_draft_entry)
         self.drafts_browser.action_requested.connect(self._handle_drafts_context_action)
-        self.drafts_browser.close_selected_requested.connect(self._close_entries)
+        self.drafts_browser.bulk_action_requested.connect(self._handle_bulk_action)
 
         self.drafts_search = QLineEdit()
         self.drafts_search.setPlaceholderText("Rechercher...")
@@ -864,17 +864,49 @@ class MainWindow(QMainWindow):
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
         if result == QMessageBox.StandardButton.Yes:
-            index = self._tab_index_for_id(entry["id"])
-            if index is not None:
-                # La corbeille doit recevoir le texte à jour (l'autosave est
-                # différé), et l'onglet doit disparaître sans passer par
-                # close_tab(), qui réarchiverait le brouillon qu'on met à la corbeille.
-                self._autosave_tab(self.tabs.widget(index))
-                self.tabs.removeTab(index)
-            session.trash_draft(entry["id"])
-            self._refresh_drafts_browser()
-            self._reposition_new_tab_button()
-            self.update_title()
+            self._trash_now(entry)
+            self._after_trash()
+
+    def _trash_now(self, entry):
+        index = self._tab_index_for_id(entry["id"])
+        if index is not None:
+            # La corbeille doit recevoir le texte à jour (l'autosave est
+            # différé), et l'onglet doit disparaître sans passer par
+            # close_tab(), qui réarchiverait le brouillon qu'on met à la corbeille.
+            self._autosave_tab(self.tabs.widget(index))
+            self.tabs.removeTab(index)
+        session.trash_draft(entry["id"])
+
+    def _after_trash(self):
+        self._refresh_drafts_browser()
+        self._reposition_new_tab_button()
+        self.update_title()
+
+    def _trash_entries(self, entries):
+        """Mise à la corbeille de plusieurs notes : une seule confirmation, les
+        notes épinglées sont ignorées."""
+        targets = [e for e in entries if not session.is_pinned(e["id"])]
+        skipped = len(entries) - len(targets)
+        if not targets:
+            self.statusBar().showMessage("Notes épinglées : détachez-les pour les mettre à la corbeille.", 3000)
+            return
+        if len(targets) == 1 and skipped == 0:
+            self._trash_draft(targets[0])
+            return
+        text = f"Mettre {len(targets)} note{'s' if len(targets) > 1 else ''} à la corbeille ?"
+        if skipped:
+            s = "s" if skipped > 1 else ""
+            text += f"\n({skipped} note{s} épinglée{s} ignorée{s}.)"
+        result = QMessageBox.question(
+            self,
+            "Mettre à la corbeille",
+            text,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+        if result == QMessageBox.StandardButton.Yes:
+            for entry in targets:
+                self._trash_now(entry)
+            self._after_trash()
 
     def _show_trash(self):
         dialog = TrashDialog(self)
@@ -1135,16 +1167,37 @@ class MainWindow(QMainWindow):
         for i in range(self.tabs.count()):
             self.tabs.setTabToolTip(i, self._tab_tooltip(self.tabs.widget(i)))
 
-    def _set_pinned(self, draft_id, pinned):
+    def _apply_pinned(self, draft_id, pinned):
         session.set_pinned(draft_id, pinned)
         index = self._tab_index_for_id(draft_id)
         if index is not None:
             editor = self.tabs.widget(index)
             editor.pinned = pinned
             self._refresh_tab_button(editor)
-            self._reposition_new_tab_button()
+
+    def _finish_pin_change(self):
+        self._reposition_new_tab_button()
         self._refresh_drafts_browser()
         self._update_pin_action()
+
+    def _set_pinned(self, draft_id, pinned):
+        self._apply_pinned(draft_id, pinned)
+        self._finish_pin_change()
+
+    def _handle_bulk_action(self, action, entries):
+        """Action du menu de la sélection multiple du panneau Brouillons."""
+        ids = [entry["id"] for entry in entries]
+        if action == "close":
+            self._close_entries(entries)
+        elif action in ("pin", "unpin"):
+            pinned = action == "pin"
+            for draft_id in ids:
+                if session.is_pinned(draft_id) != pinned:
+                    self._apply_pinned(draft_id, pinned)
+            self._finish_pin_change()
+            self.drafts_browser.select_ids(ids)  # la sélection survit à l'action
+        elif action == "trash":
+            self._trash_entries(entries)
 
     def _make_close_button(self):
         button = QToolButton()

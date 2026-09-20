@@ -147,6 +147,15 @@ void DraftsBrowser::refresh(const QSet<QString> &openIds)
     }
 }
 
+void DraftsBrowser::selectIds(const QStringList &draftIds)
+{
+    for (int i = 0; i < count(); ++i) {
+        QListWidgetItem *it = item(i);
+        if (draftIds.contains(it->data(Qt::UserRole).toString()))
+            it->setSelected(true);
+    }
+}
+
 void DraftsBrowser::selectDraft(const QString &draftId)
 {
     for (int i = 0; i < count(); ++i) {
@@ -179,20 +188,39 @@ void DraftsBrowser::showContextMenu(const QPoint &pos)
     const QList<QListWidgetItem *> selectedItems = this->selectedItems();
     if (selectedItems.size() > 1 && it->isSelected()) {
         QVector<Session::DraftEntry> selected;
-        bool anyClosable = false;
+        bool anyPinned = false, anyUnpinned = false, anyClosable = false;
         for (QListWidgetItem *s : selectedItems) {
             const QString sid = s->data(Qt::UserRole).toString();
             if (!m_entriesById.contains(sid))
                 continue;
             const Session::DraftEntry e = m_entriesById.value(sid);
             selected.append(e);
+            anyPinned = anyPinned || e.pinned;
+            anyUnpinned = anyUnpinned || !e.pinned;
             anyClosable = anyClosable || (m_openIds.contains(e.id) && !e.pinned);
         }
+        const int n = selected.size();
         QMenu multi(this);
-        QAction *closeSelected = multi.addAction(QString("Fermer les %1 notes sélectionnées").arg(selected.size()));
+        QAction *closeSelected = multi.addAction(QString("Fermer les %1 notes sélectionnées").arg(n));
         closeSelected->setEnabled(anyClosable);
-        if (multi.exec(mapToGlobal(pos)) == closeSelected)
-            emit closeSelectedRequested(selected);
+        multi.addSeparator();
+        QAction *pinSelected = multi.addAction(QString("Épingler les %1 notes sélectionnées").arg(n));
+        pinSelected->setEnabled(anyUnpinned);
+        QAction *unpinSelected = multi.addAction(QString("Détacher les %1 notes sélectionnées").arg(n));
+        unpinSelected->setEnabled(anyPinned);
+        multi.addSeparator();
+        // les notes épinglées ne peuvent pas être mises à la corbeille : elles sont ignorées
+        QAction *trashSelected = multi.addAction(QString("Mettre les %1 notes sélectionnées à la corbeille").arg(n));
+        trashSelected->setEnabled(anyUnpinned);
+        QAction *chosen = multi.exec(mapToGlobal(pos));
+        if (chosen == closeSelected)
+            emit bulkActionRequested("close", selected);
+        else if (chosen == pinSelected)
+            emit bulkActionRequested("pin", selected);
+        else if (chosen == unpinSelected)
+            emit bulkActionRequested("unpin", selected);
+        else if (chosen == trashSelected)
+            emit bulkActionRequested("trash", selected);
         return;
     }
 

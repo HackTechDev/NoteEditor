@@ -33,6 +33,8 @@ public:
     void refresh(const QSet<QString> &openIds = {});
 
     void selectDraft(const QString &draftId);
+    // Sélectionne (en plus de l'éventuelle sélection) les entrées de ces notes.
+    void selectIds(const QStringList &draftIds);
 
     void setSortMode(const QString &mode); // "date" or "name"
     void setFilterText(const QString &text);
@@ -44,8 +46,9 @@ signals:
     // Actions shared with the tab context menu: "close", "close_others",
     // "close_right", "close_all", "duplicate", "history", "toggle_pin".
     void actionRequested(const QString &action, const Session::DraftEntry &entry);
-    // Fermeture de plusieurs notes sélectionnées d'un coup.
-    void closeSelectedRequested(const QVector<Session::DraftEntry> &entries);
+    // Action sur plusieurs notes sélectionnées d'un coup : "close", "pin",
+    // "unpin" ou "trash".
+    void bulkActionRequested(const QString &action, const QVector<Session::DraftEntry> &entries);
 
 private slots:
     void emitOpen(QListWidgetItem *item);

@@ -345,13 +345,27 @@ Pour une note qui n'est pas encore enregistrée dans un fichier, l'infobulle le 
 et indique où son brouillon est stocké. Les infobulles fonctionnent aussi quand la
 fenêtre n'est pas au premier plan.
 
-### Fermer plusieurs notes d'un coup
+### Agir sur plusieurs notes d'un coup
 
 Sélectionnez plusieurs notes avec **`Ctrl+clic`** (une par une), **`Maj+clic`**
-(une plage) ou **`Ctrl+A`** (toutes), puis faites un **clic droit** sur la sélection
-→ **Fermer les N notes sélectionnées**. Les notes épinglées restent ouvertes. Si
-une alerte s'affiche pour un fichier modifié et que vous cliquez sur **Annuler**, la
-fermeture des notes suivantes est interrompue.
+(une plage) ou **`Ctrl+A`** (toutes), puis faites un **clic droit** sur la sélection.
+Le menu propose des actions **pour toute la sélection** :
+
+- **Fermer les N notes sélectionnées** : les notes épinglées restent ouvertes. Si une
+  alerte s'affiche pour un fichier modifié et que vous cliquez sur **Annuler**, la
+  fermeture des notes suivantes est interrompue.
+- **Épingler les N notes sélectionnées** et **Détacher les N notes sélectionnées** :
+  chacune n'est active que s'il y a quelque chose à faire (des notes non épinglées,
+  respectivement des notes épinglées). La sélection reste en place, vous pouvez donc
+  enchaîner une autre action.
+- **Mettre les N notes sélectionnées à la corbeille** : une seule confirmation, qui
+  indique combien de notes sont concernées. Les notes épinglées sont **ignorées**
+  (le message le précise) : détachez-les d'abord si vous voulez aussi les mettre à
+  la corbeille.
+
+**À essayer :** créez quatre notes, épinglez-en une, sélectionnez les quatre dans le
+panneau (`Ctrl+A`), puis choisissez **Mettre les 4 notes sélectionnées à la
+corbeille** : trois partent à la corbeille, l'épinglée reste.
 
 ### Le menu contextuel
 

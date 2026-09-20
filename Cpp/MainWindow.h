@@ -89,6 +89,12 @@ private:
     void refreshTabButton(Editor *editor);
     void refreshTabTooltips();
     void setPinned(const QString &draftId, bool pinned);
+    void applyPinned(const QString &draftId, bool pinned);
+    void finishPinChange();
+    void handleBulkAction(const QString &action, const QVector<Session::DraftEntry> &entries);
+    void trashNow(const Session::DraftEntry &entry);
+    void afterTrash();
+    void trashEntries(const QVector<Session::DraftEntry> &entries);
     void updatePinAction();
     void setCurrentPinned(bool pinned);
     static bool isMarkdown(const Editor *editor);

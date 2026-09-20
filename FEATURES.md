@@ -205,9 +205,17 @@ ouverts.
 - **Double-clic** sur une note pour la rouvrir ; si elle est déjà ouverte, on
   bascule simplement sur son onglet.
 - **Sélection multiple** (`Ctrl+clic`, `Maj+clic`, `Ctrl+A`) : un clic droit sur la
-  sélection propose **Fermer les N notes sélectionnées**. Les notes épinglées sont
-  ignorées, et si une note a des modifications non enregistrées et demande une
-  alerte, **Annuler** arrête la fermeture des suivantes.
+  sélection propose des **actions groupées** :
+  - **Fermer les N notes sélectionnées** : les notes épinglées sont ignorées, et si
+    une note a des modifications non enregistrées et demande une alerte,
+    **Annuler** arrête la fermeture des suivantes ;
+  - **Épingler** / **Détacher les N notes sélectionnées** (l'entrée n'est active que
+    s'il y a des notes à épingler, respectivement à détacher) ; la sélection est
+    conservée après l'action ;
+  - **Mettre les N notes sélectionnées à la corbeille** : une seule confirmation qui
+    indique le nombre de notes, les notes épinglées sont ignorées (et signalées dans
+    le message), et le texte le plus récent de chaque note ouverte part à la
+    corbeille.
 - L'entrée de l'onglet actif est **surlignée** dans la liste.
 - **Recherche** par nom et **tri** par date ou par nom.
 - **Infobulle au survol** : laisser la souris sur une note affiche le **chemin

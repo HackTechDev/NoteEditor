@@ -427,7 +427,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_draftsBrowser, &DraftsBrowser::deleteRequested, this, &MainWindow::trashDraftEntry);
     connect(m_draftsBrowser, &DraftsBrowser::renameRequested, this, &MainWindow::renameDraftEntry);
     connect(m_draftsBrowser, &DraftsBrowser::actionRequested, this, &MainWindow::handleDraftsContextAction);
-    connect(m_draftsBrowser, &DraftsBrowser::closeSelectedRequested, this, &MainWindow::closeEntries);
+    connect(m_draftsBrowser, &DraftsBrowser::bulkActionRequested, this, &MainWindow::handleBulkAction);
 
     m_draftsSearch = new QLineEdit(this);
     m_draftsSearch->setPlaceholderText("Rechercher...");
@@ -800,7 +800,7 @@ void MainWindow::refreshTabTooltips()
     }
 }
 
-void MainWindow::setPinned(const QString &draftId, bool pinned)
+void MainWindow::applyPinned(const QString &draftId, bool pinned)
 {
     Session::setPinned(draftId, pinned);
     const int index = tabIndexForId(draftId);
@@ -808,10 +808,41 @@ void MainWindow::setPinned(const QString &draftId, bool pinned)
         auto *editor = qobject_cast<Editor *>(m_tabs->widget(index));
         editor->pinned = pinned;
         refreshTabButton(editor);
-        repositionNewTabButton();
     }
+}
+
+void MainWindow::finishPinChange()
+{
+    repositionNewTabButton();
     refreshDraftsBrowser();
     updatePinAction();
+}
+
+void MainWindow::setPinned(const QString &draftId, bool pinned)
+{
+    applyPinned(draftId, pinned);
+    finishPinChange();
+}
+
+// Action du menu de la sélection multiple du panneau Brouillons.
+void MainWindow::handleBulkAction(const QString &action, const QVector<Session::DraftEntry> &entries)
+{
+    QStringList ids;
+    for (const Session::DraftEntry &entry : entries)
+        ids << entry.id;
+    if (action == "close") {
+        closeEntries(entries);
+    } else if (action == "pin" || action == "unpin") {
+        const bool pinned = action == "pin";
+        for (const QString &id : ids) {
+            if (Session::isPinned(id) != pinned)
+                applyPinned(id, pinned);
+        }
+        finishPinChange();
+        m_draftsBrowser->selectIds(ids); // la sélection survit à l'action
+    } else if (action == "trash") {
+        trashEntries(entries);
+    }
 }
 
 QWidget *MainWindow::makeCloseButton()
@@ -967,20 +998,61 @@ void MainWindow::trashDraftEntry(const Session::DraftEntry &entry)
         QString("Mettre « %1 » à la corbeille ?").arg(label),
         QMessageBox::Yes | QMessageBox::No);
     if (result == QMessageBox::Yes) {
-        const int index = tabIndexForId(entry.id);
-        if (index != -1) {
-            // La corbeille doit recevoir le texte à jour (l'autosave est
-            // différé), et l'onglet doit disparaître sans passer par closeTab(),
-            // qui réarchiverait le brouillon qu'on met à la corbeille.
-            auto *editor = qobject_cast<Editor *>(m_tabs->widget(index));
-            autosaveTab(editor);
-            m_tabs->removeTab(index);
-            editor->deleteLater();
-        }
-        Session::trashDraft(entry.id);
-        refreshDraftsBrowser();
-        repositionNewTabButton();
-        updateTitle();
+        trashNow(entry);
+        afterTrash();
+    }
+}
+
+void MainWindow::trashNow(const Session::DraftEntry &entry)
+{
+    const int index = tabIndexForId(entry.id);
+    if (index != -1) {
+        // La corbeille doit recevoir le texte à jour (l'autosave est différé), et
+        // l'onglet doit disparaître sans passer par closeTab(), qui réarchiverait
+        // le brouillon qu'on met à la corbeille.
+        auto *editor = qobject_cast<Editor *>(m_tabs->widget(index));
+        autosaveTab(editor);
+        m_tabs->removeTab(index);
+        editor->deleteLater();
+    }
+    Session::trashDraft(entry.id);
+}
+
+void MainWindow::afterTrash()
+{
+    refreshDraftsBrowser();
+    repositionNewTabButton();
+    updateTitle();
+}
+
+// Mise à la corbeille de plusieurs notes : une seule confirmation, les notes
+// épinglées sont ignorées.
+void MainWindow::trashEntries(const QVector<Session::DraftEntry> &entries)
+{
+    QVector<Session::DraftEntry> targets;
+    for (const Session::DraftEntry &e : entries) {
+        if (!Session::isPinned(e.id))
+            targets.append(e);
+    }
+    const int skipped = entries.size() - targets.size();
+    if (targets.isEmpty()) {
+        statusBar()->showMessage("Notes épinglées : détachez-les pour les mettre à la corbeille.", 3000);
+        return;
+    }
+    if (targets.size() == 1 && skipped == 0) {
+        trashDraftEntry(targets.first());
+        return;
+    }
+    QString text = QString("Mettre %1 note%2 à la corbeille ?").arg(targets.size()).arg(targets.size() > 1 ? "s" : "");
+    if (skipped) {
+        const QString s = skipped > 1 ? "s" : "";
+        text += QString("\n(%1 note%2 épinglée%2 ignorée%2.)").arg(skipped).arg(s);
+    }
+    const auto result = QMessageBox::question(this, "Mettre à la corbeille", text, QMessageBox::Yes | QMessageBox::No);
+    if (result == QMessageBox::Yes) {
+        for (const Session::DraftEntry &entry : targets)
+            trashNow(entry);
+        afterTrash();
     }
 }
 

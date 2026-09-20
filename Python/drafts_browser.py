@@ -90,8 +90,9 @@ class DraftsBrowser(QListWidget):
     # "close_others", "close_right", "close_all", "duplicate", "history",
     # "toggle_pin".
     action_requested = pyqtSignal(str, dict)
-    # Fermeture de plusieurs notes sélectionnées d'un coup (liste de dict).
-    close_selected_requested = pyqtSignal(list)
+    # Action sur plusieurs notes sélectionnées d'un coup : ("close" | "pin" |
+    # "unpin" | "trash", liste de dict).
+    bulk_action_requested = pyqtSignal(str, list)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -142,6 +143,15 @@ class DraftsBrowser(QListWidget):
             return os.path.basename(entry["file_path"])
         return entry["default_name"] or entry["id"][:8]
 
+    def select_ids(self, draft_ids):
+        """Sélectionne (en plus de l'éventuelle sélection) les entrées de ces notes."""
+        wanted = set(draft_ids)
+        for i in range(self.count()):
+            item = self.item(i)
+            entry = item.data(Qt.ItemDataRole.UserRole)
+            if entry and entry.get("id") in wanted:
+                item.setSelected(True)
+
     def select_draft(self, draft_id):
         for i in range(self.count()):
             item = self.item(i)
@@ -162,12 +172,31 @@ class DraftsBrowser(QListWidget):
 
         selected = [i.data(Qt.ItemDataRole.UserRole) for i in self.selectedItems()]
         if len(selected) > 1 and item.isSelected():
-            closable = [e for e in selected if e["id"] in self._open_ids and not e.get("pinned")]
+            n = len(selected)
+            pinned = [e for e in selected if e.get("pinned")]
+            unpinned = [e for e in selected if not e.get("pinned")]
+            closable = [e for e in unpinned if e["id"] in self._open_ids]
             menu = QMenu(self)
-            close_selected = menu.addAction(f"Fermer les {len(selected)} notes sélectionnées")
+            close_selected = menu.addAction(f"Fermer les {n} notes sélectionnées")
             close_selected.setEnabled(bool(closable))
-            if menu.exec(self.mapToGlobal(pos)) == close_selected:
-                self.close_selected_requested.emit(selected)
+            menu.addSeparator()
+            pin_selected = menu.addAction(f"Épingler les {n} notes sélectionnées")
+            pin_selected.setEnabled(bool(unpinned))
+            unpin_selected = menu.addAction(f"Détacher les {n} notes sélectionnées")
+            unpin_selected.setEnabled(bool(pinned))
+            menu.addSeparator()
+            # les notes épinglées ne peuvent pas être mises à la corbeille : elles sont ignorées
+            trash_selected = menu.addAction(f"Mettre les {n} notes sélectionnées à la corbeille")
+            trash_selected.setEnabled(bool(unpinned))
+            chosen = menu.exec(self.mapToGlobal(pos))
+            for action, name in (
+                (close_selected, "close"),
+                (pin_selected, "pin"),
+                (unpin_selected, "unpin"),
+                (trash_selected, "trash"),
+            ):
+                if chosen == action:
+                    self.bulk_action_requested.emit(name, selected)
             return
 
         is_open = entry["id"] in self._open_ids
