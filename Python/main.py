@@ -706,12 +706,45 @@ class MainWindow(QMainWindow):
 
         self.status_encoding.setText("UTF-8")
 
+    def _refresh_recent_menu(self):
+        """Remplit le sous-menu des notes fermées récemment (le plus récent d'abord)."""
+        self.recent_menu.clear()
+        entries = session.list_recent()
+        self.recent_menu.setEnabled(bool(entries))
+        for entry in entries:
+            path = entry.get("file_path")
+            label = os.path.basename(path) if path else entry.get("default_name") or entry["id"][:8]
+            action = self.recent_menu.addAction(label)
+            action.setToolTip(path_tooltip(path, label, entry["id"]))
+            action.triggered.connect(lambda _checked=False, e=entry: self._reopen_recent(e))
+        if entries:
+            self.recent_menu.addSeparator()
+            self.recent_menu.addAction("Effacer la liste").triggered.connect(session.clear_recent)
+
+    def _reopen_recent(self, entry):
+        path = entry.get("file_path")
+        if path and session.is_external_file(path):
+            if not os.path.isfile(path):
+                session.remove_recent(entry["id"])
+                self.statusBar().showMessage("Fichier introuvable : " + path, 4000)
+                return
+            self._open_path(path)  # relit le fichier sur le disque
+            return
+        draft = next((d for d in session.list_drafts() if d["id"] == entry["id"]), None)
+        if draft is None:
+            session.remove_recent(entry["id"])
+            return
+        self._open_draft(draft)
+
     def _create_menu(self):
         menu = self.menuBar()
 
         file_menu = menu.addMenu("&Fichier")
         file_menu.addAction(self.new_action)
         file_menu.addAction(self.open_action)
+        self.recent_menu = file_menu.addMenu("Notes fermées récemment")
+        self.recent_menu.setToolTipsVisible(True)
+        file_menu.aboutToShow.connect(self._refresh_recent_menu)
         file_menu.addAction(self.save_action)
         file_menu.addAction(self.save_as_action)
         file_menu.addSeparator()
@@ -760,6 +793,7 @@ class MainWindow(QMainWindow):
         editor.default_name = None if file_path else (default_name or self._timestamp_name())
         editor.document().setModified(modified)
         editor.pinned = session.is_pinned(editor.session_id)
+        session.remove_recent(editor.session_id)
         editor.document().modificationChanged.connect(lambda _: self.update_title())
         editor.autosave_requested.connect(lambda: self._autosave_tab(editor))
         editor.cursorPositionChanged.connect(self._update_status_bar)
@@ -1521,6 +1555,10 @@ class MainWindow(QMainWindow):
                 }
             )
 
+        if editor.file_path or editor.toPlainText().strip():  # une note vide n'a rien à rouvrir
+            session.add_recent(
+                {"id": editor.session_id, "file_path": editor.file_path, "default_name": editor.default_name}
+            )
         self.tabs.removeTab(index)
         self._refresh_drafts_browser()
         self._reposition_new_tab_button()

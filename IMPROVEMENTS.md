@@ -15,6 +15,7 @@ implémentées sont documentées dans `README.md` et `FEATURES.md`, pas ici.
 ## Interface
 
 - **Thème sombre**, avec bascule manuelle ou suivi du thème système — les couleurs sont actuellement pensées uniquement pour un fond clair (`highlighters.py`, styles des onglets, aperçu Markdown).
+- **Raccourci pour rouvrir la dernière note fermée** (par exemple `Ctrl+Maj+T`, comme dans un navigateur) : les notes fermées récemment sont déjà listées dans le menu Fichier, un raccourci les rendrait accessibles sans la souris.
 - **Palette de commandes** (`Ctrl+Maj+P`) pour retrouver rapidement une action sans fouiller les menus.
 
 ## Session et fichiers

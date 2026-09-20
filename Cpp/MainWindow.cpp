@@ -693,6 +693,9 @@ void MainWindow::createMenu()
     QMenu *fileMenu = menu->addMenu("&Fichier");
     fileMenu->addAction(m_newAction);
     fileMenu->addAction(m_openAction);
+    m_recentMenu = fileMenu->addMenu("Notes fermées récemment");
+    m_recentMenu->setToolTipsVisible(true);
+    connect(fileMenu, &QMenu::aboutToShow, this, &MainWindow::refreshRecentMenu);
     fileMenu->addAction(m_saveAction);
     fileMenu->addAction(m_saveAsAction);
     fileMenu->addSeparator();
@@ -745,6 +748,7 @@ Editor *MainWindow::newTab(const QString &filePath, const QString &content, cons
     editor->defaultName = filePath.isEmpty() ? (!defaultName.isEmpty() ? defaultName : timestampName()) : QString();
     editor->document()->setModified(modified);
     editor->pinned = Session::isPinned(editor->sessionId);
+    Session::removeRecent(editor->sessionId); // une note (ré)ouverte n'est plus « fermée »
     connect(editor->document(), &QTextDocument::modificationChanged, this, [this](bool) { updateTitle(); });
     connect(editor, &Editor::autosaveRequested, this, [this, editor] { autosaveTab(editor); });
     editor->setLineWrapMode(m_wordWrapEnabled ? QPlainTextEdit::WidgetWidth : QPlainTextEdit::NoWrap);
@@ -1428,6 +1432,45 @@ void MainWindow::normalizeTabOrder()
     m_normalizingTabs = false;
 }
 
+// Remplit le sous-menu des notes fermées récemment (la plus récente d'abord).
+void MainWindow::refreshRecentMenu()
+{
+    m_recentMenu->clear();
+    const QVector<Session::DraftEntry> entries = Session::listRecent();
+    m_recentMenu->setEnabled(!entries.isEmpty());
+    for (const Session::DraftEntry &entry : entries) {
+        const QString label = !entry.filePath.isEmpty() ? QFileInfo(entry.filePath).fileName()
+                                                        : (!entry.defaultName.isEmpty() ? entry.defaultName : entry.id.left(8));
+        QAction *action = m_recentMenu->addAction(label);
+        action->setToolTip(pathTooltip(entry.filePath, label, entry.id));
+        connect(action, &QAction::triggered, this, [this, entry] { reopenRecent(entry); });
+    }
+    if (!entries.isEmpty()) {
+        m_recentMenu->addSeparator();
+        connect(m_recentMenu->addAction("Effacer la liste"), &QAction::triggered, this, [] { Session::clearRecent(); });
+    }
+}
+
+void MainWindow::reopenRecent(const Session::DraftEntry &entry)
+{
+    if (!entry.filePath.isEmpty() && Session::isExternalFile(entry.filePath)) {
+        if (!QFileInfo::exists(entry.filePath)) {
+            Session::removeRecent(entry.id);
+            statusBar()->showMessage("Fichier introuvable : " + entry.filePath, 4000);
+            return;
+        }
+        openPath(entry.filePath); // relit le fichier sur le disque
+        return;
+    }
+    for (const Session::DraftEntry &draft : Session::listDrafts()) {
+        if (draft.id == entry.id) {
+            openDraft(draft);
+            return;
+        }
+    }
+    Session::removeRecent(entry.id);
+}
+
 void MainWindow::updatePinAction()
 {
     if (!m_pinAction || !m_unpinAction)
@@ -1717,6 +1760,13 @@ bool MainWindow::closeTab(int index)
         Session::saveDraft(snap);
     }
 
+    if (!editor->filePath.isEmpty() || !editor->toPlainText().trimmed().isEmpty()) { // une note vide n'a rien à rouvrir
+        Session::DraftEntry recent;
+        recent.id = editor->sessionId;
+        recent.filePath = editor->filePath;
+        recent.defaultName = editor->defaultName;
+        Session::addRecent(recent);
+    }
     m_tabs->removeTab(index);
     editor->deleteLater();
     refreshDraftsBrowser();

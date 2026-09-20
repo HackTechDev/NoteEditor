@@ -273,6 +273,25 @@ fichier dans le panneau Brouillons, et son historique des versions est conservé
   vous aviez laissé des modifications non enregistrées, vous les retrouvez (l'onglet
   a son `*`) ; sinon le contenu est relu depuis le disque.
 
+### Rouvrir une note fermée récemment
+
+Le menu **Fichier → Notes fermées récemment** liste les **10 dernières notes que vous
+avez fermées**, la plus récente en premier. Cliquez sur l'une d'elles pour la rouvrir.
+
+- Cela fonctionne pour **toutes** vos notes, y compris les **fichiers extérieurs** à
+  `~/.noteeditor`, qui ne figurent plus dans le panneau Brouillons une fois fermés :
+  c'est le moyen le plus rapide de les retrouver. Un fichier est alors rouvert avec
+  son contenu **actuel** sur le disque.
+- Laissez la souris sur une entrée pour voir le **chemin** du fichier.
+- Une note rouverte disparaît de la liste (elle est de nouveau ouverte), et une note
+  mise à la corbeille aussi. Un fichier supprimé du disque n'est plus proposé.
+- **Effacer la liste**, en bas du sous-menu, la vide.
+- La liste est **mémorisée** : vous la retrouvez au lancement suivant. Quitter
+  l'application n'y ajoute rien (les onglets ouverts sont restaurés à part).
+
+**À essayer :** créez une note, écrivez quelques mots, fermez son onglet, puis rouvrez-la
+par **Fichier → Notes fermées récemment**.
+
 ### Fermer un fichier extérieur
 
 Un fichier que vous avez ouvert depuis **un autre dossier que `~/.noteeditor`**
@@ -675,6 +694,7 @@ pour l'afficher).
 | `docs/` | Les fichiers créés par `Ctrl+S` sur une note sans fichier |
 | `trash/` et `trash_index.json` | Les notes mises à la corbeille |
 | `versions/` | Les 10 dernières versions de chaque fichier |
+| `recent.json` | Les 10 dernières notes fermées (menu Fichier) |
 | `window.json` | La taille et la position de la fenêtre, du séparateur, et vos réglages d'affichage |
 
 **Sauvegarder vos notes** : copiez simplement le dossier `~/.noteeditor` sur une
@@ -723,7 +743,8 @@ Et à la souris :
 
 **J'ai fermé un onglet par erreur, ma note est perdue ?**
 Non, pour une note interne : regardez dans le panneau Brouillons, elle y est
-toujours. Double-cliquez dessus pour la rouvrir. Pour un fichier extérieur à
+toujours. Double-cliquez dessus pour la rouvrir. Toute note fermée, fichier extérieur
+compris, se retrouve aussi dans **Fichier → Notes fermées récemment**. Pour un fichier extérieur à
 `~/.noteeditor`, il n'est plus listé une fois fermé, mais son contenu est dans le
 fichier : rouvrez-le avec **Ouvrir** (`Ctrl+O`).
 

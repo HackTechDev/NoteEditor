@@ -11,8 +11,10 @@ SESSION_FILE = os.path.join(CONFIG_DIR, "session.json")
 INDEX_FILE = os.path.join(CONFIG_DIR, "index.json")
 TRASH_INDEX_FILE = os.path.join(CONFIG_DIR, "trash_index.json")
 WINDOW_FILE = os.path.join(CONFIG_DIR, "window.json")
+RECENT_FILE = os.path.join(CONFIG_DIR, "recent.json")
 
 MAX_VERSIONS = 10
+MAX_RECENT = 10
 
 
 def _load_json(path, default):
@@ -189,6 +191,57 @@ def is_external_file(file_path):
     return not (path == root or path.startswith(root + os.sep))
 
 
+def _load_recent():
+    data = _load_json(RECENT_FILE, {})
+    entries = data.get("recent", []) if isinstance(data, dict) else []
+    return [e for e in entries if isinstance(e, dict) and e.get("id")]
+
+
+def _save_recent(entries):
+    os.makedirs(CONFIG_DIR, exist_ok=True)
+    with open(RECENT_FILE, "w", encoding="utf-8") as f:
+        json.dump({"recent": entries}, f, ensure_ascii=False, indent=2)
+
+
+def add_recent(entry):
+    """Remembers a note that was just closed (newest first, at most MAX_RECENT).
+    entry: {"id", "file_path", "default_name"}."""
+    entries = [e for e in _load_recent() if e["id"] != entry["id"]]
+    entries.insert(
+        0,
+        {"id": entry["id"], "file_path": entry.get("file_path"), "default_name": entry.get("default_name")},
+    )
+    _save_recent(entries[:MAX_RECENT])
+
+
+def remove_recent(draft_id):
+    entries = _load_recent()
+    kept = [e for e in entries if e["id"] != draft_id]
+    if len(kept) != len(entries):
+        _save_recent(kept)
+
+
+def clear_recent():
+    if _load_recent():
+        _save_recent([])
+
+
+def list_recent():
+    """Recently closed notes that can still be reopened: a file outside
+    ~/.noteeditor must still exist, any other note must still have its draft."""
+    drafts = {e["id"] for e in list_drafts()}
+    result = []
+    for entry in _load_recent():
+        path = entry.get("file_path")
+        if path and is_external_file(path):
+            valid = os.path.isfile(path)
+        else:
+            valid = entry["id"] in drafts
+        if valid:
+            result.append(entry)
+    return result
+
+
 def find_draft_for_path(file_path):
     """The most recent draft bound to this file, or None. Opening a file must
     reuse it rather than mint a new draft, or every open/close cycle of the same
@@ -215,6 +268,7 @@ def delete_draft(draft_id):
     index = _load_index()
     if index.pop(draft_id, None) is not None:
         _save_index(index)
+    remove_recent(draft_id)
 
 
 def trash_draft(draft_id):
@@ -230,6 +284,7 @@ def trash_draft(draft_id):
     index = _load_index()
     meta = index.pop(draft_id, {})
     _save_index(index)
+    remove_recent(draft_id)
 
     meta["deleted_at"] = datetime.datetime.now().isoformat()
     trash_index = _load_trash_index()

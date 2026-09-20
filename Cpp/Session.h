@@ -82,6 +82,15 @@ QString readDraft(const QString &draftId);
 // untitled notes and files under ~/.noteeditor (docs/) keep theirs.
 bool isExternalFile(const QString &filePath);
 
+// Recently closed notes (recent.json), newest first, at most kMaxRecent. Entries
+// use id / filePath / defaultName of DraftEntry.
+void addRecent(const DraftEntry &entry);
+void removeRecent(const QString &draftId);
+void clearRecent();
+// Only the ones that can still be reopened: a file outside ~/.noteeditor must
+// still exist, any other note must still have its draft.
+QVector<DraftEntry> listRecent();
+
 // The most recent draft bound to this file (empty id if none). Opening a file
 // must reuse it rather than mint a new draft, or every open/close cycle of the
 // same file adds another entry to the drafts sidebar.

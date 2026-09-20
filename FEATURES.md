@@ -186,6 +186,17 @@ adapter si le dépôt est cloné ailleurs.
   l'application n'affiche pas d'alerte : les modifications sont conservées et
   restaurées au lancement suivant. Rouvrir le fichier retrouve la même note
   (l'historique des versions continue).
+- **Notes fermées récemment** (menu **Fichier → Notes fermées récemment**) : les 10
+  dernières notes fermées, la plus récente en premier, à rouvrir d'un clic. Y
+  figurent aussi les **fichiers extérieurs** à `~/.noteeditor`, qui n'apparaissent
+  plus dans le panneau Brouillons une fois fermés : c'est le moyen le plus rapide de
+  les retrouver. Une note fermée est mémorisée quelle que soit la façon de la fermer
+  (croix, `Ctrl+W`, menus, « Fermer tout »...), sauf quitter l'application, une note
+  vide sans fichier, ou une note mise à la corbeille (elle en est retirée). Une note
+  qui a été rouverte n'y figure plus. Un fichier extérieur est rouvert avec son
+  **contenu actuel sur le disque**, et n'est plus proposé s'il a été supprimé.
+  L'entrée **Effacer la liste** la vide ; l'infobulle d'une entrée donne le chemin
+  du fichier. La liste est **mémorisée d'un lancement à l'autre**.
 - Ouvrir un fichier déjà ouvert bascule sur son onglet au lieu d'en créer un
   second.
 - **Une seule entrée par fichier** dans le panneau Brouillons : rouvrir un fichier
@@ -280,8 +291,8 @@ Pour l'onglet actif : **ligne et colonne** du curseur, **nombre de mots** et de
 
 ## 11. Menus
 
-- **Fichier** : Nouveau, Ouvrir, Enregistrer, Enregistrer sous, Corbeille, Fermer
-  l'onglet, Quitter.
+- **Fichier** : Nouveau, Ouvrir, Notes fermées récemment (sous-menu), Enregistrer,
+  Enregistrer sous, Corbeille, Fermer l'onglet, Quitter.
 - **Édition** : Annuler, Rétablir, Couper, Copier, Coller, Tout sélectionner.
 - **Rechercher** : Rechercher, Rechercher / Remplacer, Suivant.
 - **Aide** : À propos.
@@ -298,6 +309,7 @@ Pour l'onglet actif : **ligne et colonne** du curseur, **nombre de mots** et de
 | `docs/` | Fichiers réels créés par `Ctrl+S` depuis une note sans fichier associé |
 | `trash/` et `trash_index.json` | Notes mises à la corbeille |
 | `versions/<id>/` | Les 10 dernières versions de chaque fichier |
+| `recent.json` | Les 10 dernières notes fermées (menu Fichier → Notes fermées récemment) |
 | `window.json` | Taille et position de la fenêtre, position du séparateur du panneau, réglages d'affichage (retour à la ligne, aperçu Markdown) |
 
 Chaque note est identifiée par un identifiant unique (UUID) : c'est lui, et non le

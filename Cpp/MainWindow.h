@@ -16,6 +16,7 @@ class QDragEnterEvent;
 class QDropEvent;
 class QLabel;
 class QLineEdit;
+class QMenu;
 class QSplitter;
 class QTextBrowser;
 class QTimer;
@@ -97,6 +98,8 @@ private:
     void afterTrash();
     void trashEntries(const QVector<Session::DraftEntry> &entries);
     void updatePinAction();
+    void refreshRecentMenu();
+    void reopenRecent(const Session::DraftEntry &entry);
     void normalizeTabOrder();
     void setCurrentPinned(bool pinned);
     static bool isMarkdown(const Editor *editor);
@@ -140,6 +143,7 @@ private:
     QComboBox *m_draftsSort;
     QToolButton *m_trashButton;
     QSplitter *m_splitter;
+    QMenu *m_recentMenu = nullptr;
     QSplitter *m_editorSplitter;
     QTextBrowser *m_preview;
     QTimer *m_previewTimer;

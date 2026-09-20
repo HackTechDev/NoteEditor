@@ -22,6 +22,7 @@ La liste détaillée et complète est dans [`FEATURES.md`](FEATURES.md), et un d
 - Recherche / remplacement (`Ctrl+F` / `Ctrl+H`) : suivant, précédent, remplacer, tout remplacer
 - `Ctrl+S` sur un onglet sans fichier associé l'enregistre directement dans `~/.noteeditor/docs/` (sous son nom par défaut), sans ouvrir de boîte de dialogue ; `Ctrl+Shift+S` (Enregistrer sous) permet de choisir un autre emplacement
 - Glisser-déposer un fichier dans la fenêtre pour l'ouvrir dans un nouvel onglet
+- Menu Fichier → « Notes fermées récemment » : les 10 dernières notes fermées (y compris les fichiers extérieurs qui ne figurent plus dans le panneau), à rouvrir en un clic ; la liste est mémorisée d'un lancement à l'autre
 - Ouvrir (`Ctrl+O`) et Enregistrer sous : les fenêtres proposent les fichiers `.txt` et `.md` (avec des filtres séparés et « Tous les fichiers ») ; enregistrer sous le nom d'un fichier qui a déjà une note fermée reprend cette note (pas de doublon dans le panneau) ; rouvrir un fichier déjà ouvert auparavant réutilise sa note : une seule entrée par fichier dans le panneau Brouillons, et son historique des versions continue
 - Détection de modification externe : si le fichier ouvert change sur le disque (autre programme), l'appli propose de recharger
 - Panneau « Brouillons » à gauche : liste les notes archivées dans `~/.noteeditor` (ouvertes marquées « (ouvert) »), avec recherche (par nom ou par contenu des notes), tri (date/nom), l'entrée de l'onglet actif surlignée et, au survol, une infobulle indiquant le chemin du fichier ; double-clic pour rouvrir ou basculer dessus, clic droit pour la même palette d'actions que le menu contextuel des onglets (fermer / fermer les autres / fermer à droite / fermer tout, dupliquer, historique des versions, copier le nom ou le chemin complet du fichier), renommer (onglets sans fichier) ou mettre à la corbeille
@@ -96,6 +97,7 @@ Les deux implémentations lisent/écrivent exactement le même format dans `~/.n
 - `~/.noteeditor/docs/` : fichiers réels créés par `Ctrl+S` depuis un onglet sans titre
 - `~/.noteeditor/trash/` et `trash_index.json` : brouillons mis à la corbeille (suppression réversible)
 - `~/.noteeditor/versions/<id>/` : les 10 dernières versions d'un fichier avant chaque écrasement par un enregistrement
+- `~/.noteeditor/recent.json` : les notes fermées récemment (menu Fichier)
 - `~/.noteeditor/window.json` : taille et position de la fenêtre, position du séparateur du panneau latéral, réglages d'affichage (retour à la ligne, aperçu Markdown), restaurés au lancement suivant
 
 Cette copie de secours n'écrase jamais le fichier d'origine sur le disque : seul un `Enregistrer` explicite (`Ctrl+S`) modifie le fichier réel (que ce soit dans `~/.noteeditor/docs/` pour un onglet sans titre, ou à l'emplacement d'origine pour un fichier ouvert ailleurs). Les brouillons ne sont supprimés que manuellement, depuis le panneau latéral (et ne le sont alors que déplacés vers la corbeille).

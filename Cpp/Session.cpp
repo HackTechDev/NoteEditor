@@ -9,6 +9,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <QSet>
 #include <QStringConverter>
 #include <QTextStream>
 #include <algorithm>
@@ -16,6 +17,7 @@
 namespace Session {
 
 static const int kMaxVersions = 10;
+static const int kMaxRecent = 10;
 
 QString configDir()
 {
@@ -55,6 +57,11 @@ static QString indexFile()
 static QString trashIndexFile()
 {
     return configDir() + "/trash_index.json";
+}
+
+static QString recentFile()
+{
+    return configDir() + "/recent.json";
 }
 
 static QString windowFile()
@@ -249,6 +256,74 @@ QVector<DraftEntry> listDrafts()
     return items;
 }
 
+static QJsonArray loadRecentArray()
+{
+    return loadJsonObject(recentFile()).value("recent").toArray();
+}
+
+static void saveRecentArray(const QJsonArray &entries)
+{
+    QDir().mkpath(configDir());
+    QJsonObject obj;
+    obj["recent"] = entries;
+    writeJsonObject(recentFile(), obj);
+}
+
+void addRecent(const DraftEntry &entry)
+{
+    QJsonArray entries;
+    QJsonObject fresh;
+    fresh["id"] = entry.id;
+    fresh["file_path"] = toJsonOrNull(entry.filePath);
+    fresh["default_name"] = toJsonOrNull(entry.defaultName);
+    entries.append(fresh);
+    for (const QJsonValue &v : loadRecentArray()) {
+        if (v.toObject().value("id").toString() != entry.id && entries.size() < kMaxRecent)
+            entries.append(v);
+    }
+    saveRecentArray(entries);
+}
+
+void removeRecent(const QString &draftId)
+{
+    const QJsonArray entries = loadRecentArray();
+    QJsonArray kept;
+    for (const QJsonValue &v : entries) {
+        if (v.toObject().value("id").toString() != draftId)
+            kept.append(v);
+    }
+    if (kept.size() != entries.size())
+        saveRecentArray(kept);
+}
+
+void clearRecent()
+{
+    if (!loadRecentArray().isEmpty())
+        saveRecentArray(QJsonArray());
+}
+
+QVector<DraftEntry> listRecent()
+{
+    QSet<QString> drafts;
+    for (const DraftEntry &d : listDrafts())
+        drafts.insert(d.id);
+    QVector<DraftEntry> result;
+    for (const QJsonValue &v : loadRecentArray()) {
+        const QJsonObject o = v.toObject();
+        DraftEntry e;
+        e.id = o.value("id").toString();
+        if (e.id.isEmpty())
+            continue;
+        e.filePath = fromJsonOrEmpty(o.value("file_path"));
+        e.defaultName = fromJsonOrEmpty(o.value("default_name"));
+        const bool valid = (!e.filePath.isEmpty() && isExternalFile(e.filePath)) ? QFileInfo::exists(e.filePath)
+                                                                                : drafts.contains(e.id);
+        if (valid)
+            result.append(e);
+    }
+    return result;
+}
+
 bool isExternalFile(const QString &filePath)
 {
     if (filePath.isEmpty())
@@ -284,6 +359,7 @@ void deleteDraft(const QString &draftId)
         index.remove(draftId);
         writeJsonObject(indexFile(), index);
     }
+    removeRecent(draftId);
 }
 
 bool isPinned(const QString &draftId)
@@ -325,6 +401,7 @@ void trashDraft(const QString &draftId)
     QJsonObject meta = index.value(draftId).toObject();
     index.remove(draftId);
     writeJsonObject(indexFile(), index);
+    removeRecent(draftId);
 
     meta["deleted_at"] = QDateTime::currentDateTime().toString(Qt::ISODate);
     QJsonObject trashIndex = loadJsonObject(trashIndexFile());
