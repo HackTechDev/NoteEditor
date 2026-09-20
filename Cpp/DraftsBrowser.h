@@ -8,6 +8,7 @@
 #include <QPixmap>
 #include <QSet>
 #include <QString>
+#include <QVector>
 
 // Small filled push-pin glyph, used next to pinned notes (sidebar and tab).
 QPixmap pinPixmap(int size = 14, const QColor &color = Qt::darkGray);
@@ -39,6 +40,8 @@ signals:
     // Actions shared with the tab context menu: "close", "close_others",
     // "close_right", "close_all", "duplicate", "history", "toggle_pin".
     void actionRequested(const QString &action, const Session::DraftEntry &entry);
+    // Fermeture de plusieurs notes sélectionnées d'un coup.
+    void closeSelectedRequested(const QVector<Session::DraftEntry> &entries);
 
 private slots:
     void emitOpen(QListWidgetItem *item);

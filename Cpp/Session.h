@@ -71,6 +71,11 @@ QVector<DraftEntry> listDrafts();
 
 QString readDraft(const QString &draftId);
 
+// True for a real file living outside ~/.noteeditor. Its text is safe in the
+// file itself, so once closed it no longer needs a spot in the drafts sidebar;
+// untitled notes and files under ~/.noteeditor (docs/) keep theirs.
+bool isExternalFile(const QString &filePath);
+
 // The most recent draft bound to this file (empty id if none). Opening a file
 // must reuse it rather than mint a new draft, or every open/close cycle of the
 // same file adds another entry to the drafts sidebar.

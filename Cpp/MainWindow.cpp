@@ -31,6 +31,7 @@
 #include <QPixmap>
 #include <QPolygon>
 #include <QPlainTextEdit>
+#include <QPushButton>
 #include <QRegularExpression>
 #include <QScreen>
 #include <QResizeEvent>
@@ -412,6 +413,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_draftsBrowser, &DraftsBrowser::deleteRequested, this, &MainWindow::trashDraftEntry);
     connect(m_draftsBrowser, &DraftsBrowser::renameRequested, this, &MainWindow::renameDraftEntry);
     connect(m_draftsBrowser, &DraftsBrowser::actionRequested, this, &MainWindow::handleDraftsContextAction);
+    connect(m_draftsBrowser, &DraftsBrowser::closeSelectedRequested, this, &MainWindow::closeEntries);
 
     m_draftsSearch = new QLineEdit(this);
     m_draftsSearch->setPlaceholderText("Rechercher...");
@@ -1078,21 +1080,35 @@ void MainWindow::closeOtherTabs(int index)
 {
     QWidget *keep = m_tabs->widget(index);
     for (int i = m_tabs->count() - 1; i >= 0; --i) {
-        if (m_tabs->widget(i) != keep)
-            closeTab(i);
+        if (m_tabs->widget(i) != keep && !closeTab(i))
+            break;
     }
 }
 
 void MainWindow::closeAllTabs()
 {
-    for (int i = m_tabs->count() - 1; i >= 0; --i)
-        closeTab(i);
+    for (int i = m_tabs->count() - 1; i >= 0; --i) {
+        if (!closeTab(i))
+            break;
+    }
 }
 
 void MainWindow::closeTabsToTheRight(int index)
 {
-    for (int i = m_tabs->count() - 1; i > index; --i)
-        closeTab(i);
+    for (int i = m_tabs->count() - 1; i > index; --i) {
+        if (!closeTab(i))
+            break;
+    }
+}
+
+// Ferme les onglets des notes sélectionnées dans le panneau Brouillons.
+void MainWindow::closeEntries(const QVector<Session::DraftEntry> &entries)
+{
+    for (const Session::DraftEntry &entry : entries) {
+        const int index = tabIndexForId(entry.id);
+        if (index != -1 && !closeTab(index))
+            break;
+    }
 }
 
 void MainWindow::showVersionHistory(Editor *editor)
@@ -1442,19 +1458,70 @@ bool MainWindow::writeFile(Editor *editor, const QString &path)
     return true;
 }
 
-void MainWindow::closeTab(int index)
+// Alerte avant de fermer un fichier extérieur modifié.
+MainWindow::CloseChoice MainWindow::askSaveBeforeClose(Editor *editor)
+{
+    QMessageBox box(this);
+    box.setIcon(QMessageBox::Warning);
+    box.setWindowTitle("Modifications non enregistrées");
+    box.setText(QString("« %1 » a été modifié et n'est pas enregistré.").arg(QFileInfo(editor->filePath).fileName()));
+    box.setInformativeText("Enregistrez-le pour ne pas perdre vos modifications : une fois fermé, il ne sera plus "
+                           "listé dans les brouillons.");
+    QPushButton *save = box.addButton("Enregistrer", QMessageBox::AcceptRole);
+    QPushButton *discard = box.addButton("Ne pas enregistrer", QMessageBox::DestructiveRole);
+    box.addButton("Annuler", QMessageBox::RejectRole);
+    box.setDefaultButton(save);
+    box.exec();
+    if (box.clickedButton() == save)
+        return CloseChoice::Save;
+    if (box.clickedButton() == discard)
+        return CloseChoice::Discard;
+    return CloseChoice::Cancel;
+}
+
+// Après « Ne pas enregistrer » : le brouillon (masqué) ne doit pas garder les
+// modifications abandonnées, sinon elles ressusciteraient à la réouverture.
+void MainWindow::archiveUnmodified(Editor *editor)
+{
+    QString content = editor->toPlainText();
+    QFile file(editor->filePath);
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text))
+        content = QString::fromUtf8(file.readAll());
+
+    Session::TabSnapshot snap;
+    snap.id = editor->sessionId;
+    snap.filePath = editor->filePath;
+    snap.defaultName = editor->defaultName;
+    snap.modified = false;
+    snap.content = content;
+    Session::saveDraft(snap);
+}
+
+bool MainWindow::closeTab(int index)
 {
     auto *editor = qobject_cast<Editor *>(m_tabs->widget(index));
     if (!editor)
-        return;
+        return true;
     if (editor->pinned) {
         // Seul point de passage de toutes les fermetures (croix, Ctrl+W, menus,
         // « fermer les autres/à droite/tout ») : les notes épinglées sont
         // simplement ignorées par les fermetures en lot.
         statusBar()->showMessage("Note épinglée : détachez-la pour la fermer.", 3000);
-        return;
+        return true;
     }
-    if (editor->document()->isModified()) {
+    const bool external = Session::isExternalFile(editor->filePath);
+    if (external && editor->document()->isModified()) {
+        const CloseChoice choice = askSaveBeforeClose(editor);
+        if (choice == CloseChoice::Cancel)
+            return false;
+        if (choice == CloseChoice::Save) {
+            if (!writeFile(editor, editor->filePath))
+                return false;
+        } else {
+            archiveUnmodified(editor);
+        }
+    }
+    if (editor->document()->isModified() && !external) {
         Session::TabSnapshot snap;
         snap.id = editor->sessionId;
         snap.filePath = editor->filePath;
@@ -1469,6 +1536,7 @@ void MainWindow::closeTab(int index)
     refreshDraftsBrowser();
     repositionNewTabButton();
     updateTitle();
+    return true;
 }
 
 void MainWindow::saveSessionToDisk()

@@ -13,8 +13,8 @@ donne l'installation et le lancement.
 ## 1. Restauration de session (fonctionnalité principale)
 
 L'idée centrale de NoteEditor : **on ferme l'application, on la rouvre, et on
-retrouve exactement son travail comme on l'avait laissé.** Il n'y a jamais de
-question « Enregistrer les modifications ? » à la fermeture, et rien n'est perdu.
+retrouve exactement son travail comme on l'avait laissé.** Fermer l'application ne
+pose jamais la question « Enregistrer les modifications ? », et rien n'est perdu.
 
 ### Ce qui est restauré au lancement suivant
 
@@ -53,9 +53,13 @@ lancement).
 - La sauvegarde automatique ne touche **jamais** au fichier réel de l'utilisateur :
   elle écrit uniquement dans `~/.noteeditor`. Seul un « Enregistrer » explicite
   modifie un fichier ailleurs sur le disque.
-- Fermer un onglet (croix ou `Ctrl+W`) l'archive sans poser de question, même avec
-  des modifications non enregistrées : il reste consultable dans le panneau
-  Brouillons.
+- Fermer un onglet (croix ou `Ctrl+W`) d'une **note interne** (sans fichier
+  associé, ou enregistrée sous `~/.noteeditor/docs/`) l'archive sans poser de
+  question, même avec des modifications non enregistrées : elle reste consultable
+  dans le panneau Brouillons.
+- Un **fichier extérieur** à `~/.noteeditor` est traité à part (voir la section
+  « Fichiers ») : son texte vit dans le fichier lui-même, il n'est plus listé une
+  fois fermé, et une alerte s'affiche s'il a des modifications non enregistrées.
 
 ### Démarrage automatique au lancement de la session
 
@@ -147,6 +151,16 @@ adapter si le dépôt est cloné ailleurs.
   le disque par un autre programme, l'application propose de le recharger lorsque
   l'on revient sur l'onglet ou sur la fenêtre. Recharger remplace le texte de
   l'onglet ; refuser le conserve.
+- **Fermer un fichier extérieur** à `~/.noteeditor` (par la croix, `Ctrl+W`, ou
+  **Fermer** depuis le panneau Brouillons) le **retire du panneau Brouillons** : son
+  texte est dans le fichier lui-même, il n'a plus besoin d'y figurer. S'il a des
+  **modifications non enregistrées**, une alerte propose **Enregistrer** (écrit le
+  fichier puis ferme), **Ne pas enregistrer** (abandonne les modifications, le
+  fichier n'est pas touché) ou **Annuler** (l'onglet reste ouvert). Les notes sans
+  fichier et les fichiers sous `~/.noteeditor/docs/` restent dans le panneau. Quitter
+  l'application n'affiche pas d'alerte : les modifications sont conservées et
+  restaurées au lancement suivant. Rouvrir le fichier retrouve la même note
+  (l'historique des versions continue).
 - Ouvrir un fichier déjà ouvert bascule sur son onglet au lieu d'en créer un
   second.
 - **Une seule entrée par fichier** dans le panneau Brouillons : rouvrir un fichier
@@ -168,10 +182,16 @@ adapter si le dépôt est cloné ailleurs.
 Panneau à gauche de la fenêtre qui liste **toutes les notes archivées dans
 `~/.noteeditor`, ouvertes ou fermées**. Les notes actuellement ouvertes sont
 marquées « (ouvert) ». C'est le filet de sécurité qui rend possible la fermeture
-sans confirmation.
+sans confirmation des notes internes. Exception : les **fichiers extérieurs à
+`~/.noteeditor`** (ouverts avec Ouvrir) ne sont listés que tant qu'ils sont
+ouverts.
 
 - **Double-clic** sur une note pour la rouvrir ; si elle est déjà ouverte, on
   bascule simplement sur son onglet.
+- **Sélection multiple** (`Ctrl+clic`, `Maj+clic`, `Ctrl+A`) : un clic droit sur la
+  sélection propose **Fermer les N notes sélectionnées**. Les notes épinglées sont
+  ignorées, et si une note a des modifications non enregistrées et demande une
+  alerte, **Annuler** arrête la fermeture des suivantes.
 - L'entrée de l'onglet actif est **surlignée** dans la liste.
 - **Recherche** par nom et **tri** par date ou par nom.
 - **Infobulle au survol** : laisser la souris sur une note affiche le **chemin

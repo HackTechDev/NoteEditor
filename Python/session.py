@@ -175,6 +175,17 @@ def list_drafts():
     return items
 
 
+def is_external_file(file_path):
+    """True for a real file living outside ~/.noteeditor. Its text is safe in the
+    file itself, so once closed it no longer needs a spot in the drafts sidebar;
+    untitled notes and files under ~/.noteeditor (docs/) keep theirs."""
+    if not file_path:
+        return False
+    path = os.path.normpath(os.path.abspath(file_path))
+    root = os.path.normpath(os.path.abspath(CONFIG_DIR))
+    return not (path == root or path.startswith(root + os.sep))
+
+
 def find_draft_for_path(file_path):
     """The most recent draft bound to this file, or None. Opening a file must
     reuse it rather than mint a new draft, or every open/close cycle of the same

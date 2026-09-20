@@ -183,9 +183,13 @@ une action volontaire de votre part (« Enregistrer ») modifie un fichier.
 ### Fermer un onglet
 
 - La **croix** de l'onglet, `Ctrl+W`, ou l'icône **Fermer l'onglet**.
-- **Il n'y a jamais de confirmation.** Fermer un onglet ne détruit pas la note :
-  elle reste dans le panneau Brouillons et vous pouvez la rouvrir quand vous
-  voulez.
+- Pour une **note interne** (sans fichier, ou enregistrée dans `~/.noteeditor/docs/`),
+  il n'y a **pas de confirmation** : fermer l'onglet ne détruit pas la note, elle
+  reste dans le panneau Brouillons et vous pouvez la rouvrir quand vous voulez.
+- Pour un **fichier extérieur** à `~/.noteeditor` (ouvert avec **Ouvrir**), la
+  fermeture le **retire du panneau Brouillons** : son contenu est dans le fichier
+  lui-même. S'il a des modifications non enregistrées, une alerte vous prévient
+  qu'il faut l'enregistrer (voir la [partie 6](#fermer-un-fichier-extérieur)).
 - Vous pouvez fermer le dernier onglet : l'application reste ouverte, sans note.
 
 ### Le menu contextuel des onglets
@@ -252,6 +256,35 @@ Utilisez-la pour ranger la note ailleurs, par exemple dans vos Documents.
   vous aviez laissé des modifications non enregistrées, vous les retrouvez (l'onglet
   a son `*`) ; sinon le contenu est relu depuis le disque.
 
+### Fermer un fichier extérieur
+
+Un fichier que vous avez ouvert depuis **un autre dossier que `~/.noteeditor`**
+(vos Documents, un projet...) est traité différemment d'une simple note : son
+contenu est **dans le fichier lui-même**, donc l'application ne le garde pas dans le
+panneau Brouillons une fois fermé.
+
+- **Fermer** un tel fichier (croix, `Ctrl+W`, ou **Fermer** dans le panneau
+  Brouillons) le **retire du panneau**.
+- S'il a des **modifications non enregistrées**, une alerte vous prévient qu'il faut
+  l'enregistrer, avec trois choix :
+  - **Enregistrer** : écrit le fichier, puis ferme ;
+  - **Ne pas enregistrer** : ferme en abandonnant les modifications (le fichier sur
+    le disque n'est pas touché) ;
+  - **Annuler** : l'onglet reste ouvert.
+- **Quitter l'application** n'affiche pas cette alerte : les modifications sont
+  conservées et vous les retrouvez au prochain lancement.
+- Pour le rouvrir, utilisez **Ouvrir** (`Ctrl+O`). Vous retrouvez la même note, avec
+  son historique des versions.
+- Les notes **sans fichier** et les fichiers enregistrés dans `~/.noteeditor/docs/`
+  (par `Ctrl+S` sur une nouvelle note) ne sont pas concernés : ils restent dans le
+  panneau.
+
+**À essayer**
+
+1. Ouvrez un fichier de vos Documents avec `Ctrl+O` : il apparaît dans le panneau.
+2. Tapez quelques caractères, puis fermez l'onglet : l'alerte s'affiche.
+3. Choisissez **Enregistrer** : l'onglet se ferme et le fichier disparaît du panneau.
+
 ### La coloration syntaxique
 
 Selon l'extension du fichier, le texte est coloré automatiquement :
@@ -272,8 +305,9 @@ vous changez l'extension avec **Enregistrer sous** (essayez de passer un texte d
 
 Le panneau de gauche liste **toutes vos notes archivées, ouvertes ou fermées**.
 Les notes actuellement ouvertes sont suivies de « (ouvert) ». C'est votre filet de
-sécurité : puisqu'on peut fermer un onglet sans confirmation, tout ce que vous
-avez fermé se retrouve ici.
+sécurité : puisqu'on peut fermer une note interne sans confirmation, tout ce que
+vous avez fermé se retrouve ici. Les **fichiers extérieurs** à `~/.noteeditor` font
+exception : ils ne figurent dans la liste que tant qu'ils sont ouverts.
 
 ### Rouvrir une note
 
@@ -294,6 +328,14 @@ pratique quand plusieurs fichiers portent le même nom dans des dossiers différ
 Pour une note qui n'est pas encore enregistrée dans un fichier, l'infobulle le dit
 et indique où son brouillon est stocké. Les infobulles fonctionnent aussi quand la
 fenêtre n'est pas au premier plan.
+
+### Fermer plusieurs notes d'un coup
+
+Sélectionnez plusieurs notes avec **`Ctrl+clic`** (une par une), **`Maj+clic`**
+(une plage) ou **`Ctrl+A`** (toutes), puis faites un **clic droit** sur la sélection
+→ **Fermer les N notes sélectionnées**. Les notes épinglées restent ouvertes. Si
+une alerte s'affiche pour un fichier modifié et que vous cliquez sur **Annuler**, la
+fermeture des notes suivantes est interrompue.
 
 ### Le menu contextuel
 
@@ -631,8 +673,10 @@ Et à la souris :
 ## 17. Questions fréquentes
 
 **J'ai fermé un onglet par erreur, ma note est perdue ?**
-Non. Regardez dans le panneau Brouillons : elle y est toujours. Double-cliquez
-dessus pour la rouvrir.
+Non, pour une note interne : regardez dans le panneau Brouillons, elle y est
+toujours. Double-cliquez dessus pour la rouvrir. Pour un fichier extérieur à
+`~/.noteeditor`, il n'est plus listé une fois fermé, mais son contenu est dans le
+fichier : rouvrez-le avec **Ouvrir** (`Ctrl+O`).
 
 **Je n'ai pas fait « Enregistrer », est-ce grave ?**
 Non : la note est archivée automatiquement en continu et restaurée à la

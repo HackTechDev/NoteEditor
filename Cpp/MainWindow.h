@@ -50,7 +50,9 @@ public:
     Editor *newTab(const QString &filePath = QString(), const QString &content = QString(),
                    const QString &defaultName = QString(), const QString &sessionId = QString(),
                    bool modified = false);
-    void closeTab(int index);
+    // Renvoie false seulement si l'utilisateur a annulé (les fermetures en lot
+    // s'arrêtent alors) ; true sinon, y compris pour une note épinglée ignorée.
+    bool closeTab(int index);
 
 protected:
     void closeEvent(QCloseEvent *event) override;
@@ -109,6 +111,10 @@ private:
     void closeOtherTabs(int index);
     void closeAllTabs();
     void closeTabsToTheRight(int index);
+    void closeEntries(const QVector<Session::DraftEntry> &entries);
+    enum class CloseChoice { Save, Discard, Cancel };
+    CloseChoice askSaveBeforeClose(Editor *editor);
+    void archiveUnmodified(Editor *editor);
     void showVersionHistory(Editor *editor);
     void applyRestoredVersion(Editor *editor, const QString &content);
     void checkExternalChange(Editor *editor);

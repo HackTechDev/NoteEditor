@@ -2,7 +2,7 @@ import os
 
 from PyQt6.QtCore import QPoint, QSize, Qt, pyqtSignal
 from PyQt6.QtGui import QColor, QIcon, QPainter, QPen, QPixmap, QPolygon
-from PyQt6.QtWidgets import QListWidget, QListWidgetItem, QMenu
+from PyQt6.QtWidgets import QAbstractItemView, QListWidget, QListWidgetItem, QMenu
 
 import session
 
@@ -81,6 +81,8 @@ class DraftsBrowser(QListWidget):
     # "close_others", "close_right", "close_all", "duplicate", "history",
     # "toggle_pin".
     action_requested = pyqtSignal(str, dict)
+    # Fermeture de plusieurs notes sélectionnées d'un coup (liste de dict).
+    close_selected_requested = pyqtSignal(list)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -88,6 +90,7 @@ class DraftsBrowser(QListWidget):
         self.customContextMenuRequested.connect(self._show_context_menu)
         self.itemDoubleClicked.connect(self._emit_open)
         self.setIconSize(QSize(PIN_ICON_SIZE, PIN_ICON_SIZE))
+        self.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         self._open_ids = set()
         self._sort_mode = "date"
         self._filter_text = ""
@@ -112,6 +115,10 @@ class DraftsBrowser(QListWidget):
         for entry in entries:
             label = self._label_for(entry)
             if needle and needle not in label.lower():
+                continue
+            if entry["id"] not in self._open_ids and session.is_external_file(entry["file_path"]):
+                # un fichier extérieur à ~/.noteeditor n'est listé que tant qu'il est
+                # ouvert : une fois fermé, son texte reste dans le fichier lui-même
                 continue
             display = label + " (ouvert)" if entry["id"] in self._open_ids else label
             item = QListWidgetItem(display)
@@ -151,6 +158,17 @@ class DraftsBrowser(QListWidget):
         if item is None:
             return
         entry = item.data(Qt.ItemDataRole.UserRole)
+
+        selected = [i.data(Qt.ItemDataRole.UserRole) for i in self.selectedItems()]
+        if len(selected) > 1 and item.isSelected():
+            closable = [e for e in selected if e["id"] in self._open_ids and not e.get("pinned")]
+            menu = QMenu(self)
+            close_selected = menu.addAction(f"Fermer les {len(selected)} notes sélectionnées")
+            close_selected.setEnabled(bool(closable))
+            if menu.exec(self.mapToGlobal(pos)) == close_selected:
+                self.close_selected_requested.emit(selected)
+            return
+
         is_open = entry["id"] in self._open_ids
         is_pinned = bool(entry.get("pinned"))
         has_history = bool(session.list_versions(entry["id"]))

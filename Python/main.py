@@ -384,6 +384,7 @@ class MainWindow(QMainWindow):
         self.drafts_browser.delete_requested.connect(self._trash_draft)
         self.drafts_browser.rename_requested.connect(self._rename_draft_entry)
         self.drafts_browser.action_requested.connect(self._handle_drafts_context_action)
+        self.drafts_browser.close_selected_requested.connect(self._close_entries)
 
         self.drafts_search = QLineEdit()
         self.drafts_search.setPlaceholderText("Rechercher...")
@@ -912,15 +913,25 @@ class MainWindow(QMainWindow):
         keep = self.tabs.widget(index)
         for i in reversed(range(self.tabs.count())):
             if self.tabs.widget(i) is not keep:
-                self.close_tab(i)
+                if self.close_tab(i) is False:
+                    break
 
     def _close_all_tabs(self):
         for i in reversed(range(self.tabs.count())):
-            self.close_tab(i)
+            if self.close_tab(i) is False:
+                break
 
     def _close_tabs_to_the_right(self, index):
         for i in reversed(range(index + 1, self.tabs.count())):
-            self.close_tab(i)
+            if self.close_tab(i) is False:
+                break
+
+    def _close_entries(self, entries):
+        """Ferme les onglets des notes sélectionnées dans le panneau Brouillons."""
+        for entry in entries:
+            index = self._tab_index_for_id(entry["id"])
+            if index is not None and self.close_tab(index) is False:
+                break
 
     def _show_version_history(self, editor):
         dialog = VersionHistoryDialog(editor.session_id, self)
@@ -1282,17 +1293,69 @@ class MainWindow(QMainWindow):
         self._refresh_drafts_browser()
         return True
 
+    def _ask_save_before_close(self, editor):
+        """Alerte avant de fermer un fichier extérieur modifié : renvoie "save",
+        "discard" ou "cancel"."""
+        box = QMessageBox(self)
+        box.setIcon(QMessageBox.Icon.Warning)
+        box.setWindowTitle("Modifications non enregistrées")
+        box.setText(f"« {os.path.basename(editor.file_path)} » a été modifié et n'est pas enregistré.")
+        box.setInformativeText(
+            "Enregistrez-le pour ne pas perdre vos modifications : une fois fermé, il ne sera plus "
+            "listé dans les brouillons."
+        )
+        save = box.addButton("Enregistrer", QMessageBox.ButtonRole.AcceptRole)
+        discard = box.addButton("Ne pas enregistrer", QMessageBox.ButtonRole.DestructiveRole)
+        box.addButton("Annuler", QMessageBox.ButtonRole.RejectRole)
+        box.setDefaultButton(save)
+        box.exec()
+        if box.clickedButton() is save:
+            return "save"
+        if box.clickedButton() is discard:
+            return "discard"
+        return "cancel"
+
+    def _archive_unmodified(self, editor):
+        """Après « Ne pas enregistrer » : le brouillon (masqué) ne doit pas garder
+        les modifications abandonnées, sinon elles ressusciteraient à la réouverture."""
+        try:
+            with open(editor.file_path, "r", encoding="utf-8") as f:
+                content = f.read()
+        except OSError:
+            content = editor.toPlainText()
+        session.save_draft(
+            {
+                "id": editor.session_id,
+                "file_path": editor.file_path,
+                "default_name": editor.default_name,
+                "modified": False,
+                "content": content,
+            }
+        )
+
     def close_tab(self, index):
+        """Ferme l'onglet. Renvoie False seulement si l'utilisateur a annulé (les
+        fermetures en lot s'arrêtent alors) ; True sinon, y compris pour une note
+        épinglée simplement ignorée."""
         editor = self.tabs.widget(index)
         if editor is None:
-            return
+            return True
         if editor.pinned:
             # Seul point de passage de toutes les fermetures (croix, Ctrl+W,
             # menus, « fermer les autres/à droite/tout ») : les notes épinglées
             # sont simplement ignorées par les fermetures en lot.
             self.statusBar().showMessage("Note épinglée : détachez-la pour la fermer.", 3000)
-            return
-        if editor.document().isModified():
+            return True
+        if session.is_external_file(editor.file_path) and editor.document().isModified():
+            choice = self._ask_save_before_close(editor)
+            if choice == "cancel":
+                return False
+            if choice == "save":
+                if not self._write_file(editor, editor.file_path):
+                    return False
+            else:
+                self._archive_unmodified(editor)
+        if editor.document().isModified() and not session.is_external_file(editor.file_path):
             session.save_draft(
                 {
                     "id": editor.session_id,
@@ -1307,6 +1370,7 @@ class MainWindow(QMainWindow):
         self._refresh_drafts_browser()
         self._reposition_new_tab_button()
         self.update_title()
+        return True
 
     def _save_session(self):
         tabs_info = [

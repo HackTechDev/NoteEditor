@@ -82,6 +82,7 @@ DraftsBrowser::DraftsBrowser(QWidget *parent)
     connect(this, &QListWidget::customContextMenuRequested, this, &DraftsBrowser::showContextMenu);
     connect(this, &QListWidget::itemDoubleClicked, this, &DraftsBrowser::emitOpen);
     setIconSize(QSize(kPinIconSize, kPinIconSize));
+    setSelectionMode(QAbstractItemView::ExtendedSelection);
 }
 
 // Chemin du fichier ; pour une note sans fichier, l'emplacement de son brouillon.
@@ -130,6 +131,8 @@ void DraftsBrowser::refresh(const QSet<QString> &openIds)
         const QString label = labelFor(entry);
         if (!needle.isEmpty() && !label.toLower().contains(needle))
             continue;
+        if (!m_openIds.contains(entry.id) && Session::isExternalFile(entry.filePath))
+            continue; // un fichier extérieur à ~/.noteeditor n'est listé que tant qu'il est ouvert
 
         QString display = label;
         if (m_openIds.contains(entry.id))
@@ -173,6 +176,27 @@ void DraftsBrowser::showContextMenu(const QPoint &pos)
     if (!m_entriesById.contains(id))
         return;
     const Session::DraftEntry entry = m_entriesById.value(id);
+
+    const QList<QListWidgetItem *> selectedItems = this->selectedItems();
+    if (selectedItems.size() > 1 && it->isSelected()) {
+        QVector<Session::DraftEntry> selected;
+        bool anyClosable = false;
+        for (QListWidgetItem *s : selectedItems) {
+            const QString sid = s->data(Qt::UserRole).toString();
+            if (!m_entriesById.contains(sid))
+                continue;
+            const Session::DraftEntry e = m_entriesById.value(sid);
+            selected.append(e);
+            anyClosable = anyClosable || (m_openIds.contains(e.id) && !e.pinned);
+        }
+        QMenu multi(this);
+        QAction *closeSelected = multi.addAction(QString("Fermer les %1 notes sélectionnées").arg(selected.size()));
+        closeSelected->setEnabled(anyClosable);
+        if (multi.exec(mapToGlobal(pos)) == closeSelected)
+            emit closeSelectedRequested(selected);
+        return;
+    }
+
     const bool isOpen = m_openIds.contains(entry.id);
     const bool isPinned = entry.pinned;
     const bool hasHistory = !Session::listVersions(entry.id).isEmpty();

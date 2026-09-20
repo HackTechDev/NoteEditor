@@ -240,6 +240,15 @@ QVector<DraftEntry> listDrafts()
     return items;
 }
 
+bool isExternalFile(const QString &filePath)
+{
+    if (filePath.isEmpty())
+        return false;
+    const QString path = QDir::cleanPath(QFileInfo(filePath).absoluteFilePath());
+    const QString root = QDir::cleanPath(QFileInfo(configDir()).absoluteFilePath());
+    return !(path == root || path.startsWith(root + "/"));
+}
+
 DraftEntry findDraftForPath(const QString &filePath)
 {
     for (const DraftEntry &entry : listDrafts()) { // newest first
