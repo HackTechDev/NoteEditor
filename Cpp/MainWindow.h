@@ -99,6 +99,7 @@ private:
     void trashEntries(const QVector<Session::DraftEntry> &entries);
     void updatePinAction();
     void refreshRecentMenu();
+    void askRecentLimit();
     void reopenRecent(const Session::DraftEntry &entry);
     void normalizeTabOrder();
     void setCurrentPinned(bool pinned);

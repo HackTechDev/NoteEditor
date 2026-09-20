@@ -710,16 +710,30 @@ class MainWindow(QMainWindow):
         """Remplit le sous-menu des notes fermées récemment (le plus récent d'abord)."""
         self.recent_menu.clear()
         entries = session.list_recent()
-        self.recent_menu.setEnabled(bool(entries))
+        if not entries:
+            self.recent_menu.addAction("Aucune note fermée récemment").setEnabled(False)
         for entry in entries:
             path = entry.get("file_path")
             label = os.path.basename(path) if path else entry.get("default_name") or entry["id"][:8]
             action = self.recent_menu.addAction(label)
             action.setToolTip(path_tooltip(path, label, entry["id"]))
             action.triggered.connect(lambda _checked=False, e=entry: self._reopen_recent(e))
+        self.recent_menu.addSeparator()
         if entries:
-            self.recent_menu.addSeparator()
             self.recent_menu.addAction("Effacer la liste").triggered.connect(session.clear_recent)
+        self.recent_menu.addAction("Nombre de notes mémorisées...").triggered.connect(self._ask_recent_limit)
+
+    def _ask_recent_limit(self):
+        value, ok = QInputDialog.getInt(
+            self,
+            "Notes fermées récemment",
+            f"Nombre de notes à mémoriser ({session.MIN_RECENT} à {session.MAX_RECENT}) :",
+            session.get_recent_limit(),
+            session.MIN_RECENT,
+            session.MAX_RECENT,
+        )
+        if ok:
+            session.set_recent_limit(value)
 
     def _reopen_recent(self, entry):
         path = entry.get("file_path")

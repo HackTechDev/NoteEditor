@@ -14,7 +14,9 @@ WINDOW_FILE = os.path.join(CONFIG_DIR, "window.json")
 RECENT_FILE = os.path.join(CONFIG_DIR, "recent.json")
 
 MAX_VERSIONS = 10
-MAX_RECENT = 10
+DEFAULT_RECENT = 10
+MIN_RECENT = 1
+MAX_RECENT = 50
 
 
 def _load_json(path, default):
@@ -217,21 +219,38 @@ def _load_recent():
     return [e for e in entries if isinstance(e, dict) and e.get("id")]
 
 
-def _save_recent(entries):
+def get_recent_limit():
+    """How many recently closed notes are remembered (recent.json "limit")."""
+    data = _load_json(RECENT_FILE, {})
+    limit = data.get("limit") if isinstance(data, dict) else None
+    if isinstance(limit, int) and not isinstance(limit, bool):
+        return max(MIN_RECENT, min(MAX_RECENT, limit))
+    return DEFAULT_RECENT
+
+
+def _save_recent(entries, limit=None):
     os.makedirs(CONFIG_DIR, exist_ok=True)
+    # relire la limite AVANT d'ouvrir le fichier en écriture (qui le vide)
+    data = {"recent": entries, "limit": get_recent_limit() if limit is None else limit}
     with open(RECENT_FILE, "w", encoding="utf-8") as f:
-        json.dump({"recent": entries}, f, ensure_ascii=False, indent=2)
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def set_recent_limit(limit):
+    """Changes the size of the recently-closed list; the list is trimmed at once."""
+    limit = max(MIN_RECENT, min(MAX_RECENT, int(limit)))
+    _save_recent(_load_recent()[:limit], limit)
 
 
 def add_recent(entry):
-    """Remembers a note that was just closed (newest first, at most MAX_RECENT).
+    """Remembers a note that was just closed (newest first, at most get_recent_limit()).
     entry: {"id", "file_path", "default_name"}."""
     entries = [e for e in _load_recent() if e["id"] != entry["id"]]
     entries.insert(
         0,
         {"id": entry["id"], "file_path": entry.get("file_path"), "default_name": entry.get("default_name")},
     )
-    _save_recent(entries[:MAX_RECENT])
+    _save_recent(entries[: get_recent_limit()])
 
 
 def remove_recent(draft_id):

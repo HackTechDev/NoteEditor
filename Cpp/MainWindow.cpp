@@ -1446,7 +1446,8 @@ void MainWindow::refreshRecentMenu()
 {
     m_recentMenu->clear();
     const QVector<Session::DraftEntry> entries = Session::listRecent();
-    m_recentMenu->setEnabled(!entries.isEmpty());
+    if (entries.isEmpty())
+        m_recentMenu->addAction("Aucune note fermée récemment")->setEnabled(false);
     for (const Session::DraftEntry &entry : entries) {
         const QString label = !entry.filePath.isEmpty() ? QFileInfo(entry.filePath).fileName()
                                                         : (!entry.defaultName.isEmpty() ? entry.defaultName : entry.id.left(8));
@@ -1454,10 +1455,22 @@ void MainWindow::refreshRecentMenu()
         action->setToolTip(pathTooltip(entry.filePath, label, entry.id));
         connect(action, &QAction::triggered, this, [this, entry] { reopenRecent(entry); });
     }
-    if (!entries.isEmpty()) {
-        m_recentMenu->addSeparator();
+    m_recentMenu->addSeparator();
+    if (!entries.isEmpty())
         connect(m_recentMenu->addAction("Effacer la liste"), &QAction::triggered, this, [] { Session::clearRecent(); });
-    }
+    connect(m_recentMenu->addAction("Nombre de notes mémorisées..."), &QAction::triggered, this,
+            &MainWindow::askRecentLimit);
+}
+
+void MainWindow::askRecentLimit()
+{
+    bool ok = false;
+    const int value = QInputDialog::getInt(
+        this, "Notes fermées récemment",
+        QString("Nombre de notes à mémoriser (%1 à %2) :").arg(Session::kMinRecent).arg(Session::kMaxRecent),
+        Session::recentLimit(), Session::kMinRecent, Session::kMaxRecent, 1, &ok);
+    if (ok)
+        Session::setRecentLimit(value);
 }
 
 void MainWindow::reopenRecent(const Session::DraftEntry &entry)

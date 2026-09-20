@@ -83,7 +83,16 @@ QString readDraft(const QString &draftId);
 // untitled notes and files under ~/.noteeditor (docs/) keep theirs.
 bool isExternalFile(const QString &filePath);
 
-// Recently closed notes (recent.json), newest first, at most kMaxRecent. Entries
+constexpr int kDefaultRecent = 10;
+constexpr int kMinRecent = 1;
+constexpr int kMaxRecent = 50;
+
+// How many recently closed notes are remembered (recent.json "limit"); the list
+// is trimmed at once when it is lowered.
+int recentLimit();
+void setRecentLimit(int limit);
+
+// Recently closed notes (recent.json), newest first, at most recentLimit(). Entries
 // use id / filePath / defaultName of DraftEntry.
 void addRecent(const DraftEntry &entry);
 void removeRecent(const QString &draftId);

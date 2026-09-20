@@ -276,8 +276,8 @@ fichier dans le panneau Brouillons, et son historique des versions est conservé
 
 ### Rouvrir une note fermée récemment
 
-Le menu **Fichier → Notes fermées récemment** liste les **10 dernières notes que vous
-avez fermées**, la plus récente en premier. Cliquez sur l'une d'elles pour la rouvrir.
+Le menu **Fichier → Notes fermées récemment** liste les **dernières notes que vous avez
+fermées** (10 par défaut), la plus récente en premier. Cliquez sur l'une d'elles pour la rouvrir.
 
 - Cela fonctionne pour **toutes** vos notes, y compris les **fichiers extérieurs** à
   `~/.noteeditor`, qui ne figurent plus dans le panneau Brouillons une fois fermés :
@@ -292,6 +292,9 @@ avez fermées**, la plus récente en premier. Cliquez sur l'une d'elles pour la 
   fermeture** ; elle sera alors proposée quand vous la fermerez, même vide. Cette
   case n'a aucun effet pour une note qui contient du texte (toujours mémorisée).
 - **Effacer la liste**, en bas du sous-menu, la vide.
+- **Nombre de notes mémorisées...**, en bas du sous-menu, vous laisse choisir combien de
+  notes garder, de 1 à 50 (10 par défaut). Baisser le nombre raccourcit la liste
+  immédiatement. Ce réglage reste accessible même quand la liste est vide.
 - La liste est **mémorisée** : vous la retrouvez au lancement suivant. Quitter
   l'application n'y ajoute rien (les onglets ouverts sont restaurés à part).
 
@@ -701,7 +704,7 @@ pour l'afficher).
 | `docs/` | Les fichiers créés par `Ctrl+S` sur une note sans fichier |
 | `trash/` et `trash_index.json` | Les notes mises à la corbeille |
 | `versions/` | Les 10 dernières versions de chaque fichier |
-| `recent.json` | Les 10 dernières notes fermées (menu Fichier) |
+| `recent.json` | Les dernières notes fermées et la taille de la liste (menu Fichier) |
 | `window.json` | La taille et la position de la fenêtre, du séparateur, et vos réglages d'affichage |
 
 **Sauvegarder vos notes** : copiez simplement le dossier `~/.noteeditor` sur une

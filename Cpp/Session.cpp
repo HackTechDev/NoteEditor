@@ -17,7 +17,6 @@
 namespace Session {
 
 static const int kMaxVersions = 10;
-static const int kMaxRecent = 10;
 
 QString configDir()
 {
@@ -264,16 +263,37 @@ static QJsonArray loadRecentArray()
     return loadJsonObject(recentFile()).value("recent").toArray();
 }
 
-static void saveRecentArray(const QJsonArray &entries)
+int recentLimit()
+{
+    const QJsonValue v = loadJsonObject(recentFile()).value("limit");
+    if (v.isDouble() && v.toDouble() == static_cast<int>(v.toDouble()))
+        return qBound(kMinRecent, v.toInt(), kMaxRecent);
+    return kDefaultRecent;
+}
+
+static void saveRecentArray(const QJsonArray &entries, int limit = -1)
 {
     QDir().mkpath(configDir());
-    QJsonObject obj;
+    QJsonObject obj; // la limite est relue AVANT d'écrire (l'écriture remplace le fichier)
+    obj["limit"] = limit < 0 ? recentLimit() : limit;
     obj["recent"] = entries;
     writeJsonObject(recentFile(), obj);
 }
 
+void setRecentLimit(int limit)
+{
+    limit = qBound(kMinRecent, limit, kMaxRecent);
+    QJsonArray kept;
+    for (const QJsonValue &v : loadRecentArray()) {
+        if (kept.size() < limit)
+            kept.append(v);
+    }
+    saveRecentArray(kept, limit);
+}
+
 void addRecent(const DraftEntry &entry)
 {
+    const int limit = recentLimit();
     QJsonArray entries;
     QJsonObject fresh;
     fresh["id"] = entry.id;
@@ -281,7 +301,7 @@ void addRecent(const DraftEntry &entry)
     fresh["default_name"] = toJsonOrNull(entry.defaultName);
     entries.append(fresh);
     for (const QJsonValue &v : loadRecentArray()) {
-        if (v.toObject().value("id").toString() != entry.id && entries.size() < kMaxRecent)
+        if (v.toObject().value("id").toString() != entry.id && entries.size() < limit)
             entries.append(v);
     }
     saveRecentArray(entries);
