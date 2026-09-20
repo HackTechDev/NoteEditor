@@ -1,12 +1,61 @@
 #include "Editor.h"
 
 #include <QFont>
+#include <QJsonArray>
 #include <QFontMetrics>
 #include <QPainter>
 #include <QScrollBar>
 #include <QShowEvent>
 #include <QTextBlock>
+#include <QTextCursor>
+#include <QTextDocument>
 #include <QTextEdit>
+
+namespace {
+
+// Historique annuler/rétablir mémorisé d'un lancement à l'autre : nombre maximal
+// d'étapes de chaque côté du point courant, et volume total de texte conservé.
+constexpr int kHistoryMaxSteps = 200;
+constexpr int kHistoryMaxChars = 1000000;
+// Au-delà de cette taille de note, l'historique n'est plus suivi (chaque frappe
+// coûterait une comparaison du texte entier) ; annuler/rétablir continue de marcher.
+constexpr int kHistoryTrackMaxChars = 300000;
+
+struct Step {
+    int start;
+    QString removed;
+    QString added;
+};
+
+// Étape qui transforme `oldText` en `newText` (préfixe et suffixe communs écartés,
+// sans jamais couper une paire de substitution UTF-16).
+Step diffTexts(const QString &oldText, const QString &newText)
+{
+    const int limit = qMin(oldText.size(), newText.size());
+    int start = 0;
+    while (start < limit && oldText[start] == newText[start])
+        ++start;
+    if (start > 0 && oldText[start - 1].isHighSurrogate())
+        --start;
+    int end = 0;
+    while (end < limit - start && oldText[oldText.size() - 1 - end] == newText[newText.size() - 1 - end])
+        ++end;
+    if (end > 0 && oldText[oldText.size() - end].isLowSurrogate())
+        --end;
+    return {start, oldText.mid(start, oldText.size() - end - start), newText.mid(start, newText.size() - end - start)};
+}
+
+QString applyStep(const QString &text, int start, const QString &removed, const QString &added)
+{
+    return text.left(start) + added + text.mid(start + removed.size());
+}
+
+QString revertStep(const QString &text, int start, const QString &removed, const QString &added)
+{
+    return text.left(start) + removed + text.mid(start + added.size());
+}
+
+} // namespace
 
 LineNumberArea::LineNumberArea(Editor *editor)
     : QWidget(editor)
@@ -45,6 +94,8 @@ Editor::Editor(QWidget *parent)
     m_autosaveTimer->setInterval(kAutosaveDelayMs);
     connect(m_autosaveTimer, &QTimer::timeout, this, &Editor::autosaveRequested);
     connect(document(), &QTextDocument::contentsChanged, m_autosaveTimer, qOverload<>(&QTimer::start));
+    connect(document(), &QTextDocument::undoCommandAdded, this, [this] { m_histNewStep = true; });
+    connect(document(), &QTextDocument::contentsChange, this, [this](int, int, int) { trackHistory(); });
 
     updateLineNumberAreaWidth();
     highlightCurrentLine();
@@ -78,18 +129,170 @@ void Editor::resizeEvent(QResizeEvent *event)
     m_lineNumberArea->setGeometry(QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
 }
 
-void Editor::restoreView(int cursor, int scroll)
+void Editor::restoreView(int cursor, int scroll, int anchor)
 {
+    const int last = qMax(0, document()->characterCount() - 1);
     QTextCursor c = textCursor();
-    c.setPosition(qBound(0, cursor, qMax(0, document()->characterCount() - 1)));
+    if (anchor >= 0) {
+        c.setPosition(qBound(0, anchor, last));
+        c.setPosition(qBound(0, cursor, last), QTextCursor::KeepAnchor);
+    } else {
+        c.setPosition(qBound(0, cursor, last));
+    }
     setTextCursor(c);
     m_pendingScroll = scroll > 0 ? scroll : -1;
 }
 
-void Editor::viewState(int *cursor, int *scroll) const
+void Editor::viewState(int *cursor, int *scroll, int *anchor) const
 {
-    *cursor = textCursor().position();
+    const QTextCursor c = textCursor();
+    *cursor = c.position();
+    *anchor = c.anchor();
     *scroll = m_pendingScroll >= 0 ? m_pendingScroll : verticalScrollBar()->value();
+}
+
+void Editor::trackHistory()
+{
+    if (m_histBusy)
+        return;
+    const bool newStep = m_histNewStep;
+    m_histNewStep = false;
+    QTextDocument *doc = document();
+    if (doc->characterCount() > kHistoryTrackMaxChars) {
+        m_histSteps.clear();
+        m_histPos = 0;
+        m_histText.clear();
+        return;
+    }
+    const QString text = toPlainText();
+    if (!doc->isUndoAvailable() && !doc->isRedoAvailable()) {
+        // pile vidée (setPlainText : ouverture, rechargement, version restaurée)
+        m_histSteps.clear();
+        m_histPos = 0;
+        m_histText = text;
+        return;
+    }
+    if (!newStep) {
+        if (m_histPos > 0) {
+            const HistoryStep &prev = m_histSteps[m_histPos - 1];
+            const QString before = revertStep(m_histText, prev.start, prev.removed, prev.added);
+            if (text == before) { // annuler
+                --m_histPos;
+                m_histText = text;
+                return;
+            }
+        }
+        if (m_histPos < m_histSteps.size()) {
+            const HistoryStep &next = m_histSteps[m_histPos];
+            if (text == applyStep(m_histText, next.start, next.removed, next.added)) { // rétablir
+                ++m_histPos;
+                m_histText = text;
+                return;
+            }
+        }
+        if (m_histPos > 0) {
+            // frappe fusionnée par Qt dans la dernière étape
+            HistoryStep &last = m_histSteps[m_histPos - 1];
+            const QString before = revertStep(m_histText, last.start, last.removed, last.added);
+            const Step step = diffTexts(before, text);
+            last = {step.start, step.removed, step.added};
+            m_histText = text;
+            return;
+        }
+    }
+    m_histSteps.resize(m_histPos);
+    const Step step = diffTexts(m_histText, text);
+    m_histSteps.append({step.start, step.removed, step.added});
+    m_histPos = m_histSteps.size();
+    m_histText = text;
+}
+
+QJsonObject Editor::historyState() const
+{
+    if (m_histSteps.isEmpty())
+        return QJsonObject();
+    auto cost = [](const HistoryStep &s) { return s.removed.size() + s.added.size(); };
+    const int firstBefore = qMax(0, m_histPos - kHistoryMaxSteps);
+    const int endAfter = qMin(int(m_histSteps.size()), m_histPos + kHistoryMaxSteps);
+    int begin = firstBefore, end = endAfter;
+    int total = 0;
+    for (int i = begin; i < end; ++i)
+        total += cost(m_histSteps[i]);
+    while (begin < m_histPos && total > kHistoryMaxChars)
+        total -= cost(m_histSteps[begin++]);
+    while (end > m_histPos && total > kHistoryMaxChars)
+        total -= cost(m_histSteps[--end]);
+    if (begin == end)
+        return QJsonObject();
+    // les positions se rapportent au texte avant chaque étape
+    QString text = m_histText;
+    for (int i = m_histPos - 1; i >= begin; --i)
+        text = revertStep(text, m_histSteps[i].start, m_histSteps[i].removed, m_histSteps[i].added);
+    QJsonArray steps;
+    for (int i = begin; i < end; ++i) {
+        const HistoryStep &s = m_histSteps[i];
+        steps.append(QJsonObject{{"at", s.start}, {"del", s.removed}, {"ins", s.added}});
+        text = applyStep(text, s.start, s.removed, s.added);
+    }
+    return QJsonObject{{"pos", m_histPos - begin}, {"length", int(m_histText.size())}, {"steps", steps}};
+}
+
+bool Editor::restoreHistory(const QJsonObject &data)
+{
+    const QJsonArray raw = data.value("steps").toArray();
+    const int pos = data.value("pos").toInt(-1);
+    const int length = data.value("length").toInt(-1);
+    const QString current = toPlainText();
+    if (raw.isEmpty() || pos < 0 || pos > raw.size() || length != current.size())
+        return false;
+    QVector<HistoryStep> steps(raw.size());
+    for (int k = 0; k < raw.size(); ++k) {
+        const QJsonObject o = raw[k].toObject();
+        if (!o.contains("at") || !o.value("del").isString() || !o.value("ins").isString())
+            return false;
+        steps[k] = {o.value("at").toInt(-1), o.value("del").toString(), o.value("ins").toString()};
+        if (steps[k].start < 0)
+            return false;
+    }
+    // de retour au texte de départ : chaque étape à rebours doit retomber juste
+    QString text = current;
+    for (int k = pos - 1; k >= 0; --k) {
+        const HistoryStep &s = steps[k];
+        if (text.mid(s.start, s.added.size()) != s.added || s.start + s.added.size() > text.size())
+            return false;
+        text = revertStep(text, s.start, s.removed, s.added);
+    }
+    const QString base = text;
+    text = current;
+    for (int k = pos; k < steps.size(); ++k) {
+        const HistoryStep &s = steps[k];
+        if (text.mid(s.start, s.removed.size()) != s.removed || s.start + s.removed.size() > text.size())
+            return false;
+        text = applyStep(text, s.start, s.removed, s.added);
+    }
+    const bool modified = document()->isModified();
+    m_histBusy = true;
+    setPlainText(base);
+    QTextCursor cursor(document());
+    for (const HistoryStep &s : steps) {
+        cursor.beginEditBlock();
+        cursor.setPosition(s.start);
+        cursor.setPosition(s.start + s.removed.size(), QTextCursor::KeepAnchor);
+        cursor.insertText(s.added);
+        cursor.endEditBlock();
+    }
+    for (int k = pos; k < steps.size(); ++k)
+        document()->undo();
+    const bool ok = toPlainText() == current;
+    if (!ok)
+        setPlainText(current);
+    m_histBusy = false;
+    m_histNewStep = false;
+    document()->setModified(modified);
+    m_histSteps = ok ? steps : QVector<HistoryStep>();
+    m_histPos = ok ? pos : 0;
+    m_histText = current;
+    return ok;
 }
 
 void Editor::showEvent(QShowEvent *event)

@@ -22,10 +22,6 @@ implémentées sont documentées dans `README.md` et `FEATURES.md`, pas ici.
 
 - **Recherche plus tolérante** : elle distingue aujourd'hui les accents (« zebulon » ne trouve pas « zébulon »), ne cherche que dans le texte archivé et ne montre pas où le mot a été trouvé ; ignorer les accents et afficher un extrait de la ligne correspondante l'améliorerait.
 
-## Session et fichiers
-
-- **Restaurer l'historique annuler/rétablir et la sélection de texte** : seuls le texte, le curseur et le défilement reviennent, on ne peut pas annuler une frappe faite avant la fermeture.
-
 ## Fiabilité et code
 
 - **Tests automatisés** : le projet n'a pour l'instant que des vérifications manuelles ponctuelles (des pilotes jetables décrits dans les `CLAUDE.md`) ; les transformer en suites versionnées sécuriserait les évolutions, avec `pytest` (`pytest-qt`) côté Python et QtTest/CTest côté C++.

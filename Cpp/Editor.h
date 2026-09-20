@@ -2,8 +2,10 @@
 
 #include "Highlighters.h"
 
+#include <QJsonObject>
 #include <QPlainTextEdit>
 #include <QString>
+#include <QVector>
 #include <QTimer>
 #include <QUuid>
 #include <QWidget>
@@ -43,10 +45,20 @@ public:
 
     // Replace le curseur et programme le défilement : la barre de défilement n'a
     // pas encore sa plage tant que l'onglet n'a jamais été affiché.
-    void restoreView(int cursor, int scroll);
-    // Position du curseur et défilement ; le défilement programmé mais pas encore
-    // appliqué (onglet jamais affiché depuis la restauration) prime.
-    void viewState(int *cursor, int *scroll) const;
+    // `anchor` >= 0 : début de la sélection dont `cursor` est la fin.
+    void restoreView(int cursor, int scroll, int anchor = -1);
+    // Position du curseur, défilement et début de la sélection ; le défilement
+    // programmé mais pas encore appliqué (onglet jamais affiché depuis la
+    // restauration) prime.
+    void viewState(int *cursor, int *scroll, int *anchor) const;
+
+    // Historique annuler/rétablir sérialisable (positions en unités UTF-16, comme Qt),
+    // ou objet vide s'il n'y en a pas. Réduit aux dernières étapes de chaque côté du
+    // point courant, et à un volume de texte raisonnable.
+    QJsonObject historyState() const;
+    // Reconstruit la pile annuler/rétablir à partir de historyState(). Sans effet
+    // (et renvoie false) si elle ne correspond pas au texte actuel de l'onglet.
+    bool restoreHistory(const QJsonObject &data);
 
     int lineNumberAreaWidth() const;
     void lineNumberAreaPaintEvent(QPaintEvent *event);
@@ -72,11 +84,24 @@ private slots:
     void updateLineNumberAreaWidth();
     void updateLineNumberArea(const QRect &rect, int dy);
     void highlightCurrentLine();
+    void trackHistory();
 
 private:
+    // Qt ne permet ni de lire ni d'exporter la pile annuler/rétablir : on en garde une
+    // copie sous forme d'étapes (début, texte retiré, texte ajouté).
+    struct HistoryStep {
+        int start;
+        QString removed;
+        QString added;
+    };
     LineNumberArea *m_lineNumberArea;
     QSyntaxHighlighter *m_highlighter = nullptr;
     HighlighterKind m_highlighterKind = HighlighterKind::None;
     QTimer *m_autosaveTimer;
     int m_pendingScroll = -1; // -1 == nothing to apply
+    QVector<HistoryStep> m_histSteps;
+    int m_histPos = 0;
+    QString m_histText;
+    bool m_histNewStep = false;
+    bool m_histBusy = false;
 };

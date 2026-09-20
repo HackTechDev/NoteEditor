@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QJsonObject>
 #include <QList>
 #include <QString>
 #include <QStringList>
@@ -18,6 +19,8 @@ struct TabSnapshot {
     QString content;
     int cursor = -1; // -1 == unknown (not written to session.json)
     int scroll = 0;
+    int anchor = -1; // début de la sélection ; -1 == pas de sélection
+    QJsonObject history; // historique annuler/rétablir (Editor::historyState), vide == aucun
 };
 
 // Metadata only (no content), as read back from index.json / session.json
@@ -68,6 +71,9 @@ void saveSession(const QVector<TabSnapshot> &tabs, const QString &activeId);
 
 // Persists a single tab's content without touching the open-tabs list.
 void saveDraft(const TabSnapshot &info);
+
+// L'historique annuler/rétablir mémorisé pour cet onglet (objet vide si aucun).
+QJsonObject loadHistory(const QString &id);
 
 // Returns the tabs to restore (with content) and the id of the active one.
 QVector<TabSnapshot> loadSession(QString *activeId);

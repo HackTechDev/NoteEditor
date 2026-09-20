@@ -149,8 +149,10 @@ Vous retrouvez :
 - **la taille et la position de la fenêtre**, et la position du séparateur du
   panneau Brouillons ;
 - l'**état « épinglé »** de vos notes (voir la [partie 8](#8-épingler-une-note)) ;
-- **la position du curseur et le défilement** de chaque note : vous reprenez là où
-  vous vous étiez arrêté ;
+- **la position du curseur, la sélection et le défilement** de chaque note : vous
+  reprenez là où vous vous étiez arrêté ;
+- **l'historique annuler/rétablir** de chaque note : après un redémarrage, `Ctrl+Z`
+  annule encore ce que vous aviez tapé avant de quitter ;
 - **vos réglages d'affichage** : retour automatique à la ligne et aperçu Markdown.
 
 Si une note a des modifications non enregistrées dans son fichier, son nom
@@ -701,12 +703,13 @@ pour l'afficher).
 
 | Élément | Contenu |
 |---|---|
-| `session.json` | Les onglets ouverts, l'onglet actif, et le curseur et le défilement de chacun |
+| `session.json` | Les onglets ouverts, l'onglet actif, et le curseur, la sélection et le défilement de chacun |
 | `index.json` | La liste de toutes vos notes (nom, fichier associé, état épinglé) |
 | `drafts/` | Le **texte** de chacune de vos notes, un fichier par note |
 | `docs/` | Les fichiers créés par `Ctrl+S` sur une note sans fichier |
 | `trash/` et `trash_index.json` | Les notes mises à la corbeille |
 | `versions/` | Les 10 dernières versions de chaque fichier |
+| `history/` | L'historique annuler/rétablir des notes ouvertes à la dernière fermeture |
 | `recent.json` | Les dernières notes fermées et la taille de la liste (menu Fichier) |
 | `window.json` | La taille et la position de la fenêtre, du séparateur, et vos réglages d'affichage |
 

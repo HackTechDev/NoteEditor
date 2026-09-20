@@ -1373,8 +1373,11 @@ class MainWindow(QMainWindow):
                     editor.disk_mtime = os.path.getmtime(entry["file_path"])
                 except OSError:
                     pass
+            history = session.load_history(entry["id"]) if entry.get("id") else None
+            if history:
+                editor.restore_history(history)
             if "cursor" in entry:
-                editor.restore_view(entry["cursor"], entry.get("scroll", 0))
+                editor.restore_view(entry["cursor"], entry.get("scroll", 0), entry.get("anchor"))
         self._normalize_tab_order()
         active = self._tab_index_for_id(active_id) if active_id else None
         self.tabs.setCurrentIndex(active if active is not None else 0)
@@ -1603,18 +1606,21 @@ class MainWindow(QMainWindow):
         return True
 
     def _save_session(self):
-        tabs_info = [
-            {
-                "id": self.tabs.widget(i).session_id,
-                "file_path": self.tabs.widget(i).file_path,
-                "default_name": self.tabs.widget(i).default_name,
-                "modified": self.tabs.widget(i).document().isModified(),
-                "content": self.tabs.widget(i).toPlainText(),
-                "cursor": self.tabs.widget(i).view_state()[0],
-                "scroll": self.tabs.widget(i).view_state()[1],
-            }
-            for i in range(self.tabs.count())
-        ]
+        tabs_info = []
+        for i in range(self.tabs.count()):
+            editor = self.tabs.widget(i)
+            cursor, scroll, anchor = editor.view_state()
+            tabs_info.append({
+                "id": editor.session_id,
+                "file_path": editor.file_path,
+                "default_name": editor.default_name,
+                "modified": editor.document().isModified(),
+                "content": editor.toPlainText(),
+                "cursor": cursor,
+                "scroll": scroll,
+                "anchor": anchor,
+                "history": editor.history_state(),
+            })
         active_editor = self.current_editor()
         active_id = active_editor.session_id if active_editor is not None else None
         session.save_session(tabs_info, active_id)

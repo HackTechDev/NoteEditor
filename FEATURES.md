@@ -32,9 +32,16 @@ pose jamais la question « Enregistrer les modifications ? », et rien n'est per
 - **La position du séparateur** entre le panneau Brouillons et la zone d'édition.
 - **L'état « épinglé »** des notes (voir la section Onglets) : une note épinglée le
   reste d'un lancement à l'autre.
-- **La position du curseur et le défilement de chaque onglet** : on reprend
-  exactement là où l'on travaillait dans chaque note, y compris dans les onglets
-  qu'on n'avait pas encore réaffichés depuis le lancement.
+- **La position du curseur, la sélection et le défilement de chaque onglet** : on
+  reprend exactement là où l'on travaillait dans chaque note, y compris dans les
+  onglets qu'on n'avait pas encore réaffichés depuis le lancement.
+- **L'historique annuler/rétablir de chaque onglet** : après un redémarrage, `Ctrl+Z`
+  annule encore les dernières modifications faites avant la fermeture (jusqu'à 200
+  étapes de chaque côté du point où l'on s'était arrêté), et `Ctrl+Maj+Z` les rétablit.
+  Un historique qui ne correspond plus au texte de la note (par exemple parce qu'elle a
+  été modifiée ailleurs) est ignoré ; pour une note très volumineuse (plus de 300 000
+  caractères), l'historique n'est pas mémorisé. Il ne l'est qu'à la fermeture de
+  l'application, pas à celle d'un onglet isolé.
 - **Les réglages d'affichage** : le **retour automatique à la ligne** (activé ou non)
   et l'**aperçu Markdown** (activé ou non).
 
@@ -321,12 +328,13 @@ Pour l'onglet actif : **ligne et colonne** du curseur, **nombre de mots** et de
 
 | Élément | Rôle |
 |---|---|
-| `session.json` | Onglets ouverts, onglet actif, position du curseur et défilement de chaque onglet (lu au lancement, réécrit à la fermeture) |
+| `session.json` | Onglets ouverts, onglet actif, position du curseur, sélection et défilement de chaque onglet (lu au lancement, réécrit à la fermeture) |
 | `index.json` | Métadonnées de toutes les notes archivées, dont l'état « épinglé » (alimente le panneau Brouillons) |
 | `drafts/` | Texte de chaque note, conservé même après la fermeture de son onglet |
 | `docs/` | Fichiers réels créés par `Ctrl+S` depuis une note sans fichier associé |
 | `trash/` et `trash_index.json` | Notes mises à la corbeille |
 | `versions/<id>/` | Les 10 dernières versions de chaque fichier |
+| `history/<id>.json` | L'historique annuler/rétablir des onglets ouverts à la dernière fermeture de l'application |
 | `recent.json` | Les dernières notes fermées et la taille de la liste (menu Fichier → Notes fermées récemment) |
 | `window.json` | Taille et position de la fenêtre, position du séparateur du panneau, réglages d'affichage (retour à la ligne, aperçu Markdown) |
 

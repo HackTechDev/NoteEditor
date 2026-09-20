@@ -1402,8 +1402,11 @@ void MainWindow::restoreSession()
         Editor *editor = newTab(entry.filePath, entry.content, entry.defaultName, entry.id, entry.modified);
         if (!entry.filePath.isEmpty() && QFileInfo::exists(entry.filePath))
             editor->diskMTime = QFileInfo(entry.filePath).lastModified().toMSecsSinceEpoch();
+        const QJsonObject history = Session::loadHistory(entry.id);
+        if (!history.isEmpty())
+            editor->restoreHistory(history);
         if (entry.cursor >= 0)
-            editor->restoreView(entry.cursor, entry.scroll);
+            editor->restoreView(entry.cursor, entry.scroll, entry.anchor);
     }
     normalizeTabOrder();
     const int activeIndex = activeId.isEmpty() ? -1 : tabIndexForId(activeId);
@@ -1830,7 +1833,8 @@ void MainWindow::saveSessionToDisk()
         snap.defaultName = editor->defaultName;
         snap.modified = editor->document()->isModified();
         snap.content = editor->toPlainText();
-        editor->viewState(&snap.cursor, &snap.scroll);
+        editor->viewState(&snap.cursor, &snap.scroll, &snap.anchor);
+        snap.history = editor->historyState();
         tabsInfo.append(snap);
     }
     Editor *activeEditor = currentEditor();

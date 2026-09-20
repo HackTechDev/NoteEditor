@@ -7,6 +7,7 @@ DRAFTS_DIR = os.path.join(CONFIG_DIR, "drafts")
 DOCS_DIR = os.path.join(CONFIG_DIR, "docs")
 TRASH_DIR = os.path.join(CONFIG_DIR, "trash")
 VERSIONS_DIR = os.path.join(CONFIG_DIR, "versions")
+HISTORY_DIR = os.path.join(CONFIG_DIR, "history")
 SESSION_FILE = os.path.join(CONFIG_DIR, "session.json")
 INDEX_FILE = os.path.join(CONFIG_DIR, "index.json")
 TRASH_INDEX_FILE = os.path.join(CONFIG_DIR, "trash_index.json")
@@ -114,6 +115,8 @@ def save_session(tabs_info, active_id=None):
             # où l'on travaillait dans la note (session.json seulement, pas index.json)
             entry["cursor"] = info["cursor"]
             entry["scroll"] = info.get("scroll", 0)
+            if info.get("anchor") not in (None, info["cursor"]):
+                entry["anchor"] = info["anchor"]  # début de la sélection, s'il y en a une
         entries.append(entry)
         index[info["id"]] = _merged_meta(index, info)
 
@@ -121,6 +124,37 @@ def save_session(tabs_info, active_id=None):
         json.dump({"active_id": active_id, "tabs": entries}, f, ensure_ascii=False, indent=2)
 
     _save_index(index)
+    _save_histories({info["id"]: info.get("history") for info in tabs_info})
+
+
+def _save_histories(histories):
+    """Un fichier `history/<id>.json` par onglet ouvert ayant un historique annuler/
+    rétablir ; les autres (onglets fermés depuis, historique vide) sont supprimés."""
+    wanted = {draft_id: data for draft_id, data in histories.items() if data}
+    if wanted:
+        os.makedirs(HISTORY_DIR, exist_ok=True)
+    for draft_id, data in list(wanted.items()):
+        try:
+            payload = json.dumps(data, ensure_ascii=False).encode("utf-8")
+        except UnicodeEncodeError:
+            # une étape a coupé une paire de substitution UTF-16 : pas d'historique
+            del wanted[draft_id]
+            continue
+        with open(os.path.join(HISTORY_DIR, draft_id + ".json"), "wb") as f:
+            f.write(payload)
+    if os.path.isdir(HISTORY_DIR):
+        for name in os.listdir(HISTORY_DIR):
+            if name.endswith(".json") and name[:-5] not in wanted:
+                try:
+                    os.remove(os.path.join(HISTORY_DIR, name))
+                except OSError:
+                    pass
+
+
+def load_history(draft_id):
+    """L'historique annuler/rétablir mémorisé pour cet onglet, ou None."""
+    data = _load_json(os.path.join(HISTORY_DIR, draft_id + ".json"), None)
+    return data if isinstance(data, dict) else None
 
 
 def save_draft(info):

@@ -23,6 +23,13 @@ QString configDir()
     return QDir::homePath() + "/.noteeditor";
 }
 
+static QString historyDir()
+{
+    return configDir() + "/history";
+}
+
+static void saveHistories(const QVector<TabSnapshot> &tabs);
+
 QString draftsDir()
 {
     return configDir() + "/drafts";
@@ -144,6 +151,8 @@ void saveSession(const QVector<TabSnapshot> &tabs, const QString &activeId)
             // où l'on travaillait dans la note (session.json seulement, pas index.json)
             entry["cursor"] = info.cursor;
             entry["scroll"] = info.scroll;
+            if (info.anchor >= 0 && info.anchor != info.cursor)
+                entry["anchor"] = info.anchor;
         }
         entries.append(entry);
 
@@ -156,6 +165,34 @@ void saveSession(const QVector<TabSnapshot> &tabs, const QString &activeId)
     writeJsonObject(sessionFile(), sessionObj);
 
     writeJsonObject(indexFile(), index);
+
+    saveHistories(tabs);
+}
+
+// Un fichier `history/<id>.json` par onglet ouvert ayant un historique annuler/
+// rétablir ; les autres (onglets fermés depuis, historique vide) sont supprimés.
+static void saveHistories(const QVector<TabSnapshot> &tabs)
+{
+    QSet<QString> wanted;
+    for (const TabSnapshot &info : tabs) {
+        if (info.history.isEmpty())
+            continue;
+        wanted.insert(info.id);
+        QDir().mkpath(historyDir());
+        QFile f(historyDir() + "/" + info.id + ".json");
+        if (f.open(QIODevice::WriteOnly | QIODevice::Truncate))
+            f.write(QJsonDocument(info.history).toJson(QJsonDocument::Compact));
+    }
+    const QStringList names = QDir(historyDir()).entryList({"*.json"}, QDir::Files);
+    for (const QString &name : names) {
+        if (!wanted.contains(name.chopped(5)))
+            QFile::remove(historyDir() + "/" + name);
+    }
+}
+
+QJsonObject loadHistory(const QString &id)
+{
+    return loadJsonObject(historyDir() + "/" + id + ".json");
 }
 
 void saveDraft(const TabSnapshot &info)
@@ -203,6 +240,8 @@ QVector<TabSnapshot> loadSession(QString *activeId)
         if (entry.contains("cursor")) {
             snap.cursor = entry.value("cursor").toInt(-1);
             snap.scroll = entry.value("scroll").toInt(0);
+            if (entry.contains("anchor"))
+                snap.anchor = entry.value("anchor").toInt(-1);
         }
         result.append(snap);
     }
