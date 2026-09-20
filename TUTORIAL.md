@@ -626,7 +626,7 @@ italique, listes, cases à cocher, citations, code, liens, images.
   position de défilement.
 - L'icône est **grisée** tant que l'onglet actif n'est pas un fichier Markdown. Une
   note qui n'est pas encore liée à un fichier n'en est pas un : faites d'abord
-  **Enregistrer sous** avec un nom en `.md` (par exemple `journal.md`).
+  `Ctrl+S`, qui l'enregistre en `.md`, ou **Enregistrer sous** avec un nom en `.md`.
 - Le volet suit l'onglet actif : il disparaît sur un onglet qui n'est pas Markdown
   et réapparaît quand vous revenez sur un onglet Markdown, tant que l'icône reste
   enfoncée. Recliquez sur l'icône pour le masquer.
@@ -639,8 +639,9 @@ italique, listes, cases à cocher, citations, code, liens, images.
 
 1. Créez une note et écrivez `# Mon journal`, une ligne avec du `**gras**`, puis une
    liste avec des `- éléments`.
-2. **Enregistrer sous** (`Ctrl+Maj+S`), nom `journal.md`. La coloration du texte
-   apparaît et l'icône **Aperçu Markdown** devient active.
+2. Faites `Ctrl+S` (la note est enregistrée en `.md`) ou **Enregistrer sous**
+   (`Ctrl+Maj+S`) avec le nom `journal.md`. La coloration du texte apparaît et
+   l'icône **Aperçu Markdown** devient active.
 3. Cliquez dessus : le rendu s'affiche à droite. Modifiez le texte à gauche et
    regardez le rendu suivre.
 
@@ -816,7 +817,8 @@ restaurées au lancement suivant).
 **L'icône « Aperçu Markdown » est grisée.**
 L'onglet actif n'est pas un fichier Markdown. L'aperçu n'est disponible que pour un
 fichier dont l'extension est `.md` ou `.markdown` ; une note qui n'est pas encore liée
-à un fichier n'en est pas un. Faites **Enregistrer sous** avec un nom en `.md`.
+à un fichier n'en est pas un. Faites `Ctrl+S` (qui l'enregistre en `.md`) ou **Enregistrer sous**
+avec un nom en `.md`.
 
 **Comment récupérer le chemin d'un fichier pour le coller ailleurs ?**
 Clic droit sur la note (dans le panneau ou sur son onglet) → **Copier le chemin

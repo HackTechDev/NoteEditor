@@ -22,6 +22,11 @@ implémentées sont documentées dans `README.md` et `FEATURES.md`, pas ici.
 
 - **Recherche plus tolérante** : elle distingue aujourd'hui les accents (« zebulon » ne trouve pas « zébulon »), ne cherche que dans le texte archivé et ne montre pas où le mot a été trouvé ; ignorer les accents et afficher un extrait de la ligne correspondante l'améliorerait.
 
+## Session et fichiers
+
+- **Historique annuler/rétablir à la fermeture d'un onglet** : il n'est mémorisé qu'à la fermeture de l'application ; rouvrir une note fermée depuis « Notes fermées récemment » ou le panneau Brouillons repart d'une pile vide. Le conserver aussi dans ce cas demanderait de purger ces fichiers avec les brouillons.
+- **Extension par défaut réglable** : `Ctrl+S` enregistre désormais en `.md` ; un réglage (`.md` ou `.txt`) conviendrait à qui ne prend pas de notes en Markdown.
+
 ## Fiabilité et code
 
 - **Tests automatisés** : le projet n'a pour l'instant que des vérifications manuelles ponctuelles (des pilotes jetables décrits dans les `CLAUDE.md`) ; les transformer en suites versionnées sécuriserait les évolutions, avec `pytest` (`pytest-qt`) côté Python et QtTest/CTest côté C++.
