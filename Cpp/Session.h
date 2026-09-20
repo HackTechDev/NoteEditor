@@ -71,6 +71,11 @@ QVector<DraftEntry> listDrafts();
 
 QString readDraft(const QString &draftId);
 
+// The most recent draft bound to this file (empty id if none). Opening a file
+// must reuse it rather than mint a new draft, or every open/close cycle of the
+// same file adds another entry to the drafts sidebar.
+DraftEntry findDraftForPath(const QString &filePath);
+
 // A pinned draft can be neither closed nor trashed. Stored in index.json.
 bool isPinned(const QString &draftId);
 void setPinned(const QString &draftId, bool pinned);

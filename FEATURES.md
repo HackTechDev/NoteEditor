@@ -149,6 +149,12 @@ adapter si le dépôt est cloné ailleurs.
   l'onglet ; refuser le conserve.
 - Ouvrir un fichier déjà ouvert bascule sur son onglet au lieu d'en créer un
   second.
+- **Une seule entrée par fichier** dans le panneau Brouillons : rouvrir un fichier
+  déjà ouvert puis fermé auparavant **réutilise son entrée** au lieu d'en créer une
+  nouvelle (l'historique des versions suit). Si cette entrée avait des
+  modifications non enregistrées, on les retrouve ; sinon le contenu est relu depuis
+  le disque. Un double-clic sur une entrée dont le fichier est déjà ouvert dans un
+  autre onglet bascule sur cet onglet.
 
 ## 5. Recherche et remplacement
 

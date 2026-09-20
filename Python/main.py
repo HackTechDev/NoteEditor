@@ -809,6 +809,12 @@ class MainWindow(QMainWindow):
             if self.tabs.widget(i).session_id == entry["id"]:
                 self.tabs.setCurrentIndex(i)
                 return
+        if entry.get("file_path"):
+            # le même fichier est déjà ouvert dans un autre onglet : on y bascule
+            for i in range(self.tabs.count()):
+                if self.tabs.widget(i).file_path == entry["file_path"]:
+                    self.tabs.setCurrentIndex(i)
+                    return
         content = session.read_draft(entry["id"])
         self.new_tab(
             file_path=entry.get("file_path"),
@@ -1199,13 +1205,21 @@ class MainWindow(QMainWindow):
             if w.file_path == path:
                 self.tabs.setCurrentIndex(i)
                 return
+        existing = session.find_draft_for_path(path)
+        if existing is not None and existing["modified"]:
+            # une session précédente de ce fichier a laissé des modifications non
+            # enregistrées : on les retrouve plutôt que de les écraser
+            self._open_draft(existing)
+            return
         try:
             with open(path, "r", encoding="utf-8") as f:
                 content = f.read()
         except OSError as e:
             QMessageBox.critical(self, "Erreur", f"Impossible d'ouvrir le fichier :\n{e}")
             return
-        editor = self.new_tab(file_path=path, content=content)
+        # même identifiant que le brouillon existant du fichier : une seule entrée
+        # par fichier dans le panneau, et l'historique des versions suit
+        editor = self.new_tab(file_path=path, content=content, session_id=existing["id"] if existing else None)
         try:
             editor.disk_mtime = os.path.getmtime(path)
         except OSError:

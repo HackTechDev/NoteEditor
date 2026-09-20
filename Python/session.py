@@ -175,6 +175,16 @@ def list_drafts():
     return items
 
 
+def find_draft_for_path(file_path):
+    """The most recent draft bound to this file, or None. Opening a file must
+    reuse it rather than mint a new draft, or every open/close cycle of the same
+    file adds another entry to the drafts sidebar."""
+    for entry in list_drafts():  # newest first
+        if entry["file_path"] == file_path:
+            return entry
+    return None
+
+
 def read_draft(draft_id):
     path = os.path.join(DRAFTS_DIR, draft_id + ".txt")
     with open(path, "r", encoding="utf-8") as f:

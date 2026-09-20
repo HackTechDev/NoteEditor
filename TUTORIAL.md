@@ -247,6 +247,10 @@ Utilisez-la pour ranger la note ailleurs, par exemple dans vos Documents.
   fichiers jusque dans la fenêtre.
 - Ouvrir un fichier **déjà ouvert** ne crée pas de doublon : l'application
   bascule simplement sur son onglet.
+- Ouvrir de nouveau un fichier que vous aviez **fermé** réutilise sa note dans le
+  panneau Brouillons : il n'y a toujours **qu'une seule entrée par fichier**. Si
+  vous aviez laissé des modifications non enregistrées, vous les retrouvez (l'onglet
+  a son `*`) ; sinon le contenu est relu depuis le disque.
 
 ### La coloration syntaxique
 
@@ -645,6 +649,12 @@ deux fois un fichier existant.
 On ne peut renommer que les notes qui ne sont pas liées à un fichier. Pour une
 note liée à un fichier, renommez le fichier lui-même depuis votre gestionnaire de
 fichiers, ou utilisez **Enregistrer sous**.
+
+**Le même fichier apparaît plusieurs fois dans le panneau Brouillons.**
+Cela venait d'anciennes versions de l'application, qui créaient une nouvelle entrée
+à chaque ouverture d'un fichier fermé entre-temps. Ce n'est plus le cas, mais les
+doublons déjà créés restent : mettez les entrées en trop à la corbeille (clic droit
+→ **Mettre à la corbeille**). Ouvrir le fichier réutilise l'entrée la plus récente.
 
 **Le nom d'une note est coupé dans le panneau Brouillons.**
 Faites défiler le panneau horizontalement, ou élargissez-le en déplaçant le

@@ -240,6 +240,15 @@ QVector<DraftEntry> listDrafts()
     return items;
 }
 
+DraftEntry findDraftForPath(const QString &filePath)
+{
+    for (const DraftEntry &entry : listDrafts()) { // newest first
+        if (entry.filePath == filePath)
+            return entry;
+    }
+    return DraftEntry();
+}
+
 QString readDraft(const QString &draftId)
 {
     QFile f(draftsDir() + "/" + draftId + ".txt");

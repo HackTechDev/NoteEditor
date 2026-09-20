@@ -900,6 +900,16 @@ void MainWindow::openDraft(const Session::DraftEntry &entry)
             return;
         }
     }
+    if (!entry.filePath.isEmpty()) {
+        // le même fichier est déjà ouvert dans un autre onglet : on y bascule
+        for (int i = 0; i < m_tabs->count(); ++i) {
+            auto *editor = qobject_cast<Editor *>(m_tabs->widget(i));
+            if (editor && editor->filePath == entry.filePath) {
+                m_tabs->setCurrentIndex(i);
+                return;
+            }
+        }
+    }
     const QString content = Session::readDraft(entry.id);
     newTab(entry.filePath, content, entry.defaultName, entry.id, entry.modified);
 }
@@ -1347,13 +1357,22 @@ void MainWindow::openPath(const QString &path)
             return;
         }
     }
+    const Session::DraftEntry existing = Session::findDraftForPath(path);
+    if (!existing.id.isEmpty() && existing.modified) {
+        // une session précédente de ce fichier a laissé des modifications non
+        // enregistrées : on les retrouve plutôt que de les écraser
+        openDraft(existing);
+        return;
+    }
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QMessageBox::critical(this, "Erreur", QString("Impossible d'ouvrir le fichier :\n%1").arg(file.errorString()));
         return;
     }
     const QString content = QString::fromUtf8(file.readAll());
-    Editor *editor = newTab(path, content);
+    // même identifiant que le brouillon existant du fichier : une seule entrée
+    // par fichier dans le panneau, et l'historique des versions suit
+    Editor *editor = newTab(path, content, QString(), existing.id);
     editor->diskMTime = QFileInfo(path).lastModified().toMSecsSinceEpoch();
 }
 
