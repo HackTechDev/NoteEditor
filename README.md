@@ -17,17 +17,20 @@ La liste détaillée et complète est dans [`FEATURES.md`](FEATURES.md), et un d
 - Menu contextuel sur les onglets (clic droit) : fermer / fermer les autres / fermer à droite / fermer tout, dupliquer, renommer, historique des versions, mettre à la corbeille (l'onglet se ferme et la note quitte le panneau Brouillons), épingler / détacher
 - Notes épinglées : « Épingler » (menu contextuel d'un onglet ou du panneau Brouillons) bloque la fermeture et la mise à la corbeille de la note, jusqu'à « Détacher » ; une petite punaise s'affiche à gauche de son nom (dans l'onglet, où la croix de fermeture disparaît, et dans le panneau), et l'état est restauré avec la session
 - Numéros de ligne avec surlignage de la ligne courante
-- Coloration syntaxique automatique selon l'extension : Python (`.py`), JSON (`.json`), Markdown (`.md`)
+- Coloration syntaxique automatique selon l'extension : Python (`.py`, `.pyw`), JSON (`.json`), Markdown (`.md`, `.markdown`)
 - Aperçu Markdown en volet séparé pour les fichiers `.md` / `.markdown` (icône de la barre d'outils, désactivée pour les autres onglets) : le rendu, mis à jour en direct pendant la frappe, s'affiche à droite de l'éditeur
 - Recherche / remplacement (`Ctrl+F` / `Ctrl+H`) : suivant, précédent, remplacer, tout remplacer
 - `Ctrl+S` sur un onglet sans fichier associé l'enregistre directement dans `~/.noteeditor/docs/` (sous son nom par défaut), sans ouvrir de boîte de dialogue ; `Ctrl+Shift+S` (Enregistrer sous) permet de choisir un autre emplacement
 - Glisser-déposer un fichier dans la fenêtre pour l'ouvrir dans un nouvel onglet
+- Ouvrir (`Ctrl+O`) : la fenêtre affiche par défaut les fichiers `.txt` et `.md` (avec des filtres séparés et « Tous les fichiers ») ; rouvrir un fichier déjà ouvert auparavant réutilise sa note : une seule entrée par fichier dans le panneau Brouillons, et son historique des versions continue
 - Détection de modification externe : si le fichier ouvert change sur le disque (autre programme), l'appli propose de recharger
-- Panneau « Brouillons » à gauche : liste tous les onglets archivés dans `~/.noteeditor` (ouverts marqués « (ouvert) »), avec recherche, tri (date/nom) et l'entrée de l'onglet actif surlignée ; double-clic pour rouvrir ou basculer dessus, clic droit pour la même palette d'actions que le menu contextuel des onglets (fermer / fermer les autres / fermer à droite / fermer tout, dupliquer, historique des versions), renommer (onglets sans fichier) ou mettre à la corbeille
+- Panneau « Brouillons » à gauche : liste les notes archivées dans `~/.noteeditor` (ouvertes marquées « (ouvert) »), avec recherche, tri (date/nom), l'entrée de l'onglet actif surlignée et, au survol, une infobulle indiquant le chemin du fichier ; double-clic pour rouvrir ou basculer dessus, clic droit pour la même palette d'actions que le menu contextuel des onglets (fermer / fermer les autres / fermer à droite / fermer tout, dupliquer, historique des versions), renommer (onglets sans fichier) ou mettre à la corbeille
 - Fichiers extérieurs à `~/.noteeditor` (ouverts avec Ouvrir) : une fois fermés, ils ne figurent plus dans le panneau Brouillons (leur texte est dans le fichier lui-même), avec une alerte « Enregistrer / Ne pas enregistrer / Annuler » s'ils ont des modifications non enregistrées ; le panneau permet aussi de fermer plusieurs notes d'un coup (sélection multiple)
+- Infobulles : le survol d'une note du panneau ou d'un onglet affiche le chemin complet de son fichier (ou, pour une note sans fichier, l'emplacement de son brouillon), même quand la fenêtre de l'application n'est pas au premier plan
 - Corbeille : la suppression d'un brouillon est réversible (bouton « Corbeille... » avec son icône en bas du panneau Brouillons, ou menu Fichier), avec restauration ou suppression définitive, y compris de plusieurs brouillons à la fois (sélection multiple)
 - Historique des versions (10 dernières) : chaque enregistrement archive le contenu précédent du fichier, consultable et restaurable depuis le menu contextuel d'un onglet (clic droit)
 - Barre d'outils avec icônes Nouveau, Ouvrir, Enregistrer, Enregistrer sous, Fermer l'onglet, Épingler, Détacher, Corbeille, Rechercher, Rechercher / Remplacer, retour à la ligne automatique (activable/désactivable, actif par défaut, s'applique à tous les onglets) et Aperçu Markdown
+- Démarrage automatique : un lanceur `noteeditor.desktop` est fourni dans `Python/` et `Cpp/` (à copier dans `~/.config/autostart/`) ; l'application restaure alors la session au lancement
 - Barre de statut : position ligne/colonne, nombre de mots/caractères et encodage (UTF-8) de l'onglet actif
 - Menu Aide → À propos
 
@@ -84,7 +87,7 @@ Les deux implémentations lisent/écrivent exactement le même format dans `~/.n
 ## Session (`~/.noteeditor`)
 
 - `~/.noteeditor/session.json` : liste des onglets actuellement ouverts (fichier associé, nom par défaut, état modifié, onglet actif)
-- `~/.noteeditor/index.json` : métadonnées de tous les brouillons jamais sauvegardés (pour l'affichage dans le panneau « Brouillons »)
+- `~/.noteeditor/index.json` : métadonnées de tous les brouillons jamais sauvegardés, dont l'état « épinglé » (pour l'affichage dans le panneau « Brouillons »)
 - `~/.noteeditor/drafts/` : contenu de chaque onglet, conservé même après la fermeture de son onglet
 - `~/.noteeditor/docs/` : fichiers réels créés par `Ctrl+S` depuis un onglet sans titre
 - `~/.noteeditor/trash/` et `trash_index.json` : brouillons mis à la corbeille (suppression réversible)
