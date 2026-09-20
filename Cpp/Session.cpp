@@ -124,6 +124,8 @@ static QJsonObject mergedMeta(const QJsonObject &index, const TabSnapshot &info)
     QJsonObject meta = metaToJson(info.filePath, info.defaultName, info.modified);
     if (index.value(info.id).toObject().value("pinned").toBool(false))
         meta["pinned"] = true;
+    if (index.value(info.id).toObject().value("remember").toBool(false))
+        meta["remember"] = true;
     return meta;
 }
 
@@ -246,6 +248,7 @@ QVector<DraftEntry> listDrafts()
         entry.defaultName = fromJsonOrEmpty(meta.value("default_name"));
         entry.modified = meta.contains("modified") ? meta.value("modified").toBool(true) : true;
         entry.pinned = meta.value("pinned").toBool(false);
+        entry.remember = meta.value("remember").toBool(false);
         entry.mtimeMs = fi.lastModified().toMSecsSinceEpoch();
         items.append(entry);
     }
@@ -375,6 +378,23 @@ void setPinned(const QString &draftId, bool pinned)
         entry["pinned"] = true;
     else
         entry.remove("pinned");
+    index[draftId] = entry;
+    writeJsonObject(indexFile(), index);
+}
+
+bool isRemembered(const QString &draftId)
+{
+    return loadJsonObject(indexFile()).value(draftId).toObject().value("remember").toBool(false);
+}
+
+void setRemembered(const QString &draftId, bool remembered)
+{
+    QJsonObject index = loadJsonObject(indexFile());
+    QJsonObject entry = index.value(draftId).toObject();
+    if (remembered)
+        entry["remember"] = true;
+    else
+        entry.remove("remember");
     index[draftId] = entry;
     writeJsonObject(indexFile(), index);
 }

@@ -211,6 +211,7 @@ Faites un **clic droit sur un onglet** :
 | **Fermer à droite** | Ferme les onglets situés à droite de celui-ci |
 | **Fermer tout** | Ferme tous les onglets |
 | **Épingler** / **Détacher** | Bloque ou débloque la fermeture (partie 8) |
+| **Mémoriser à la fermeture** | Case à cocher : une note vide sans fichier sera quand même proposée dans « Notes fermées récemment » |
 | **Dupliquer** | Crée une nouvelle note avec le même texte |
 | **Renommer...** | Change le nom (notes sans fichier associé) |
 | **Historique des versions...** | Affiche les anciennes versions (partie 10) |
@@ -285,6 +286,11 @@ avez fermées**, la plus récente en premier. Cliquez sur l'une d'elles pour la 
 - Laissez la souris sur une entrée pour voir le **chemin** du fichier.
 - Une note rouverte disparaît de la liste (elle est de nouveau ouverte), et une note
   mise à la corbeille aussi. Un fichier supprimé du disque n'est plus proposé.
+- Une note **sans texte et sans fichier** n'y est pas mémorisée : elle n'aurait rien à
+  vous rendre. Si vous voulez quand même la retrouver là, faites un **clic droit** sur
+  son onglet (ou sur elle dans le panneau Brouillons) et cochez **Mémoriser à la
+  fermeture** ; elle sera alors proposée quand vous la fermerez, même vide. Cette
+  case n'a aucun effet pour une note qui contient du texte (toujours mémorisée).
 - **Effacer la liste**, en bas du sous-menu, la vide.
 - La liste est **mémorisée** : vous la retrouvez au lancement suivant. Quitter
   l'application n'y ajoute rien (les onglets ouverts sont restaurés à part).

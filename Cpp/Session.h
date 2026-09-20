@@ -28,6 +28,7 @@ struct DraftEntry {
     QString defaultName;
     bool modified = true;
     bool pinned = false;
+    bool remember = false; // asked to be remembered in the recently-closed list even if empty
     qint64 mtimeMs = 0;
 };
 
@@ -99,6 +100,11 @@ DraftEntry findDraftForPath(const QString &filePath);
 // A pinned draft can be neither closed nor trashed. Stored in index.json.
 bool isPinned(const QString &draftId);
 void setPinned(const QString &draftId, bool pinned);
+
+// True when the note asked to be remembered in the recently-closed list even if
+// it is empty (an empty untitled note is skipped otherwise). Stored in index.json.
+bool isRemembered(const QString &draftId);
+void setRemembered(const QString &draftId, bool remembered);
 
 // Permanently removes a draft (file + index entry), no trash involved.
 void deleteDraft(const QString &draftId);

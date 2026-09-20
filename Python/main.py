@@ -28,7 +28,7 @@ from PyQt6.QtWidgets import (
 )
 
 import session
-from drafts_browser import DraftsBrowser, path_tooltip, pin_pixmap, unpin_pixmap
+from drafts_browser import REMEMBER_TOOLTIP, DraftsBrowser, path_tooltip, pin_pixmap, unpin_pixmap
 from editor_widget import Editor
 from find_replace import FindReplaceDialog
 from trash_dialog import TrashDialog
@@ -1121,6 +1121,11 @@ class MainWindow(QMainWindow):
         close_all_action = menu.addAction("Fermer tout")
         menu.addSeparator()
         pin_action = menu.addAction("Détacher" if editor.pinned else "Épingler")
+        remember_action = menu.addAction("Mémoriser à la fermeture")
+        remember_action.setCheckable(True)
+        remember_action.setChecked(session.is_remembered(editor.session_id))
+        remember_action.setToolTip(REMEMBER_TOOLTIP)
+        menu.setToolTipsVisible(True)
         duplicate_action = menu.addAction("Dupliquer")
         rename_action = menu.addAction("Renommer...") if editor.file_path is None else None
         history_action = menu.addAction("Historique des versions...") if session.list_versions(editor.session_id) else None
@@ -1145,6 +1150,8 @@ class MainWindow(QMainWindow):
             self._close_all_tabs()
         elif chosen == pin_action:
             self._set_pinned(editor.session_id, not editor.pinned)
+        elif chosen == remember_action:
+            session.set_remembered(editor.session_id, not session.is_remembered(editor.session_id))
         elif chosen == duplicate_action:
             self._duplicate_tab(index)
         elif rename_action is not None and chosen == rename_action:
@@ -1555,7 +1562,8 @@ class MainWindow(QMainWindow):
                 }
             )
 
-        if editor.file_path or editor.toPlainText().strip():  # une note vide n'a rien à rouvrir
+        # une note vide sans fichier n'a rien à rouvrir, sauf si elle a demandé à être mémorisée
+        if editor.file_path or editor.toPlainText().strip() or session.is_remembered(editor.session_id):
             session.add_recent(
                 {"id": editor.session_id, "file_path": editor.file_path, "default_name": editor.default_name}
             )

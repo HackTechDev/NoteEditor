@@ -96,6 +96,12 @@ adapter si le dépôt est cloné ailleurs.
   - Renommer (pour les notes qui n'ont pas de fichier associé)
   - Historique des versions (quand des versions existent)
   - Épingler / Détacher (voir ci-dessous)
+  - **Mémoriser à la fermeture** (case à cocher) : pour une note **sans texte** qui n'a
+    pas de fichier, la fait figurer dans « Notes fermées récemment » quand on la ferme
+    (elle n'y serait pas, sinon). L'état est retenu pour la note (d'un lancement à
+    l'autre) ; il est sans effet pour une note qui contient du texte ou qui a un
+    fichier, toujours mémorisée. La même entrée existe dans le menu du panneau
+    Brouillons.
   - **Copier le nom du fichier** et **Copier le chemin complet du fichier** (dans le
     presse-papiers, prêts à coller) : le nom fonctionne pour toute note (nom du fichier,
     ou nom de la note si elle n'a pas de fichier), le chemin n'est disponible que pour
@@ -191,9 +197,11 @@ adapter si le dépôt est cloné ailleurs.
   figurent aussi les **fichiers extérieurs** à `~/.noteeditor`, qui n'apparaissent
   plus dans le panneau Brouillons une fois fermés : c'est le moyen le plus rapide de
   les retrouver. Une note fermée est mémorisée quelle que soit la façon de la fermer
-  (croix, `Ctrl+W`, menus, « Fermer tout »...), sauf quitter l'application, une note
-  vide sans fichier, ou une note mise à la corbeille (elle en est retirée). Une note
-  qui a été rouverte n'y figure plus. Un fichier extérieur est rouvert avec son
+  (croix, `Ctrl+W`, menus, « Fermer tout »...), sauf quitter l'application, ou une
+  note mise à la corbeille (elle en est retirée). Une note **vide sans fichier** n'y
+  est pas mémorisée par défaut (une note sans texte n'a rien à rouvrir) ; l'entrée
+  **Mémoriser à la fermeture** du clic droit (voir ci-dessous) fait exception. Une
+  note qui a été rouverte n'y figure plus. Un fichier extérieur est rouvert avec son
   **contenu actuel sur le disque**, et n'est plus proposé s'il a été supprimé.
   L'entrée **Effacer la liste** la vide ; l'infobulle d'une entrée donne le chemin
   du fichier. La liste est **mémorisée d'un lancement à l'autre**.

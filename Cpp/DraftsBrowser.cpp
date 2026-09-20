@@ -11,6 +11,11 @@
 #include <QPolygon>
 #include <algorithm>
 
+const char *const kRememberTooltip =
+    "Une note vide sans fichier n'est pas proposée dans « Notes fermées récemment » ; "
+    "cochez pour la mémoriser quand même. Sans effet si elle contient du texte : "
+    "elle est alors toujours mémorisée.";
+
 namespace {
 
 constexpr int kPinIconSize = 14;
@@ -266,6 +271,11 @@ void DraftsBrowser::showContextMenu(const QPoint &pos)
     menu.addSeparator();
 
     QAction *pinAction = menu.addAction(isPinned ? "Détacher" : "Épingler");
+    QAction *rememberAction = menu.addAction("Mémoriser à la fermeture");
+    rememberAction->setCheckable(true);
+    rememberAction->setChecked(entry.remember);
+    rememberAction->setToolTip(kRememberTooltip);
+    menu.setToolTipsVisible(true);
     QAction *duplicateAction = menu.addAction("Dupliquer");
     QAction *historyAction = menu.addAction("Historique des versions...");
     historyAction->setEnabled(hasHistory);
@@ -300,6 +310,8 @@ void DraftsBrowser::showContextMenu(const QPoint &pos)
         emit actionRequested("history", entry);
     else if (chosen == pinAction)
         emit actionRequested("toggle_pin", entry);
+    else if (chosen == rememberAction)
+        Session::setRemembered(entry.id, !entry.remember);
     else if (chosen == copyNameAction)
         QApplication::clipboard()->setText(labelFor(entry));
     else if (chosen == copyPathAction)

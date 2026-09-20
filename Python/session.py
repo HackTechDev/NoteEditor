@@ -55,6 +55,8 @@ def _merged_meta(index, info):
     }
     if index.get(info["id"], {}).get("pinned"):
         meta["pinned"] = True
+    if index.get(info["id"], {}).get("remember"):
+        meta["remember"] = True
     return meta
 
 
@@ -70,6 +72,23 @@ def set_pinned(draft_id, pinned):
         entry["pinned"] = True
     else:
         entry.pop("pinned", None)
+    index[draft_id] = entry
+    _save_index(index)
+
+
+def is_remembered(draft_id):
+    """True when the note asked to be remembered in the recently-closed list even
+    if it is empty (an empty untitled note is skipped otherwise)."""
+    return bool(_load_index().get(draft_id, {}).get("remember"))
+
+
+def set_remembered(draft_id, remembered):
+    index = _load_index()
+    entry = index.get(draft_id, {})
+    if remembered:
+        entry["remember"] = True
+    else:
+        entry.pop("remember", None)
     index[draft_id] = entry
     _save_index(index)
 
@@ -172,6 +191,7 @@ def list_drafts():
                 "default_name": meta.get("default_name"),
                 "modified": meta.get("modified", True),
                 "pinned": bool(meta.get("pinned")),
+                "remember": bool(meta.get("remember")),
                 "mtime": mtime,
             }
         )

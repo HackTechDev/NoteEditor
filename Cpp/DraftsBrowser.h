@@ -10,6 +10,9 @@
 #include <QString>
 #include <QVector>
 
+// Explanation shown on the « Mémoriser à la fermeture » context-menu entry.
+extern const char *const kRememberTooltip;
+
 // Tooltip text of a note (sidebar and tab): its file path; for a note without a
 // file, where its draft is stored.
 QString pathTooltip(const QString &filePath, const QString &label, const QString &draftId);

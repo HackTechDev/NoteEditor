@@ -8,6 +8,12 @@ import session
 
 PIN_ICON_SIZE = 14
 
+REMEMBER_TOOLTIP = (
+    "Une note vide sans fichier n'est pas proposée dans « Notes fermées récemment » ; "
+    "cochez pour la mémoriser quand même. Sans effet si elle contient du texte : "
+    "elle est alors toujours mémorisée."
+)
+
 
 def pin_pixmap(size=PIN_ICON_SIZE, color=None):
     """Dessine une petite icône « punaise » : pleine et d'une couleur unie, pour
@@ -243,6 +249,11 @@ class DraftsBrowser(QListWidget):
         menu.addSeparator()
 
         pin_action = menu.addAction("Détacher" if is_pinned else "Épingler")
+        remember_action = menu.addAction("Mémoriser à la fermeture")
+        remember_action.setCheckable(True)
+        remember_action.setChecked(bool(entry.get("remember")))
+        remember_action.setToolTip(REMEMBER_TOOLTIP)
+        menu.setToolTipsVisible(True)
         duplicate_action = menu.addAction("Dupliquer")
         history_action = menu.addAction("Historique des versions...")
         history_action.setEnabled(has_history)
@@ -277,6 +288,8 @@ class DraftsBrowser(QListWidget):
             self.action_requested.emit("history", entry)
         elif chosen == pin_action:
             self.action_requested.emit("toggle_pin", entry)
+        elif chosen == remember_action:
+            session.set_remembered(entry["id"], not entry.get("remember"))
         elif chosen == copy_name_action:
             QApplication.clipboard().setText(self._label_for(entry))
         elif chosen == copy_path_action:

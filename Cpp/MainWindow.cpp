@@ -1263,6 +1263,13 @@ void MainWindow::showTabContextMenu(const QPoint &pos)
     QAction *closeAllAction = menu.addAction("Fermer tout");
     menu.addSeparator();
     QAction *pinAction = editor ? menu.addAction(editor->pinned ? "Détacher" : "Épingler") : nullptr;
+    QAction *rememberAction = editor ? menu.addAction("Mémoriser à la fermeture") : nullptr;
+    if (rememberAction) {
+        rememberAction->setCheckable(true);
+        rememberAction->setChecked(Session::isRemembered(editor->sessionId));
+        rememberAction->setToolTip(kRememberTooltip);
+        menu.setToolTipsVisible(true);
+    }
     QAction *duplicateAction = menu.addAction("Dupliquer");
     QAction *renameAction = (editor && editor->filePath.isEmpty()) ? menu.addAction("Renommer...") : nullptr;
     QAction *historyAction = (editor && !Session::listVersions(editor->sessionId).isEmpty())
@@ -1289,6 +1296,8 @@ void MainWindow::showTabContextMenu(const QPoint &pos)
         closeAllTabs();
     else if (pinAction && chosen == pinAction)
         setPinned(editor->sessionId, !editor->pinned);
+    else if (rememberAction && chosen == rememberAction)
+        Session::setRemembered(editor->sessionId, !Session::isRemembered(editor->sessionId));
     else if (chosen == duplicateAction)
         duplicateTab(index);
     else if (renameAction && chosen == renameAction)
@@ -1760,7 +1769,8 @@ bool MainWindow::closeTab(int index)
         Session::saveDraft(snap);
     }
 
-    if (!editor->filePath.isEmpty() || !editor->toPlainText().trimmed().isEmpty()) { // une note vide n'a rien à rouvrir
+    // une note vide sans fichier n'a rien à rouvrir, sauf si elle a demandé à être mémorisée
+    if (!editor->filePath.isEmpty() || !editor->toPlainText().trimmed().isEmpty() || Session::isRemembered(editor->sessionId)) {
         Session::DraftEntry recent;
         recent.id = editor->sessionId;
         recent.filePath = editor->filePath;
