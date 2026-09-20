@@ -68,6 +68,10 @@ cmake --build build -j"$(nproc)"
 | Rechercher               | Ctrl+F      |
 | Rechercher / Remplacer   | Ctrl+H      |
 | Suivant                  | F3          |
+| Annuler                  | Ctrl+Z      |
+| Rétablir                 | Ctrl+Shift+Z|
+| Couper / Copier / Coller | Ctrl+X / Ctrl+C / Ctrl+V |
+| Tout sélectionner        | Ctrl+A      |
 
 ## Structure du projet
 

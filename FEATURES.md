@@ -142,7 +142,8 @@ adapter si le dépôt est cloné ailleurs.
   - les images et liens relatifs sont résolus depuis le dossier du fichier, et les
     liens externes s'ouvrent dans le navigateur ;
   - l'activation de l'aperçu est mémorisée d'un lancement à l'autre.
-- Annuler / Rétablir, Couper / Copier / Coller, Tout sélectionner (menu Édition).
+- Annuler (`Ctrl+Z`) / Rétablir (`Ctrl+Maj+Z`), Couper / Copier / Coller
+  (`Ctrl+X` / `Ctrl+C` / `Ctrl+V`), Tout sélectionner (`Ctrl+A`), dans le menu Édition.
 
 ## 4. Fichiers
 

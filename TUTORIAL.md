@@ -160,6 +160,11 @@ aussi conservée.
 Ce qui n'est pas retenu : l'historique annuler/rétablir, et la sélection de texte
 (seule la position du curseur l'est).
 
+**À essayer aussi : retrouver sa place.** Collez ou tapez un long texte (une centaine de
+lignes), faites défiler jusqu'au milieu et cliquez sur une ligne, puis quittez et
+relancez l'application : le curseur est sur la même ligne et le texte défilé au
+même endroit, dans chacun de vos onglets.
+
 **Et si l'ordinateur plante ?** Le texte est archivé pendant que vous tapez : au
 pire, vous perdez les toutes dernières secondes. Après un arrêt brutal, la liste
 des onglets rouverts est celle de la dernière fermeture normale, mais **le texte
@@ -723,6 +728,25 @@ doublons déjà créés restent : mettez les entrées en trop à la corbeille (c
 **Le nom d'une note est coupé dans le panneau Brouillons.**
 Faites défiler le panneau horizontalement, ou élargissez-le en déplaçant le
 séparateur. Le nom complet s'affiche aussi dans l'infobulle.
+
+**Mon fichier n'apparaît plus dans le panneau Brouillons après l'avoir fermé.**
+C'est voulu pour un fichier **extérieur à `~/.noteeditor`** (ouvert avec **Ouvrir**) :
+son contenu est dans le fichier lui-même, il n'est donc listé que tant qu'il est
+ouvert. Rouvrez-le avec **Ouvrir** (`Ctrl+O`) ; vous retrouvez la même note et son
+historique des versions. Les notes sans fichier et celles enregistrées dans
+`~/.noteeditor/docs/` restent, elles, toujours dans le panneau.
+
+**Une alerte « Modifications non enregistrées » s'affiche quand je ferme un onglet.**
+Elle concerne un fichier extérieur à `~/.noteeditor` qui a été modifié sans être
+enregistré : **Enregistrer** écrit le fichier puis ferme, **Ne pas enregistrer**
+abandonne les modifications, **Annuler** garde l'onglet ouvert. Elle ne s'affiche pas
+quand vous quittez l'application (les modifications sont alors conservées et
+restaurées au lancement suivant).
+
+**L'icône « Aperçu Markdown » est grisée.**
+L'onglet actif n'est pas un fichier Markdown. L'aperçu n'est disponible que pour un
+fichier dont l'extension est `.md` ou `.markdown` ; une note qui n'est pas encore liée
+à un fichier n'en est pas un. Faites **Enregistrer sous** avec un nom en `.md`.
 
 **J'ai deux versions de l'application, laquelle choisir ?**
 Peu importe : elles font la même chose et partagent vos notes. Utilisez celle qui
