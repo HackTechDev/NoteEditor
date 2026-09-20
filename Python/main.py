@@ -1448,7 +1448,7 @@ class MainWindow(QMainWindow):
             return False
         if editor.file_path is None:
             os.makedirs(session.DOCS_DIR, exist_ok=True)
-            path = os.path.join(session.DOCS_DIR, f"{editor.default_name}.txt")
+            path = os.path.join(session.DOCS_DIR, f"{editor.default_name}.md")
             return self._write_file(editor, path)
         return self._write_file(editor, editor.file_path)
 
@@ -1456,7 +1456,7 @@ class MainWindow(QMainWindow):
         editor = self.current_editor()
         if editor is None:
             return False
-        start = editor.file_path or os.path.join(session.DOCS_DIR, f"{editor.default_name}.txt")
+        start = editor.file_path or os.path.join(session.DOCS_DIR, f"{editor.default_name}.md")
         path, _ = QFileDialog.getSaveFileName(self, "Enregistrer sous", start, FILE_FILTERS, _save_filter_for(start))
         if not path:
             return False

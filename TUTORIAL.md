@@ -237,7 +237,7 @@ façons d'en faire un vrai fichier.
 
 - Sur une **note sans fichier**, `Ctrl+S` l'enregistre **directement**, sans
   aucune boîte de dialogue, dans le dossier `~/.noteeditor/docs/`, sous son nom
-  par défaut avec l'extension `.txt` (par exemple `260919_07352346.txt`). Le nom
+  par défaut avec l'extension `.md` (par exemple `260919_07352346.md`). Le nom
   de l'onglet devient alors celui du fichier.
 - Sur une note **déjà liée à un fichier**, `Ctrl+S` réécrit ce fichier.
 

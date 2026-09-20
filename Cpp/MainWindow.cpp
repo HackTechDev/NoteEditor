@@ -1647,7 +1647,7 @@ bool MainWindow::saveFile()
         return false;
     if (editor->filePath.isEmpty()) {
         QDir().mkpath(Session::docsDir());
-        const QString path = Session::docsDir() + "/" + editor->defaultName + ".txt";
+        const QString path = Session::docsDir() + "/" + editor->defaultName + ".md";
         return writeFile(editor, path);
     }
     return writeFile(editor, editor->filePath);
@@ -1660,7 +1660,7 @@ bool MainWindow::saveFileAs()
         return false;
     const QString start = !editor->filePath.isEmpty()
         ? editor->filePath
-        : Session::docsDir() + "/" + editor->defaultName + ".txt";
+        : Session::docsDir() + "/" + editor->defaultName + ".md";
     QString selectedFilter = saveFilterFor(start);
     const QString path = QFileDialog::getSaveFileName(this, "Enregistrer sous", start, kFileFilters, &selectedFilter);
     if (path.isEmpty())

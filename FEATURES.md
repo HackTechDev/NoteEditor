@@ -177,7 +177,9 @@ adapter si le dépôt est cloné ailleurs.
   **Enregistrer sous** (`Ctrl+Maj+S`), **Fermer l'onglet** (`Ctrl+W`),
   **Quitter** (`Ctrl+Q`).
 - **`Ctrl+S` sur une note sans fichier associé** l'enregistre directement dans
-  `~/.noteeditor/docs/`, sous son nom par défaut, sans ouvrir de boîte de dialogue.
+  `~/.noteeditor/docs/`, sous son nom par défaut avec l'extension `.md` (le fichier est
+  donc un fichier Markdown : coloration et aperçu disponibles), sans ouvrir de boîte de
+  dialogue.
   `Ctrl+Maj+S` permet de choisir un autre emplacement. La fenêtre propose les mêmes
   filtres que « Ouvrir » (texte et Markdown, texte, Markdown, tous les fichiers) et
   s'ouvre sur celui qui correspond au fichier courant.
