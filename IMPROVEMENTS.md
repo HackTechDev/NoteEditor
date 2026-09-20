@@ -17,13 +17,6 @@ implémentées sont documentées dans `README.md` et `FEATURES.md`, pas ici.
 - **Thème sombre**, avec bascule manuelle ou suivi du thème système — les couleurs sont actuellement pensées uniquement pour un fond clair (`highlighters.py`, styles des onglets, aperçu Markdown).
 - **Palette de commandes** (`Ctrl+Maj+P`) pour retrouver rapidement une action sans fouiller les menus.
 
-## Session et fichiers
-
-- **Restaurer aussi la position du curseur et le défilement de chaque onglet** : la restauration de session rend le texte, le fichier associé, l'état modifié, l'onglet actif et la fenêtre, mais pas encore l'endroit exact où l'on travaillait dans chaque note.
-- **Mémoriser les réglages d'affichage** entre deux lancements : le retour automatique à la ligne est réactivé et l'aperçu Markdown masqué à chaque démarrage.
-- **« Enregistrer sous » : filtres Markdown** — la fenêtre « Ouvrir » propose `.txt` et `.md`, mais « Enregistrer sous » n'affiche encore que `.txt`.
-- **Éviter les doublons du panneau Brouillons lors d'un « Enregistrer sous »** vers un chemin qui a déjà une note : seule l'ouverture d'un fichier réutilise aujourd'hui l'entrée existante.
-
 ## Fiabilité et code
 
 - **Tests automatisés** : le projet n'a pour l'instant que des vérifications manuelles ponctuelles (des pilotes jetables décrits dans les `CLAUDE.md`) ; les transformer en suites versionnées sécuriserait les évolutions, avec `pytest` (`pytest-qt`) côté Python et QtTest/CTest côté C++.

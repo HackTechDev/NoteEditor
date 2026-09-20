@@ -101,6 +101,7 @@ private:
     void refreshDraftsBrowser();
     void highlightActiveDraft();
     bool writeFile(Editor *editor, const QString &path);
+    void adoptExistingDraft(Editor *editor, const QString &path);
     QString tabLabel(Editor *editor) const;
     static QString timestampName();
     void restoreSession();

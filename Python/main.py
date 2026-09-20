@@ -296,6 +296,22 @@ def _trash_icon():
     return QIcon(pixmap)
 
 
+FILE_FILTERS = (
+    "Fichiers texte et Markdown (*.txt *.md);;Fichiers texte (*.txt);;"
+    "Fichiers Markdown (*.md);;Tous les fichiers (*)"
+)
+
+
+def _save_filter_for(path):
+    """Filtre initial de « Enregistrer sous » : celui qui montre le fichier courant."""
+    ext = os.path.splitext(path)[1].lower()
+    if ext == ".md":
+        return "Fichiers Markdown (*.md)"
+    if ext in ("", ".txt"):
+        return "Fichiers texte (*.txt)"
+    return "Tous les fichiers (*)"
+
+
 class _CornerToolButton(QToolButton):
     """QToolButton dont le sizeHint force sa taille, pour que QTabWidget le
     dimensionne correctement en widget de coin (il se base sur sizeHint(), pas
@@ -463,6 +479,14 @@ class MainWindow(QMainWindow):
         self._create_menu()
         self._create_toolbar()
         self._create_status_bar()
+
+        # réglages d'affichage mémorisés (les valeurs par défaut sont : retour à la
+        # ligne activé, aperçu Markdown masqué)
+        prefs = window_state or {}
+        if prefs.get("word_wrap") is False:
+            self.word_wrap_action.setChecked(False)
+        if prefs.get("markdown_preview"):
+            self.preview_action.setChecked(True)
 
         self._restore_session()
 
@@ -1182,6 +1206,8 @@ class MainWindow(QMainWindow):
                     editor.disk_mtime = os.path.getmtime(entry["file_path"])
                 except OSError:
                     pass
+            if "cursor" in entry:
+                editor.restore_view(entry["cursor"], entry.get("scroll", 0))
             if entry.get("id") == active_id:
                 active_index = i
         self.tabs.setCurrentIndex(active_index)
@@ -1216,12 +1242,7 @@ class MainWindow(QMainWindow):
         self._highlight_active_draft()
 
     def open_file(self):
-        path, _ = QFileDialog.getOpenFileName(
-            self,
-            "Ouvrir un fichier",
-            "",
-            "Fichiers texte et Markdown (*.txt *.md);;Fichiers texte (*.txt);;Fichiers Markdown (*.md);;Tous les fichiers (*)",
-        )
+        path, _ = QFileDialog.getOpenFileName(self, "Ouvrir un fichier", "", FILE_FILTERS)
         if path:
             self._open_path(path)
 
@@ -1266,12 +1287,37 @@ class MainWindow(QMainWindow):
         if editor is None:
             return False
         start = editor.file_path or os.path.join(session.DOCS_DIR, f"{editor.default_name}.txt")
-        path, _ = QFileDialog.getSaveFileName(self, "Enregistrer sous", start, "Fichiers texte (*.txt);;Tous les fichiers (*)")
+        path, _ = QFileDialog.getSaveFileName(self, "Enregistrer sous", start, FILE_FILTERS, _save_filter_for(start))
         if not path:
             return False
         return self._write_file(editor, path)
 
+    def _adopt_existing_draft(self, editor, path):
+        """Enregistrer (sous) vers un fichier qui a déjà une note fermée : on reprend
+        son identifiant au lieu de créer une seconde entrée pour le même fichier
+        dans le panneau Brouillons (son historique des versions et son état épinglé
+        sont conservés). Si cette note est ouverte dans un autre onglet, on laisse
+        les choses telles quelles."""
+        if path == editor.file_path:
+            return
+        existing = session.find_draft_for_path(path)
+        if existing is None or existing["id"] == editor.session_id:
+            return
+        if self._tab_index_for_id(existing["id"]) is not None:
+            return
+        old_id, new_id = editor.session_id, existing["id"]
+        pinned = editor.pinned or existing["pinned"]
+        session.merge_versions(old_id, new_id)
+        session.delete_draft(old_id)
+        editor.session_id = new_id
+        if pinned != existing["pinned"]:
+            session.set_pinned(new_id, pinned)
+        if pinned != editor.pinned:
+            editor.pinned = pinned
+            self._refresh_tab_button(editor)
+
     def _write_file(self, editor, path):
+        self._adopt_existing_draft(editor, path)
         if os.path.isfile(path):
             try:
                 with open(path, "r", encoding="utf-8") as f:
@@ -1392,6 +1438,8 @@ class MainWindow(QMainWindow):
                 "default_name": self.tabs.widget(i).default_name,
                 "modified": self.tabs.widget(i).document().isModified(),
                 "content": self.tabs.widget(i).toPlainText(),
+                "cursor": self.tabs.widget(i).view_state()[0],
+                "scroll": self.tabs.widget(i).view_state()[1],
             }
             for i in range(self.tabs.count())
         ]
@@ -1409,7 +1457,13 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         self._save_session()
         session.save_window_state(
-            self.width(), self.height(), self.splitter.sizes(), self.x(), self.y()
+            self.width(),
+            self.height(),
+            self.splitter.sizes(),
+            self.x(),
+            self.y(),
+            word_wrap=self.word_wrap_action.isChecked(),
+            markdown_preview=self.preview_action.isChecked(),
         )
         event.accept()
 

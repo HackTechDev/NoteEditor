@@ -32,10 +32,14 @@ pose jamais la question « Enregistrer les modifications ? », et rien n'est per
 - **La position du séparateur** entre le panneau Brouillons et la zone d'édition.
 - **L'état « épinglé »** des notes (voir la section Onglets) : une note épinglée le
   reste d'un lancement à l'autre.
+- **La position du curseur et le défilement de chaque onglet** : on reprend
+  exactement là où l'on travaillait dans chaque note, y compris dans les onglets
+  qu'on n'avait pas encore réaffichés depuis le lancement.
+- **Les réglages d'affichage** : le **retour automatique à la ligne** (activé ou non)
+  et l'**aperçu Markdown** (activé ou non).
 
-Ne sont pas restaurés : la position du curseur dans chaque onglet, l'historique
-annuler/rétablir, et l'état de l'option de retour à la ligne (activée à chaque
-lancement).
+Ne sont pas restaurés : l'historique annuler/rétablir et la sélection de texte (seule
+la position du curseur l'est).
 
 ### Comment c'est garanti
 
@@ -123,7 +127,7 @@ adapter si le dépôt est cloné ailleurs.
   Elle se met à jour quand l'extension change (Enregistrer sous). Les couleurs sont
   prévues pour un fond clair.
 - **Retour automatique à la ligne**, activable et désactivable depuis la barre
-  d'outils (activé par défaut, appliqué à tous les onglets).
+  d'outils (activé par défaut, appliqué à tous les onglets, réglage mémorisé).
 - **Aperçu Markdown** en volet séparé, à droite de l'éditeur, pour les fichiers
   `.md` et `.markdown` :
   - il s'active avec l'icône **Aperçu Markdown** de la barre d'outils, qui n'est
@@ -137,7 +141,7 @@ adapter si le dépôt est cloné ailleurs.
     Markdown et revient sur un onglet Markdown, tant que l'icône est activée ;
   - les images et liens relatifs sont résolus depuis le dossier du fichier, et les
     liens externes s'ouvrent dans le navigateur ;
-  - le volet est masqué à chaque lancement.
+  - l'activation de l'aperçu est mémorisée d'un lancement à l'autre.
 - Annuler / Rétablir, Couper / Copier / Coller, Tout sélectionner (menu Édition).
 
 ## 4. Fichiers
@@ -148,7 +152,14 @@ adapter si le dépôt est cloné ailleurs.
   **Quitter** (`Ctrl+Q`).
 - **`Ctrl+S` sur une note sans fichier associé** l'enregistre directement dans
   `~/.noteeditor/docs/`, sous son nom par défaut, sans ouvrir de boîte de dialogue.
-  `Ctrl+Maj+S` permet de choisir un autre emplacement.
+  `Ctrl+Maj+S` permet de choisir un autre emplacement. La fenêtre propose les mêmes
+  filtres que « Ouvrir » (texte et Markdown, texte, Markdown, tous les fichiers) et
+  s'ouvre sur celui qui correspond au fichier courant.
+- **Enregistrer sous vers un fichier qui a déjà une note** (fermée) reprend cette note
+  au lieu d'en créer une seconde : **une seule entrée** dans le panneau Brouillons, son
+  historique des versions et son état épinglé sont conservés et fusionnés avec ceux de
+  la note enregistrée. Si le fichier est déjà ouvert dans un autre onglet, rien n'est
+  fusionné.
 - **Glisser-déposer** d'un fichier dans la fenêtre pour l'ouvrir dans un nouvel
   onglet.
 - **Détection des modifications externes** : si un fichier ouvert est modifié sur
@@ -257,13 +268,13 @@ Pour l'onglet actif : **ligne et colonne** du curseur, **nombre de mots** et de
 
 | Élément | Rôle |
 |---|---|
-| `session.json` | Onglets ouverts et onglet actif (lu au lancement, réécrit à la fermeture) |
+| `session.json` | Onglets ouverts, onglet actif, position du curseur et défilement de chaque onglet (lu au lancement, réécrit à la fermeture) |
 | `index.json` | Métadonnées de toutes les notes archivées, dont l'état « épinglé » (alimente le panneau Brouillons) |
 | `drafts/` | Texte de chaque note, conservé même après la fermeture de son onglet |
 | `docs/` | Fichiers réels créés par `Ctrl+S` depuis une note sans fichier associé |
 | `trash/` et `trash_index.json` | Notes mises à la corbeille |
 | `versions/<id>/` | Les 10 dernières versions de chaque fichier |
-| `window.json` | Taille et position de la fenêtre, position du séparateur du panneau |
+| `window.json` | Taille et position de la fenêtre, position du séparateur du panneau, réglages d'affichage (retour à la ligne, aperçu Markdown) |
 
 Chaque note est identifiée par un identifiant unique (UUID) : c'est lui, et non le
 nom ou l'ordre des onglets, qui relie l'onglet, son texte archivé et son entrée

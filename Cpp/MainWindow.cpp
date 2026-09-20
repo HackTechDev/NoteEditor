@@ -53,6 +53,20 @@
 
 namespace {
 
+const char *const kFileFilters =
+    "Fichiers texte et Markdown (*.txt *.md);;Fichiers texte (*.txt);;Fichiers Markdown (*.md);;Tous les fichiers (*)";
+
+// Filtre initial de « Enregistrer sous » : celui qui montre le fichier courant.
+QString saveFilterFor(const QString &path)
+{
+    const QString ext = QFileInfo(path).suffix().toLower();
+    if (ext == "md")
+        return "Fichiers Markdown (*.md)";
+    if (ext.isEmpty() || ext == "txt")
+        return "Fichiers texte (*.txt)";
+    return "Tous les fichiers (*)";
+}
+
 void styleNewTabButton(QToolButton *button)
 {
     button->setText("+");
@@ -494,6 +508,13 @@ MainWindow::MainWindow(QWidget *parent)
     createMenu();
     createToolBar();
     createStatusBar();
+
+    // réglages d'affichage mémorisés (les valeurs par défaut sont : retour à la
+    // ligne activé, aperçu Markdown masqué)
+    if (windowState.hasWordWrap && !windowState.wordWrap)
+        m_wordWrapAction->setChecked(false);
+    if (windowState.hasMarkdownPreview && windowState.markdownPreview)
+        m_previewAction->setChecked(true);
 
     restoreSession();
 }
@@ -1271,6 +1292,8 @@ void MainWindow::restoreSession()
         Editor *editor = newTab(entry.filePath, entry.content, entry.defaultName, entry.id, entry.modified);
         if (!entry.filePath.isEmpty() && QFileInfo::exists(entry.filePath))
             editor->diskMTime = QFileInfo(entry.filePath).lastModified().toMSecsSinceEpoch();
+        if (entry.cursor >= 0)
+            editor->restoreView(entry.cursor, entry.scroll);
         if (entry.id == activeId)
             activeIndex = i;
     }
@@ -1375,9 +1398,7 @@ void MainWindow::updateTitle()
 
 void MainWindow::openFile()
 {
-    const QString path = QFileDialog::getOpenFileName(
-        this, "Ouvrir un fichier", QString(),
-        "Fichiers texte et Markdown (*.txt *.md);;Fichiers texte (*.txt);;Fichiers Markdown (*.md);;Tous les fichiers (*)");
+    const QString path = QFileDialog::getOpenFileName(this, "Ouvrir un fichier", QString(), kFileFilters);
     if (!path.isEmpty())
         openPath(path);
 }
@@ -1431,15 +1452,43 @@ bool MainWindow::saveFileAs()
     const QString start = !editor->filePath.isEmpty()
         ? editor->filePath
         : Session::docsDir() + "/" + editor->defaultName + ".txt";
-    const QString path = QFileDialog::getSaveFileName(this, "Enregistrer sous", start,
-                                                        "Fichiers texte (*.txt);;Tous les fichiers (*)");
+    QString selectedFilter = saveFilterFor(start);
+    const QString path = QFileDialog::getSaveFileName(this, "Enregistrer sous", start, kFileFilters, &selectedFilter);
     if (path.isEmpty())
         return false;
     return writeFile(editor, path);
 }
 
+// Enregistrer (sous) vers un fichier qui a déjà une note fermée : on reprend son
+// identifiant au lieu de créer une seconde entrée pour le même fichier dans le
+// panneau Brouillons (son historique des versions et son état épinglé sont
+// conservés). Si cette note est ouverte dans un autre onglet, on laisse les
+// choses telles quelles.
+void MainWindow::adoptExistingDraft(Editor *editor, const QString &path)
+{
+    if (path == editor->filePath)
+        return;
+    const Session::DraftEntry existing = Session::findDraftForPath(path);
+    if (existing.id.isEmpty() || existing.id == editor->sessionId)
+        return;
+    if (tabIndexForId(existing.id) != -1)
+        return;
+    const QString oldId = editor->sessionId;
+    const bool pinned = editor->pinned || existing.pinned;
+    Session::mergeVersions(oldId, existing.id);
+    Session::deleteDraft(oldId);
+    editor->sessionId = existing.id;
+    if (pinned != existing.pinned)
+        Session::setPinned(existing.id, pinned);
+    if (pinned != editor->pinned) {
+        editor->pinned = pinned;
+        refreshTabButton(editor);
+    }
+}
+
 bool MainWindow::writeFile(Editor *editor, const QString &path)
 {
+    adoptExistingDraft(editor, path);
     if (QFileInfo::exists(path)) {
         QFile previous(path);
         if (previous.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -1567,6 +1616,7 @@ void MainWindow::saveSessionToDisk()
         snap.defaultName = editor->defaultName;
         snap.modified = editor->document()->isModified();
         snap.content = editor->toPlainText();
+        editor->viewState(&snap.cursor, &snap.scroll);
         tabsInfo.append(snap);
     }
     Editor *activeEditor = currentEditor();
@@ -1577,7 +1627,8 @@ void MainWindow::saveSessionToDisk()
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     saveSessionToDisk();
-    Session::saveWindowState(width(), height(), m_splitter->sizes(), x(), y());
+    Session::saveWindowState(width(), height(), m_splitter->sizes(), x(), y(), m_wordWrapAction->isChecked(),
+                             m_previewAction->isChecked());
     event->accept();
 }
 

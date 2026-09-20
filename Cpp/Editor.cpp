@@ -3,6 +3,8 @@
 #include <QFont>
 #include <QFontMetrics>
 #include <QPainter>
+#include <QScrollBar>
+#include <QShowEvent>
 #include <QTextBlock>
 #include <QTextEdit>
 
@@ -74,6 +76,34 @@ void Editor::resizeEvent(QResizeEvent *event)
     QPlainTextEdit::resizeEvent(event);
     const QRect cr = contentsRect();
     m_lineNumberArea->setGeometry(QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
+}
+
+void Editor::restoreView(int cursor, int scroll)
+{
+    QTextCursor c = textCursor();
+    c.setPosition(qBound(0, cursor, qMax(0, document()->characterCount() - 1)));
+    setTextCursor(c);
+    m_pendingScroll = scroll > 0 ? scroll : -1;
+}
+
+void Editor::viewState(int *cursor, int *scroll) const
+{
+    *cursor = textCursor().position();
+    *scroll = m_pendingScroll >= 0 ? m_pendingScroll : verticalScrollBar()->value();
+}
+
+void Editor::showEvent(QShowEvent *event)
+{
+    QPlainTextEdit::showEvent(event);
+    if (m_pendingScroll >= 0) {
+        QTimer::singleShot(0, this, [this] {
+            if (m_pendingScroll >= 0) {
+                const int value = m_pendingScroll;
+                m_pendingScroll = -1;
+                verticalScrollBar()->setValue(value);
+            }
+        });
+    }
 }
 
 void Editor::lineNumberAreaPaintEvent(QPaintEvent *event)

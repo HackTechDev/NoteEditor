@@ -16,6 +16,8 @@ struct TabSnapshot {
     QString defaultName; // empty == not applicable (has a real filePath)
     bool modified = false;
     QString content;
+    int cursor = -1; // -1 == unknown (not written to session.json)
+    int scroll = 0;
 };
 
 // Metadata only (no content), as read back from index.json / session.json
@@ -46,6 +48,10 @@ struct WindowState {
     int x = 0;
     int y = 0;
     bool hasPosition = false; // false for a window.json saved before x/y existed
+    bool hasWordWrap = false;
+    bool wordWrap = true;
+    bool hasMarkdownPreview = false;
+    bool markdownPreview = false;
     bool valid = false;
 };
 
@@ -110,11 +116,17 @@ void saveVersion(const QString &draftId, const QString &content);
 // Timestamps (newest first) of the saved versions kept for a tab.
 QStringList listVersions(const QString &draftId);
 
+// Moves the saved versions of one draft under another id (the newest
+// kMaxVersions are kept) — used when a note adopts the id of an existing note
+// for the same file.
+void mergeVersions(const QString &fromId, const QString &toId);
+
 QString readVersion(const QString &draftId, const QString &stamp);
 
-// Persists the window size, screen position and sidebar-splitter position
-// across launches.
-void saveWindowState(int width, int height, const QList<int> &splitterSizes, int x, int y);
+// Persists the window size, screen position, sidebar-splitter position and
+// display settings (word wrap, Markdown preview) across launches.
+void saveWindowState(int width, int height, const QList<int> &splitterSizes, int x, int y, bool wordWrap,
+                     bool markdownPreview);
 
 WindowState loadWindowState();
 

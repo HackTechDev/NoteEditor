@@ -148,14 +148,17 @@ Vous retrouvez :
 - **l'onglet actif** : vous êtes de nouveau sur la deuxième note ;
 - **la taille et la position de la fenêtre**, et la position du séparateur du
   panneau Brouillons ;
-- l'**état « épinglé »** de vos notes (voir la [partie 8](#8-épingler-une-note)).
+- l'**état « épinglé »** de vos notes (voir la [partie 8](#8-épingler-une-note)) ;
+- **la position du curseur et le défilement** de chaque note : vous reprenez là où
+  vous vous étiez arrêté ;
+- **vos réglages d'affichage** : retour automatique à la ligne et aperçu Markdown.
 
 Si une note a des modifications non enregistrées dans son fichier, son nom
 commence par une étoile `*` (par exemple `*rapport.txt`). Cette étoile est elle
 aussi conservée.
 
-Ce qui n'est pas retenu : la position du curseur dans chaque note, l'historique
-annuler/rétablir, et l'option de retour à la ligne (activée à chaque lancement).
+Ce qui n'est pas retenu : l'historique annuler/rétablir, et la sélection de texte
+(seule la position du curseur l'est).
 
 **Et si l'ordinateur plante ?** Le texte est archivé pendant que vous tapez : au
 pire, vous perdez les toutes dernières secondes. Après un arrêt brutal, la liste
@@ -230,7 +233,14 @@ façons d'en faire un vrai fichier.
 ### Enregistrer sous (`Ctrl+Maj+S`)
 
 Ouvre la fenêtre habituelle pour **choisir l'emplacement et le nom** du fichier.
-Utilisez-la pour ranger la note ailleurs, par exemple dans vos Documents.
+Utilisez-la pour ranger la note ailleurs, par exemple dans vos Documents. Comme pour
+**Ouvrir**, la liste des types de fichiers propose **texte et Markdown**, **texte**,
+**Markdown** et **Tous les fichiers**, et s'ouvre sur celui qui correspond au fichier
+en cours (par exemple « Fichiers Markdown » pour un `.md`).
+
+Si vous enregistrez sous le nom d'un fichier dont vous aviez déjà une note (fermée),
+l'application **reprend cette note** : il n'y a toujours qu'une seule entrée pour ce
+fichier dans le panneau Brouillons, et son historique des versions est conservé.
 
 **À essayer**
 
@@ -531,8 +541,7 @@ est la même, avec le champ **Remplacer par :** :
 L'icône **Retour automatique à la ligne** (à droite de la barre d'outils) fait
 passer les longues lignes à la ligne suivante au lieu de dépasser de la fenêtre.
 Elle est **activée par défaut** ; cliquez dessus pour la désactiver. Le réglage
-s'applique à **tous** les onglets, mais il est de nouveau activé à chaque
-lancement.
+s'applique à **tous** les onglets et il est **mémorisé** d'un lancement à l'autre.
 
 ### Aperçu Markdown
 
@@ -551,7 +560,8 @@ italique, listes, cases à cocher, citations, code, liens, images.
   enfoncée. Recliquez sur l'icône pour le masquer.
 - Les images et liens relatifs (`![](image.png)`) sont cherchés dans le dossier du
   fichier ; les liens vers le web s'ouvrent dans votre navigateur.
-- Le volet est masqué à chaque lancement de l'application.
+- Le fait d'avoir activé l'aperçu est mémorisé : au lancement suivant, le volet
+  réapparaît dès qu'un onglet Markdown est affiché.
 
 **À essayer**
 
@@ -621,13 +631,13 @@ pour l'afficher).
 
 | Élément | Contenu |
 |---|---|
-| `session.json` | Les onglets ouverts et l'onglet actif |
+| `session.json` | Les onglets ouverts, l'onglet actif, et le curseur et le défilement de chacun |
 | `index.json` | La liste de toutes vos notes (nom, fichier associé, état épinglé) |
 | `drafts/` | Le **texte** de chacune de vos notes, un fichier par note |
 | `docs/` | Les fichiers créés par `Ctrl+S` sur une note sans fichier |
 | `trash/` et `trash_index.json` | Les notes mises à la corbeille |
 | `versions/` | Les 10 dernières versions de chaque fichier |
-| `window.json` | La taille et la position de la fenêtre, et du séparateur |
+| `window.json` | La taille et la position de la fenêtre, du séparateur, et vos réglages d'affichage |
 
 **Sauvegarder vos notes** : copiez simplement le dossier `~/.noteeditor` sur une
 clé USB ou un autre disque. Pour les retrouver sur une autre machine, copiez-le

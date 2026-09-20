@@ -132,6 +132,11 @@ void saveSession(const QVector<TabSnapshot> &tabs, const QString &activeId)
 
         QJsonObject entry = metaToJson(info.filePath, info.defaultName, info.modified);
         entry["id"] = info.id;
+        if (info.cursor >= 0) {
+            // où l'on travaillait dans la note (session.json seulement, pas index.json)
+            entry["cursor"] = info.cursor;
+            entry["scroll"] = info.scroll;
+        }
         entries.append(entry);
 
         index[info.id] = mergedMeta(index, info);
@@ -187,6 +192,10 @@ QVector<TabSnapshot> loadSession(QString *activeId)
         snap.defaultName = fromJsonOrEmpty(entry.value("default_name"));
         snap.modified = entry.value("modified").toBool(false);
         snap.content = content;
+        if (entry.contains("cursor")) {
+            snap.cursor = entry.value("cursor").toInt(-1);
+            snap.scroll = entry.value("scroll").toInt(0);
+        }
         result.append(snap);
     }
     return result;
@@ -372,16 +381,36 @@ void purgeDraft(const QString &draftId)
     }
 }
 
+static void pruneVersions(const QString &draftId)
+{
+    const QString dir = versionsDir() + "/" + draftId;
+    QStringList names = QDir(dir).entryList(QStringList() << "*.txt", QDir::Files, QDir::Name | QDir::Reversed);
+    for (int i = kMaxVersions; i < names.size(); ++i)
+        QFile::remove(dir + "/" + names[i]);
+}
+
 void saveVersion(const QString &draftId, const QString &content)
 {
     const QString dir = versionsDir() + "/" + draftId;
     QDir().mkpath(dir);
     const QString stamp = QDateTime::currentDateTime().toString("yyyyMMddTHHmmsszzz");
     writeTextFile(dir + "/" + stamp + ".txt", content);
+    pruneVersions(draftId);
+}
 
-    QStringList names = QDir(dir).entryList(QStringList() << "*.txt", QDir::Files, QDir::Name | QDir::Reversed);
-    for (int i = kMaxVersions; i < names.size(); ++i)
-        QFile::remove(dir + "/" + names[i]);
+void mergeVersions(const QString &fromId, const QString &toId)
+{
+    const QString src = versionsDir() + "/" + fromId;
+    if (!QDir(src).exists())
+        return;
+    const QString dst = versionsDir() + "/" + toId;
+    QDir().mkpath(dst);
+    for (const QString &name : QDir(src).entryList(QDir::Files)) {
+        QFile::remove(dst + "/" + name);
+        QFile::rename(src + "/" + name, dst + "/" + name);
+    }
+    QDir().rmdir(src);
+    pruneVersions(toId);
 }
 
 QStringList listVersions(const QString &draftId)
@@ -404,7 +433,8 @@ QString readVersion(const QString &draftId, const QString &stamp)
     return QString::fromUtf8(f.readAll());
 }
 
-void saveWindowState(int width, int height, const QList<int> &splitterSizes, int x, int y)
+void saveWindowState(int width, int height, const QList<int> &splitterSizes, int x, int y, bool wordWrap,
+                     bool markdownPreview)
 {
     QDir().mkpath(configDir());
     QJsonObject obj;
@@ -416,6 +446,8 @@ void saveWindowState(int width, int height, const QList<int> &splitterSizes, int
     obj["splitter_sizes"] = sizesArray;
     obj["x"] = x;
     obj["y"] = y;
+    obj["word_wrap"] = wordWrap;
+    obj["markdown_preview"] = markdownPreview;
     writeJsonObject(windowFile(), obj);
 }
 
@@ -439,6 +471,10 @@ WindowState loadWindowState()
         state.x = obj.value("x").toInt(0);
         state.y = obj.value("y").toInt(0);
     }
+    state.hasWordWrap = obj.contains("word_wrap");
+    state.wordWrap = obj.value("word_wrap").toBool(true);
+    state.hasMarkdownPreview = obj.contains("markdown_preview");
+    state.markdownPreview = obj.value("markdown_preview").toBool(false);
     state.valid = state.width > 0 && state.height > 0;
     return state;
 }

@@ -9,7 +9,7 @@
 
 La liste détaillée et complète est dans [`FEATURES.md`](FEATURES.md), et un didacticiel pas à pas pour apprendre à utiliser le logiciel dans [`TUTORIAL.md`](TUTORIAL.md). En résumé :
 
-- Session persistante : à la fermeture, tous les onglets (contenu, fichier associé, état modifié, onglet actif) sont sauvegardés automatiquement dans `~/.noteeditor` et restaurés tels quels au prochain lancement, ainsi que la taille et la position de la fenêtre sur l'écran (ignorée si elle n'est plus visible, p. ex. écran débranché) et la position du séparateur du panneau latéral
+- Session persistante : à la fermeture, tous les onglets (contenu, fichier associé, état modifié, onglet actif) sont sauvegardés automatiquement dans `~/.noteeditor` et restaurés tels quels au prochain lancement (avec la position du curseur et le défilement de chaque onglet, et les réglages d'affichage : retour à la ligne, aperçu Markdown), ainsi que la taille et la position de la fenêtre sur l'écran (ignorée si elle n'est plus visible, p. ex. écran débranché) et la position du séparateur du panneau latéral
 - Chaque onglet est archivé dans `~/.noteeditor` dès sa création, et à nouveau en continu pendant la frappe (1,5s après la dernière touche), à sa fermeture (croix ou Ctrl+W, sans confirmation pour une note interne ; pour un fichier extérieur à `~/.noteeditor`, une alerte s'affiche s'il a des modifications non enregistrées) et à la fermeture de l'appli
 - Onglets multiples (fermables, réordonnables), onglet actif bien visible
 - Bouton **+** pour créer un nouvel onglet, collé juste après le dernier onglet (style Gedit) ; se déplace automatiquement à côté des flèches de défilement quand les onglets débordent de la largeur disponible
@@ -22,7 +22,7 @@ La liste détaillée et complète est dans [`FEATURES.md`](FEATURES.md), et un d
 - Recherche / remplacement (`Ctrl+F` / `Ctrl+H`) : suivant, précédent, remplacer, tout remplacer
 - `Ctrl+S` sur un onglet sans fichier associé l'enregistre directement dans `~/.noteeditor/docs/` (sous son nom par défaut), sans ouvrir de boîte de dialogue ; `Ctrl+Shift+S` (Enregistrer sous) permet de choisir un autre emplacement
 - Glisser-déposer un fichier dans la fenêtre pour l'ouvrir dans un nouvel onglet
-- Ouvrir (`Ctrl+O`) : la fenêtre affiche par défaut les fichiers `.txt` et `.md` (avec des filtres séparés et « Tous les fichiers ») ; rouvrir un fichier déjà ouvert auparavant réutilise sa note : une seule entrée par fichier dans le panneau Brouillons, et son historique des versions continue
+- Ouvrir (`Ctrl+O`) et Enregistrer sous : les fenêtres proposent les fichiers `.txt` et `.md` (avec des filtres séparés et « Tous les fichiers ») ; enregistrer sous le nom d'un fichier qui a déjà une note fermée reprend cette note (pas de doublon dans le panneau) ; rouvrir un fichier déjà ouvert auparavant réutilise sa note : une seule entrée par fichier dans le panneau Brouillons, et son historique des versions continue
 - Détection de modification externe : si le fichier ouvert change sur le disque (autre programme), l'appli propose de recharger
 - Panneau « Brouillons » à gauche : liste les notes archivées dans `~/.noteeditor` (ouvertes marquées « (ouvert) »), avec recherche, tri (date/nom), l'entrée de l'onglet actif surlignée et, au survol, une infobulle indiquant le chemin du fichier ; double-clic pour rouvrir ou basculer dessus, clic droit pour la même palette d'actions que le menu contextuel des onglets (fermer / fermer les autres / fermer à droite / fermer tout, dupliquer, historique des versions), renommer (onglets sans fichier) ou mettre à la corbeille
 - Fichiers extérieurs à `~/.noteeditor` (ouverts avec Ouvrir) : une fois fermés, ils ne figurent plus dans le panneau Brouillons (leur texte est dans le fichier lui-même), avec une alerte « Enregistrer / Ne pas enregistrer / Annuler » s'ils ont des modifications non enregistrées ; le panneau permet aussi de fermer plusieurs notes d'un coup (sélection multiple)
@@ -86,12 +86,12 @@ Les deux implémentations lisent/écrivent exactement le même format dans `~/.n
 
 ## Session (`~/.noteeditor`)
 
-- `~/.noteeditor/session.json` : liste des onglets actuellement ouverts (fichier associé, nom par défaut, état modifié, onglet actif)
+- `~/.noteeditor/session.json` : liste des onglets actuellement ouverts (fichier associé, nom par défaut, état modifié, position du curseur et défilement, onglet actif)
 - `~/.noteeditor/index.json` : métadonnées de tous les brouillons jamais sauvegardés, dont l'état « épinglé » (pour l'affichage dans le panneau « Brouillons »)
 - `~/.noteeditor/drafts/` : contenu de chaque onglet, conservé même après la fermeture de son onglet
 - `~/.noteeditor/docs/` : fichiers réels créés par `Ctrl+S` depuis un onglet sans titre
 - `~/.noteeditor/trash/` et `trash_index.json` : brouillons mis à la corbeille (suppression réversible)
 - `~/.noteeditor/versions/<id>/` : les 10 dernières versions d'un fichier avant chaque écrasement par un enregistrement
-- `~/.noteeditor/window.json` : taille et position de la fenêtre, position du séparateur du panneau latéral, restaurées au lancement suivant
+- `~/.noteeditor/window.json` : taille et position de la fenêtre, position du séparateur du panneau latéral, réglages d'affichage (retour à la ligne, aperçu Markdown), restaurés au lancement suivant
 
 Cette copie de secours n'écrase jamais le fichier d'origine sur le disque : seul un `Enregistrer` explicite (`Ctrl+S`) modifie le fichier réel (que ce soit dans `~/.noteeditor/docs/` pour un onglet sans titre, ou à l'emplacement d'origine pour un fichier ouvert ailleurs). Les brouillons ne sont supprimés que manuellement, depuis le panneau latéral (et ne le sont alors que déplacés vers la corbeille).

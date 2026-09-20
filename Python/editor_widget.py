@@ -31,6 +31,7 @@ class Editor(QPlainTextEdit):
         self.highlighter = None
         self.session_id = uuid.uuid4().hex
         self.disk_mtime = None
+        self._pending_scroll = None
 
         font = QFont("Monospace")
         font.setStyleHint(QFont.StyleHint.TypeWriter)
@@ -51,6 +52,30 @@ class Editor(QPlainTextEdit):
 
         self.update_line_number_area_width()
         self.highlight_current_line()
+
+    def restore_view(self, cursor, scroll):
+        """Replace le curseur, et programme le défilement : la barre de défilement
+        n'a pas encore sa plage tant que l'onglet n'a jamais été affiché."""
+        doc_cursor = self.textCursor()
+        doc_cursor.setPosition(max(0, min(int(cursor), self.document().characterCount() - 1)))
+        self.setTextCursor(doc_cursor)
+        self._pending_scroll = int(scroll) if scroll else None
+
+    def view_state(self):
+        """(position du curseur, défilement) ; le défilement programmé mais pas
+        encore appliqué (onglet jamais affiché depuis la restauration) prime."""
+        scroll = self._pending_scroll if self._pending_scroll is not None else self.verticalScrollBar().value()
+        return self.textCursor().position(), scroll
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        if self._pending_scroll is not None:
+            QTimer.singleShot(0, self._apply_pending_scroll)
+
+    def _apply_pending_scroll(self):
+        if self._pending_scroll is not None:
+            value, self._pending_scroll = self._pending_scroll, None
+            self.verticalScrollBar().setValue(value)
 
     def line_number_area_width(self):
         digits = len(str(max(1, self.blockCount())))

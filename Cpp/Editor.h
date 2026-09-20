@@ -10,6 +10,7 @@
 
 class QPaintEvent;
 class QResizeEvent;
+class QShowEvent;
 class Editor;
 
 constexpr int kAutosaveDelayMs = 1500;
@@ -40,6 +41,13 @@ public:
 
     void setFilePath(const QString &path);
 
+    // Replace le curseur et programme le défilement : la barre de défilement n'a
+    // pas encore sa plage tant que l'onglet n'a jamais été affiché.
+    void restoreView(int cursor, int scroll);
+    // Position du curseur et défilement ; le défilement programmé mais pas encore
+    // appliqué (onglet jamais affiché depuis la restauration) prime.
+    void viewState(int *cursor, int *scroll) const;
+
     int lineNumberAreaWidth() const;
     void lineNumberAreaPaintEvent(QPaintEvent *event);
 
@@ -49,6 +57,7 @@ public:
     bool pinned = false; // mirrors index.json, see Session::isPinned()
     qint64 diskMTime = -1; // -1 == unknown / not tracked yet
 
+
 signals:
     // Fired ~1.5s after the last keystroke, while still unsaved. MainWindow
     // uses this to archive the draft continuously, not just on tab
@@ -57,6 +66,7 @@ signals:
 
 protected:
     void resizeEvent(QResizeEvent *event) override;
+    void showEvent(QShowEvent *event) override;
 
 private slots:
     void updateLineNumberAreaWidth();
@@ -68,4 +78,5 @@ private:
     QSyntaxHighlighter *m_highlighter = nullptr;
     HighlighterKind m_highlighterKind = HighlighterKind::None;
     QTimer *m_autosaveTimer;
+    int m_pendingScroll = -1; // -1 == nothing to apply
 };

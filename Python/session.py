@@ -81,14 +81,17 @@ def save_session(tabs_info, active_id=None):
         draft_path = os.path.join(DRAFTS_DIR, info["id"] + ".txt")
         with open(draft_path, "w", encoding="utf-8") as f:
             f.write(info["content"])
-        entries.append(
-            {
-                "id": info["id"],
-                "file_path": info["file_path"],
-                "default_name": info["default_name"],
-                "modified": info["modified"],
-            }
-        )
+        entry = {
+            "id": info["id"],
+            "file_path": info["file_path"],
+            "default_name": info["default_name"],
+            "modified": info["modified"],
+        }
+        if "cursor" in info:
+            # où l'on travaillait dans la note (session.json seulement, pas index.json)
+            entry["cursor"] = info["cursor"]
+            entry["scroll"] = info.get("scroll", 0)
+        entries.append(entry)
         index[info["id"]] = _merged_meta(index, info)
 
     with open(SESSION_FILE, "w", encoding="utf-8") as f:
@@ -291,12 +294,41 @@ def save_version(draft_id, content):
     with open(os.path.join(version_dir, stamp + ".txt"), "w", encoding="utf-8") as f:
         f.write(content)
 
-    versions = sorted(os.listdir(version_dir), reverse=True)
+    _prune_versions(draft_id)
+
+
+def _prune_versions(draft_id):
+    version_dir = os.path.join(VERSIONS_DIR, draft_id)
+    try:
+        versions = sorted(os.listdir(version_dir), reverse=True)
+    except OSError:
+        return
     for stale in versions[MAX_VERSIONS:]:
         try:
             os.remove(os.path.join(version_dir, stale))
         except OSError:
             pass
+
+
+def merge_versions(from_id, to_id):
+    """Moves the saved versions of one draft under another id (the newest
+    MAX_VERSIONS are kept) — used when a note adopts the id of an existing note
+    for the same file."""
+    src = os.path.join(VERSIONS_DIR, from_id)
+    if not os.path.isdir(src):
+        return
+    dst = os.path.join(VERSIONS_DIR, to_id)
+    os.makedirs(dst, exist_ok=True)
+    for name in os.listdir(src):
+        try:
+            os.replace(os.path.join(src, name), os.path.join(dst, name))
+        except OSError:
+            pass
+    try:
+        os.rmdir(src)
+    except OSError:
+        pass
+    _prune_versions(to_id)
 
 
 def list_versions(draft_id):
@@ -314,18 +346,24 @@ def read_version(draft_id, stamp):
         return f.read()
 
 
-def save_window_state(width, height, splitter_sizes, x=None, y=None):
-    """Persists the window size, screen position and sidebar-splitter position
-    across launches. x/y are optional: omitted from the file when unknown."""
+def save_window_state(width, height, splitter_sizes, x=None, y=None, word_wrap=None, markdown_preview=None):
+    """Persists the window size, screen position, sidebar-splitter position and
+    display settings (word wrap, Markdown preview) across launches. Everything
+    but the size and splitter is optional: omitted from the file when unknown."""
     os.makedirs(CONFIG_DIR, exist_ok=True)
     state = {"width": width, "height": height, "splitter_sizes": list(splitter_sizes)}
     if x is not None and y is not None:
         state["x"] = x
         state["y"] = y
+    if word_wrap is not None:
+        state["word_wrap"] = bool(word_wrap)
+    if markdown_preview is not None:
+        state["markdown_preview"] = bool(markdown_preview)
     with open(WINDOW_FILE, "w", encoding="utf-8") as f:
         json.dump(state, f, ensure_ascii=False, indent=2)
 
 
 def load_window_state():
-    """Returns {"width", "height", "splitter_sizes"[, "x", "y"]} or None if never saved."""
+    """Returns {"width", "height", "splitter_sizes"[, "x", "y", "word_wrap", "markdown_preview"]}
+    or None if never saved."""
     return _load_json(WINDOW_FILE, None)
