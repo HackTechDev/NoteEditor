@@ -78,6 +78,7 @@ private slots:
     void checkCurrentExternalChange();
     void onAppStateChanged(Qt::ApplicationState state);
     void setWordWrap(bool enabled);
+    void setDraftsPanelVisible(bool visible);
     void updateStatusBar();
     void handleDraftsContextAction(const QString &action, const Session::DraftEntry &entry);
 
@@ -86,6 +87,7 @@ private:
     void createMenu();
     void createToolBar();
     void createStatusBar();
+    QList<int> splitterSizesToSave() const;
     QToolButton *buildNewTabButton(QWidget *parent);
     QWidget *makeCloseButton();
     void refreshTabButton(Editor *editor);
@@ -177,6 +179,8 @@ private:
     QAction *m_pinAction = nullptr;
     QAction *m_unpinAction = nullptr;
     QAction *m_previewAction = nullptr;
+    QAction *m_draftsPanelAction;
+    int m_draftsPanelWidth = 180; // largeur du panneau avant qu'on le masque
     QAction *m_wordWrapAction;
     bool m_wordWrapEnabled = true;
     bool m_normalizingTabs = false;

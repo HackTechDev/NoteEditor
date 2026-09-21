@@ -474,15 +474,18 @@ def read_version(draft_id, stamp):
         return f.read()
 
 
-def save_window_state(width, height, splitter_sizes, x=None, y=None, word_wrap=None, markdown_preview=None):
+def save_window_state(width, height, splitter_sizes, x=None, y=None, word_wrap=None, markdown_preview=None,
+                      sidebar_visible=None):
     """Persists the window size, screen position, sidebar-splitter position and
-    display settings (word wrap, Markdown preview) across launches. Everything
+    display settings (drafts panel, word wrap, Markdown preview) across launches. Everything
     but the size and splitter is optional: omitted from the file when unknown."""
     os.makedirs(CONFIG_DIR, exist_ok=True)
     state = {"width": width, "height": height, "splitter_sizes": list(splitter_sizes)}
     if x is not None and y is not None:
         state["x"] = x
         state["y"] = y
+    if sidebar_visible is not None:
+        state["sidebar_visible"] = bool(sidebar_visible)
     if word_wrap is not None:
         state["word_wrap"] = bool(word_wrap)
     if markdown_preview is not None:
@@ -492,6 +495,6 @@ def save_window_state(width, height, splitter_sizes, x=None, y=None, word_wrap=N
 
 
 def load_window_state():
-    """Returns {"width", "height", "splitter_sizes"[, "x", "y", "word_wrap", "markdown_preview"]}
+    """Returns {"width", "height", "splitter_sizes"[, "x", "y", "sidebar_visible", "word_wrap", "markdown_preview"]}
     or None if never saved."""
     return _load_json(WINDOW_FILE, None)

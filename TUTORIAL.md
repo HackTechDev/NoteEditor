@@ -84,8 +84,8 @@ prête à recevoir du texte.
 2. **La barre d'outils** : les actions les plus courantes en un clic. De gauche à
    droite : **Nouveau**, **Ouvrir**, **Enregistrer**, **Enregistrer sous**,
    **Fermer l'onglet**, **Épingler**, **Détacher**, **Corbeille**, **Rechercher**,
-   **Rechercher / Remplacer**, **Retour automatique à la ligne** et **Aperçu
-   Markdown**. Laissez la
+   **Rechercher / Remplacer**, **Panneau Brouillons**, **Retour automatique à la
+   ligne** et **Aperçu Markdown**. Laissez la
    souris un instant sur une icône : une infobulle donne son nom.
 3. **Le panneau Brouillons** : la liste de toutes vos notes, ouvertes ou non
    (voir la [partie 7](#7-le-panneau-brouillons)).
@@ -168,7 +168,8 @@ Vous retrouvez :
   reprenez là où vous vous étiez arrêté ;
 - **l'historique annuler/rétablir** de chaque note : après un redémarrage, `Ctrl+Z`
   annule encore ce que vous aviez tapé avant de quitter ;
-- **vos réglages d'affichage** : retour automatique à la ligne et aperçu Markdown.
+- **vos réglages d'affichage** : panneau Brouillons affiché ou masqué, retour
+  automatique à la ligne et aperçu Markdown.
 
 Si une note a des modifications non enregistrées dans son fichier, son nom
 commence par une étoile `*` (par exemple `*rapport.txt`). Cette étoile est elle
@@ -371,6 +372,16 @@ Les notes actuellement ouvertes sont suivies de « (ouvert) ». C'est votre file
 sécurité : puisqu'on peut fermer une note interne sans confirmation, tout ce que
 vous avez fermé se retrouve ici. Les **fichiers extérieurs** à `~/.noteeditor` font
 exception : ils ne figurent dans la liste que tant qu'ils sont ouverts.
+
+### Afficher ou masquer le panneau
+
+Pour gagner de la place, l'icône **Panneau Brouillons** de la barre d'outils (une
+fenêtre dont la colonne de gauche est pleine, à gauche de l'icône de retour à la
+ligne) **masque** le panneau, et le rend en un second clic. L'icône est enfoncée tant
+que le panneau est visible. Le panneau retrouve sa largeur d'avant, et ce choix est
+**mémorisé** d'un lancement à l'autre. Les notes ne sont pas affectées : les onglets
+restent ouverts, et la corbeille reste accessible par la barre d'outils et le menu
+**Fichier**.
 
 ### Rouvrir une note
 

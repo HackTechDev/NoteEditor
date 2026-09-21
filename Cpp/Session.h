@@ -52,6 +52,8 @@ struct WindowState {
     int x = 0;
     int y = 0;
     bool hasPosition = false; // false for a window.json saved before x/y existed
+    bool hasSidebar = false;
+    bool sidebarVisible = true;
     bool hasWordWrap = false;
     bool wordWrap = true;
     bool hasMarkdownPreview = false;
@@ -154,9 +156,9 @@ void mergeVersions(const QString &fromId, const QString &toId);
 QString readVersion(const QString &draftId, const QString &stamp);
 
 // Persists the window size, screen position, sidebar-splitter position and
-// display settings (word wrap, Markdown preview) across launches.
+// display settings (word wrap, Markdown preview, drafts panel) across launches.
 void saveWindowState(int width, int height, const QList<int> &splitterSizes, int x, int y, bool wordWrap,
-                     bool markdownPreview);
+                     bool markdownPreview, bool sidebarVisible = true);
 
 WindowState loadWindowState();
 

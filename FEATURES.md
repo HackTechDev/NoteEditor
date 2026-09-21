@@ -42,8 +42,8 @@ pose jamais la question « Enregistrer les modifications ? », et rien n'est per
   été modifiée ailleurs) est ignoré ; pour une note très volumineuse (plus de 300 000
   caractères), l'historique n'est pas mémorisé. Il ne l'est qu'à la fermeture de
   l'application, pas à celle d'un onglet isolé.
-- **Les réglages d'affichage** : le **retour automatique à la ligne** (activé ou non)
-  et l'**aperçu Markdown** (activé ou non).
+- **Les réglages d'affichage** : le **panneau Brouillons** (affiché ou masqué), le
+  **retour automatique à la ligne** (activé ou non) et l'**aperçu Markdown** (activé ou non).
 
 Ne sont pas restaurés : l'historique annuler/rétablir et la sélection de texte (seule
 la position du curseur l'est).
@@ -264,6 +264,11 @@ adapter si le dépôt est cloné ailleurs.
 
 ## 6. Panneau Brouillons
 
+- **Afficher / masquer** : l'icône **Panneau Brouillons** de la barre d'outils (enfoncée
+  tant que le panneau est visible) masque ou rend le panneau, pour laisser toute la
+  largeur à l'éditeur. Le panneau retrouve sa largeur d'avant, le focus revient à
+  l'éditeur, et le choix est mémorisé d'un lancement à l'autre (`window.json`).
+
 Panneau à gauche de la fenêtre qui liste **toutes les notes archivées dans
 `~/.noteeditor`, ouvertes ou fermées**. Les notes actuellement ouvertes sont
 marquées « (ouvert) ». C'est le filet de sécurité qui rend possible la fermeture
@@ -333,7 +338,8 @@ ouverts.
 
 Icônes (dessinées par l'application, sans fichier d'image), de gauche à droite :
 **Nouveau**, **Ouvrir**, **Enregistrer**, **Enregistrer sous**, **Fermer l'onglet**, **Épingler**, **Détacher**, **Corbeille**,
-**Rechercher**, **Rechercher / Remplacer**, **Retour automatique à la ligne**, **Aperçu Markdown**.
+**Rechercher**, **Rechercher / Remplacer**, **Panneau Brouillons** (afficher / masquer),
+**Retour automatique à la ligne**, **Aperçu Markdown**.
 
 ## 10. Barre de statut
 
@@ -362,7 +368,7 @@ Pour l'onglet actif : le **mode** (`-- INSERTION --` ou `-- COMMANDE --`), **lig
 | `versions/<id>/` | Les 10 dernières versions de chaque fichier |
 | `history/<id>.json` | L'historique annuler/rétablir des onglets ouverts à la dernière fermeture de l'application |
 | `recent.json` | Les dernières notes fermées et la taille de la liste (menu Fichier → Notes fermées récemment) |
-| `window.json` | Taille et position de la fenêtre, position du séparateur du panneau, réglages d'affichage (retour à la ligne, aperçu Markdown) |
+| `window.json` | Taille et position de la fenêtre, position du séparateur du panneau, réglages d'affichage (panneau Brouillons, retour à la ligne, aperçu Markdown) |
 
 Chaque note est identifiée par un identifiant unique (UUID) : c'est lui, et non le
 nom ou l'ordre des onglets, qui relie l'onglet, son texte archivé et son entrée

@@ -275,6 +275,29 @@ def _preview_icon():
     return QIcon(pixmap)
 
 
+def _drafts_panel_icon():
+    """Dessine une icône « fenêtre avec panneau latéral » (panneau Brouillons) : la
+    colonne de gauche est pleine, l'éditeur à droite. Glyphes dessinés, pas de
+    fichier externe."""
+    pixmap = QPixmap(22, 22)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    pen = QPen(Qt.GlobalColor.darkGray)
+    pen.setWidth(2)
+    pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+    pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+    painter.setPen(pen)
+    painter.drawRect(2, 4, 18, 14)
+    painter.fillRect(3, 5, 5, 12, Qt.GlobalColor.darkGray)  # le panneau
+    painter.drawLine(8, 4, 8, 18)
+    painter.drawLine(11, 8, 17, 8)  # le texte de l'éditeur
+    painter.drawLine(11, 11, 17, 11)
+    painter.drawLine(11, 14, 15, 14)
+    painter.end()
+    return QIcon(pixmap)
+
+
 def _trash_icon():
     """Dessine une icône « poubelle » classique, dans le même esprit que
     _save_icon() : glyphes dessinés, pas de fichier externe."""
@@ -463,6 +486,7 @@ class MainWindow(QMainWindow):
         self.splitter.setSizes([180, 720])
         self.setCentralWidget(self.splitter)
 
+        self._drafts_panel_width = 180  # largeur du panneau avant qu'on le masque
         window_state = session.load_window_state()
         if window_state:
             width = window_state.get("width")
@@ -476,6 +500,7 @@ class MainWindow(QMainWindow):
             sizes = window_state.get("splitter_sizes")
             if sizes:
                 self.splitter.setSizes(sizes)
+                self._drafts_panel_width = sizes[0] or self._drafts_panel_width
 
         self.find_dialog = FindReplaceDialog(self)
         self.word_wrap_enabled = True
@@ -488,6 +513,8 @@ class MainWindow(QMainWindow):
         # réglages d'affichage mémorisés (les valeurs par défaut sont : retour à la
         # ligne activé, aperçu Markdown masqué)
         prefs = window_state or {}
+        if prefs.get("sidebar_visible") is False:
+            self.drafts_panel_action.setChecked(False)
         if prefs.get("word_wrap") is False:
             self.word_wrap_action.setChecked(False)
         if prefs.get("markdown_preview"):
@@ -594,6 +621,11 @@ class MainWindow(QMainWindow):
         self.trash_action = QAction(_trash_icon(), "&Corbeille...", self)
         self.trash_action.triggered.connect(self._show_trash)
 
+        self.drafts_panel_action = QAction(_drafts_panel_icon(), "Afficher / masquer le panneau Brouillons", self)
+        self.drafts_panel_action.setCheckable(True)
+        self.drafts_panel_action.setChecked(True)
+        self.drafts_panel_action.toggled.connect(self._set_drafts_panel_visible)
+
         self.word_wrap_action = QAction(_word_wrap_icon(), "Retour automatique à la ligne", self)
         self.word_wrap_action.setCheckable(True)
         self.word_wrap_action.setChecked(True)
@@ -619,6 +651,7 @@ class MainWindow(QMainWindow):
         toolbar.addAction(self.find_action)
         toolbar.addAction(self.replace_action)
         toolbar.addSeparator()
+        toolbar.addAction(self.drafts_panel_action)
         toolbar.addAction(self.word_wrap_action)
         toolbar.addAction(self.preview_action)
         self.addToolBar(toolbar)
@@ -668,6 +701,29 @@ class MainWindow(QMainWindow):
         self.preview.setSearchPaths([os.path.dirname(editor.file_path)])
         self.preview.setMarkdown(text)
         bar.setValue(scroll)
+
+    def _set_drafts_panel_visible(self, visible):
+        """Affiche ou masque le panneau Brouillons ; il retrouve sa largeur en revenant."""
+        panel = self.splitter.widget(0)
+        if not visible:
+            # (fenêtre pas encore affichée, au lancement : les tailles ne sont pas fiables)
+            if self.isVisible() and not panel.isHidden() and self.splitter.sizes()[0] > 0:
+                self._drafts_panel_width = self.splitter.sizes()[0]
+            panel.hide()
+        else:
+            panel.show()
+            total = self.splitter.width() - self.splitter.handleWidth()
+            self.splitter.setSizes([self._drafts_panel_width, max(1, total - self._drafts_panel_width)])
+        editor = self.current_editor()
+        if editor is not None:
+            editor.setFocus()
+
+    def _splitter_sizes_to_save(self):
+        sizes = self.splitter.sizes()
+        if self.splitter.widget(0).isHidden():
+            # la largeur d'avant le masquage, prise sur celle de l'éditeur
+            sizes = [self._drafts_panel_width, max(1, sizes[1] - self._drafts_panel_width - self.splitter.handleWidth())]
+        return sizes
 
     def _set_word_wrap(self, enabled):
         self.word_wrap_enabled = enabled
@@ -1643,9 +1699,10 @@ class MainWindow(QMainWindow):
         session.save_window_state(
             self.width(),
             self.height(),
-            self.splitter.sizes(),
+            self._splitter_sizes_to_save(),
             self.x(),
             self.y(),
+            sidebar_visible=self.drafts_panel_action.isChecked(),
             word_wrap=self.word_wrap_action.isChecked(),
             markdown_preview=self.preview_action.isChecked(),
         )

@@ -9,7 +9,7 @@
 
 La liste détaillée et complète est dans [`FEATURES.md`](FEATURES.md), et un didacticiel pas à pas pour apprendre à utiliser le logiciel dans [`TUTORIAL.md`](TUTORIAL.md). En résumé :
 
-- Session persistante : à la fermeture, tous les onglets (contenu, fichier associé, état modifié, onglet actif) sont sauvegardés automatiquement dans `~/.noteeditor` et restaurés tels quels au prochain lancement (avec la position du curseur, la sélection, le défilement et l'historique annuler/rétablir de chaque onglet, et les réglages d'affichage : retour à la ligne, aperçu Markdown), ainsi que la taille et la position de la fenêtre sur l'écran (ignorée si elle n'est plus visible, p. ex. écran débranché) et la position du séparateur du panneau latéral
+- Session persistante : à la fermeture, tous les onglets (contenu, fichier associé, état modifié, onglet actif) sont sauvegardés automatiquement dans `~/.noteeditor` et restaurés tels quels au prochain lancement (avec la position du curseur, la sélection, le défilement et l'historique annuler/rétablir de chaque onglet, et les réglages d'affichage : panneau Brouillons, retour à la ligne, aperçu Markdown), ainsi que la taille et la position de la fenêtre sur l'écran (ignorée si elle n'est plus visible, p. ex. écran débranché) et la position du séparateur du panneau latéral
 - Chaque onglet est archivé dans `~/.noteeditor` dès sa création, et à nouveau en continu pendant la frappe (1,5s après la dernière touche), à sa fermeture (croix ou Ctrl+W, sans confirmation pour une note interne ; pour un fichier extérieur à `~/.noteeditor`, une alerte s'affiche s'il a des modifications non enregistrées) et à la fermeture de l'appli
 - Onglets multiples (fermables, réordonnables), onglet actif bien visible
 - Bouton **+** pour créer un nouvel onglet, collé juste après le dernier onglet (style Gedit) ; se déplace automatiquement à côté des flèches de défilement quand les onglets débordent de la largeur disponible
@@ -32,7 +32,7 @@ La liste détaillée et complète est dans [`FEATURES.md`](FEATURES.md), et un d
 - Infobulles : le survol d'une note du panneau ou d'un onglet affiche le chemin complet de son fichier (ou, pour une note sans fichier, l'emplacement de son brouillon), même quand la fenêtre de l'application n'est pas au premier plan
 - Corbeille : la suppression d'un brouillon est réversible (bouton « Corbeille... » avec son icône en bas du panneau Brouillons, ou menu Fichier), avec restauration ou suppression définitive, y compris de plusieurs brouillons à la fois (sélection multiple)
 - Historique des versions (10 dernières) : chaque enregistrement archive le contenu précédent du fichier, consultable et restaurable depuis le menu contextuel d'un onglet (clic droit)
-- Barre d'outils avec icônes Nouveau, Ouvrir, Enregistrer, Enregistrer sous, Fermer l'onglet, Épingler, Détacher, Corbeille, Rechercher, Rechercher / Remplacer, retour à la ligne automatique (activable/désactivable, actif par défaut, s'applique à tous les onglets) et Aperçu Markdown
+- Barre d'outils avec icônes Nouveau, Ouvrir, Enregistrer, Enregistrer sous, Fermer l'onglet, Épingler, Détacher, Corbeille, Rechercher, Rechercher / Remplacer, afficher / masquer le panneau Brouillons, retour à la ligne automatique (activable/désactivable, actif par défaut, s'applique à tous les onglets) et Aperçu Markdown
 - Démarrage automatique : un lanceur `noteeditor.desktop` est fourni dans `Python/` et `Cpp/` (à copier dans `~/.config/autostart/`) ; l'application restaure alors la session au lancement
 - Barre de statut : mode (insertion / commande), position ligne/colonne, nombre de mots/caractères et encodage (UTF-8) de l'onglet actif
 - Menu Aide → À propos
@@ -108,6 +108,6 @@ Les deux implémentations lisent/écrivent exactement le même format dans `~/.n
 - `~/.noteeditor/versions/<id>/` : les 10 dernières versions d'un fichier avant chaque écrasement par un enregistrement
 - `~/.noteeditor/history/<id>.json` : l'historique annuler/rétablir des onglets ouverts à la dernière fermeture de l'appli
 - `~/.noteeditor/recent.json` : les notes fermées récemment (menu Fichier)
-- `~/.noteeditor/window.json` : taille et position de la fenêtre, position du séparateur du panneau latéral, réglages d'affichage (retour à la ligne, aperçu Markdown), restaurés au lancement suivant
+- `~/.noteeditor/window.json` : taille et position de la fenêtre, position du séparateur du panneau latéral, réglages d'affichage (panneau Brouillons affiché ou masqué, retour à la ligne, aperçu Markdown), restaurés au lancement suivant
 
 Cette copie de secours n'écrase jamais le fichier d'origine sur le disque : seul un `Enregistrer` explicite (`Ctrl+S`) modifie le fichier réel (que ce soit dans `~/.noteeditor/docs/` pour un onglet sans titre, ou à l'emplacement d'origine pour un fichier ouvert ailleurs). Les brouillons ne sont supprimés que manuellement, depuis le panneau latéral (et ne le sont alors que déplacés vers la corbeille).

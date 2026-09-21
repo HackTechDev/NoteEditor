@@ -327,6 +327,29 @@ QIcon previewIcon()
     return QIcon(pixmap);
 }
 
+// Dessine une icône « fenêtre avec panneau latéral » (panneau Brouillons) : la colonne
+// de gauche est pleine, l'éditeur à droite. Glyphes dessinés, pas de fichier externe.
+QIcon draftsPanelIcon()
+{
+    QPixmap pixmap(22, 22);
+    pixmap.fill(Qt::transparent);
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+    QPen pen(Qt::darkGray);
+    pen.setWidth(2);
+    pen.setJoinStyle(Qt::RoundJoin);
+    pen.setCapStyle(Qt::RoundCap);
+    painter.setPen(pen);
+    painter.drawRect(2, 4, 18, 14);
+    painter.fillRect(3, 5, 5, 12, Qt::darkGray); // le panneau
+    painter.drawLine(8, 4, 8, 18);
+    painter.drawLine(11, 8, 17, 8); // le texte de l'éditeur
+    painter.drawLine(11, 11, 17, 11);
+    painter.drawLine(11, 14, 15, 14);
+    painter.end();
+    return QIcon(pixmap);
+}
+
 // Dessine une icône « poubelle » classique, dans le même esprit que
 // saveIcon() : glyphes dessinés, pas de fichier externe.
 QIcon trashIcon()
@@ -504,8 +527,11 @@ MainWindow::MainWindow(QWidget *parent)
             if (visible)
                 move(windowState.x, windowState.y);
         }
-        if (!windowState.splitterSizes.isEmpty())
+        if (!windowState.splitterSizes.isEmpty()) {
             m_splitter->setSizes(windowState.splitterSizes);
+            if (windowState.splitterSizes[0] > 0)
+                m_draftsPanelWidth = windowState.splitterSizes[0];
+        }
     }
 
     m_findDialog = new FindReplaceDialog(this);
@@ -517,6 +543,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     // réglages d'affichage mémorisés (les valeurs par défaut sont : retour à la
     // ligne activé, aperçu Markdown masqué)
+    if (windowState.hasSidebar && !windowState.sidebarVisible)
+        m_draftsPanelAction->setChecked(false);
     if (windowState.hasWordWrap && !windowState.wordWrap)
         m_wordWrapAction->setChecked(false);
     if (windowState.hasMarkdownPreview && windowState.markdownPreview)
@@ -608,6 +636,11 @@ void MainWindow::createActions()
     m_trashAction = new QAction(trashIcon(), "&Corbeille...", this);
     connect(m_trashAction, &QAction::triggered, this, &MainWindow::showTrash);
 
+    m_draftsPanelAction = new QAction(draftsPanelIcon(), "Afficher / masquer le panneau Brouillons", this);
+    m_draftsPanelAction->setCheckable(true);
+    m_draftsPanelAction->setChecked(true);
+    connect(m_draftsPanelAction, &QAction::toggled, this, &MainWindow::setDraftsPanelVisible);
+
     m_wordWrapAction = new QAction(wordWrapIcon(), "Retour automatique à la ligne", this);
     m_wordWrapAction->setCheckable(true);
     m_wordWrapAction->setChecked(true);
@@ -635,6 +668,7 @@ void MainWindow::createToolBar()
     toolbar->addAction(m_findAction);
     toolbar->addAction(m_replaceAction);
     toolbar->addSeparator();
+    toolbar->addAction(m_draftsPanelAction);
     toolbar->addAction(m_wordWrapAction);
     toolbar->addAction(m_previewAction);
     addToolBar(toolbar);
@@ -648,6 +682,33 @@ void MainWindow::setWordWrap(bool enabled)
         if (auto *editor = qobject_cast<Editor *>(m_tabs->widget(i)))
             editor->setLineWrapMode(mode);
     }
+}
+
+// Affiche ou masque le panneau Brouillons ; il retrouve sa largeur en revenant.
+void MainWindow::setDraftsPanelVisible(bool visible)
+{
+    QWidget *panel = m_splitter->widget(0);
+    if (!visible) {
+        // (fenêtre pas encore affichée, au lancement : les tailles ne sont pas fiables)
+        if (isVisible() && !panel->isHidden() && m_splitter->sizes().value(0) > 0)
+            m_draftsPanelWidth = m_splitter->sizes().value(0);
+        panel->hide();
+    } else {
+        panel->show();
+        const int total = m_splitter->width() - m_splitter->handleWidth();
+        m_splitter->setSizes({m_draftsPanelWidth, qMax(1, total - m_draftsPanelWidth)});
+    }
+    if (Editor *editor = currentEditor())
+        editor->setFocus();
+}
+
+QList<int> MainWindow::splitterSizesToSave() const
+{
+    QList<int> sizes = m_splitter->sizes();
+    if (m_splitter->widget(0)->isHidden())
+        // la largeur d'avant le masquage, prise sur celle de l'éditeur
+        return {m_draftsPanelWidth, qMax(1, sizes.value(1) - m_draftsPanelWidth - m_splitter->handleWidth())};
+    return sizes;
 }
 
 void MainWindow::createStatusBar()
@@ -1851,8 +1912,8 @@ void MainWindow::saveSessionToDisk()
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     saveSessionToDisk();
-    Session::saveWindowState(width(), height(), m_splitter->sizes(), x(), y(), m_wordWrapAction->isChecked(),
-                             m_previewAction->isChecked());
+    Session::saveWindowState(width(), height(), splitterSizesToSave(), x(), y(), m_wordWrapAction->isChecked(),
+                             m_previewAction->isChecked(), m_draftsPanelAction->isChecked());
     event->accept();
 }
 

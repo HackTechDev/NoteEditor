@@ -590,7 +590,7 @@ QString readVersion(const QString &draftId, const QString &stamp)
 }
 
 void saveWindowState(int width, int height, const QList<int> &splitterSizes, int x, int y, bool wordWrap,
-                     bool markdownPreview)
+                     bool markdownPreview, bool sidebarVisible)
 {
     QDir().mkpath(configDir());
     QJsonObject obj;
@@ -604,6 +604,7 @@ void saveWindowState(int width, int height, const QList<int> &splitterSizes, int
     obj["y"] = y;
     obj["word_wrap"] = wordWrap;
     obj["markdown_preview"] = markdownPreview;
+    obj["sidebar_visible"] = sidebarVisible;
     writeJsonObject(windowFile(), obj);
 }
 
@@ -627,6 +628,8 @@ WindowState loadWindowState()
         state.x = obj.value("x").toInt(0);
         state.y = obj.value("y").toInt(0);
     }
+    state.hasSidebar = obj.contains("sidebar_visible");
+    state.sidebarVisible = obj.value("sidebar_visible").toBool(true);
     state.hasWordWrap = obj.contains("word_wrap");
     state.wordWrap = obj.value("word_wrap").toBool(true);
     state.hasMarkdownPreview = obj.contains("markdown_preview");
