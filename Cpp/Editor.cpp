@@ -192,9 +192,9 @@ void Editor::keyPressEvent(QKeyEvent *event)
             event->accept();
             return;
         }
-        if (event->text() == "$") { // fin de la ligne (logique, même avec le retour à la ligne)
+        if (event->text() == "0" || event->text() == "$") { // début / fin de la ligne (logique, même avec le retour à la ligne)
             QTextCursor cursor = textCursor();
-            cursor.movePosition(QTextCursor::EndOfBlock);
+            cursor.movePosition(event->text() == "0" ? QTextCursor::StartOfBlock : QTextCursor::EndOfBlock);
             setTextCursor(cursor);
             event->accept();
             return;

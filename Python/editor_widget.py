@@ -341,9 +341,10 @@ class Editor(QPlainTextEdit):
                 self.set_command_mode(False)
                 event.accept()
                 return
-            if event.text() == "$":  # fin de la ligne (logique, même avec le retour à la ligne)
+            if event.text() in ("0", "$"):  # début / fin de la ligne (logique, même avec le retour à la ligne)
                 cursor = self.textCursor()
-                cursor.movePosition(QTextCursor.MoveOperation.EndOfBlock)
+                cursor.movePosition(QTextCursor.MoveOperation.StartOfBlock if event.text() == "0"
+                                    else QTextCursor.MoveOperation.EndOfBlock)
                 self.setTextCursor(cursor)
                 event.accept()
                 return

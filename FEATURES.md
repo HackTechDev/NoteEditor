@@ -178,7 +178,8 @@ adapter si le dépôt est cloné ailleurs.
   espace (pas d'espace si l'une des deux lignes est vide, si la ligne courante finit déjà
   par une espace ou si la suivante commence par `)`) ; le curseur se place sur le raccord
   et l'on reste en mode commande ; sans effet sur la dernière ligne, un seul `Ctrl+Z`
-  l'annule. **`$`** déplace le curseur à la fin de la ligne (la ligne logique, même quand
+  l'annule. **`0`** et **`$`** déplacent le curseur au début (colonne 0, avant l'éventuelle
+  indentation) et à la fin de la ligne (la ligne logique, même quand
   le retour automatique à la ligne la répartit sur plusieurs lignes à l'écran) et lève la
   sélection éventuelle. Chaque onglet a son propre mode ; il n'est pas mémorisé d'un
   lancement à l'autre.
