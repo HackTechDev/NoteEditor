@@ -115,15 +115,16 @@ position, comme la taille et l'emplacement de la fenêtre, sera retenue.
 4. Utilisez les raccourcis habituels : `Ctrl+Z` annuler, `Ctrl+Maj+Z` rétablir,
    `Ctrl+X` / `Ctrl+C` / `Ctrl+V` couper, copier, coller, `Ctrl+A` tout
    sélectionner (ils sont aussi dans le menu **Édition**).
-5. Pour **insérer une ligne sous la ligne courante** sans aller à sa fin : appuyez sur
-   `Échap` (la barre de statut affiche `-- COMMANDE --` et le curseur devient un bloc),
-   puis sur `o`. Une ligne vide apparaît en dessous, le curseur s'y place et vous
-   revenez en mode insertion. C'est le fonctionnement de l'éditeur Vim. `Échap` deux
-   fois de suite active puis quitte le mode commande sans rien changer ; dans ce mode
-   la frappe n'insère pas de texte.
-   Toujours en mode commande, `Maj+J` **joint la ligne courante à la suivante** : elles
-   sont rassemblées sur une seule ligne, séparées par une espace, et vous restez en
-   mode commande. `0` envoie le curseur **au début de la ligne** et `$` **à sa fin**.
+5. Essayez le **mode commande**, inspiré de l'éditeur Vim : appuyez sur `Échap`. La
+   barre de statut affiche `-- COMMANDE --` et le curseur devient un bloc. Dans ce mode
+   la frappe n'insère pas de texte ; les flèches, elles, fonctionnent, et `Échap` de
+   nouveau ramène au mode normal (`-- INSERTION --`). Quelques commandes :
+   - `o` : insère **une ligne vide sous la ligne courante**, place le curseur dessus et
+     vous ramène en mode insertion ;
+   - `Maj+J` : **joint la ligne courante à la suivante** (elles sont séparées par une
+     espace) ; vous restez en mode commande ;
+   - `0` : le curseur va **au début de la ligne** ;
+   - `$` : le curseur va **à la fin de la ligne**.
 6. Pour **indenter** plusieurs lignes, sélectionnez-les puis appuyez sur `Tab` : chaque
    ligne est décalée de 4 espaces vers la droite. `Maj+Tab` fait l'inverse (retrait de
    4 espaces). Un seul `Ctrl+Z` annule toute l'opération. Sans sélection, `Tab` insère

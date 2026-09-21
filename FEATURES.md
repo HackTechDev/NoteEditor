@@ -169,20 +169,22 @@ adapter si le dépôt est cloné ailleurs.
   - l'activation de l'aperçu est mémorisée d'un lancement à l'autre.
 - **Mode « commande » à la Vim** : `Échap` bascule l'éditeur en mode commande, indiqué
   dans la barre de statut (`-- COMMANDE --`, contre `-- INSERTION --` en temps normal) ;
-  le curseur devient un bloc. Dans ce mode la frappe n'insère plus de texte (les flèches,
-  Début, Fin, les pages, la souris et les raccourcis `Ctrl+…` continuent de fonctionner).
-  `Échap` de nouveau ramène au mode insertion. La touche **`o`** insère une ligne vide
-  sous la ligne du curseur, s'y place et repasse en mode insertion, comme dans Vim (une
-  seule étape d'annulation). **`Maj+J`** joint la ligne du curseur à la suivante : le
-  saut de ligne et l'indentation de la suivante disparaissent, remplacés par une seule
-  espace (pas d'espace si l'une des deux lignes est vide, si la ligne courante finit déjà
-  par une espace ou si la suivante commence par `)`) ; le curseur se place sur le raccord
-  et l'on reste en mode commande ; sans effet sur la dernière ligne, un seul `Ctrl+Z`
-  l'annule. **`0`** et **`$`** déplacent le curseur au début (colonne 0, avant l'éventuelle
-  indentation) et à la fin de la ligne (la ligne logique, même quand
-  le retour automatique à la ligne la répartit sur plusieurs lignes à l'écran) et lève la
-  sélection éventuelle. Chaque onglet a son propre mode ; il n'est pas mémorisé d'un
-  lancement à l'autre.
+  le curseur devient un bloc. `Échap` de nouveau ramène au mode insertion. Dans ce mode
+  la frappe n'insère plus de texte : les touches non gérées sont ignorées, tandis que les
+  flèches, Début, Fin, les pages, la souris et les raccourcis `Ctrl+…` continuent de
+  fonctionner. Chaque onglet a son propre mode, qui n'est pas mémorisé d'un lancement à
+  l'autre. Les commandes :
+  - **`o`** : insère une ligne vide sous la ligne du curseur, s'y place et repasse en mode
+    insertion, comme dans Vim (une seule étape d'annulation) ;
+  - **`Maj+J`** : joint la ligne du curseur à la suivante. Le saut de ligne et
+    l'indentation de la suivante disparaissent, remplacés par une seule espace (pas
+    d'espace si l'une des deux lignes est vide, si la ligne courante finit déjà par une
+    espace ou si la suivante commence par `)`). Le curseur se place sur le raccord et l'on
+    reste en mode commande ; sans effet sur la dernière ligne ; un seul `Ctrl+Z` l'annule ;
+  - **`0`** et **`$`** : déplacent le curseur au début (colonne 0, avant l'éventuelle
+    indentation) et à la fin de la ligne. C'est la ligne logique, même quand le retour
+    automatique à la ligne la répartit sur plusieurs lignes à l'écran ; une sélection
+    éventuelle est levée.
 - **Indentation** : quand du texte est sélectionné, `Tab` ajoute 4 espaces au début de
   chaque ligne touchée par la sélection (une ligne vide reste vide) et `Maj+Tab` retire
   jusqu'à 4 espaces (ou une tabulation) au début de chacune. Une ligne où la sélection ne
