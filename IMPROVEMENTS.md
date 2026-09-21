@@ -11,6 +11,7 @@ implémentées sont documentées dans `README.md` et `FEATURES.md`, pas ici.
 - **Réglage de l'indentation** : `Tab` / `Maj+Tab` décalent de 4 espaces en dur ; une largeur configurable, ou le choix entre espaces et tabulation, s'accorderait à l'usage de chacun (et à celui de chaque langage).
 - **Indentation automatique** et **correspondance des parenthèses/accolades** pour les fichiers de code.
 - **Plus de langages** pour la coloration syntaxique (`highlighters.py` / `Highlighters.cpp` ne couvrent que Python/JSON/Markdown) : JS, HTML, CSS, YAML, Shell seraient des ajouts naturels.
+- **Aperçu Markdown plus fin** : le défilement est synchronisé dans un seul sens (éditeur → aperçu) et de façon proportionnelle ; un calage sur la ligne réellement affichée, et dans les deux sens, serait plus précis pour les longues notes avec images ou tableaux. L'export HTML pourrait aussi produire un HTML plus léger, avec une feuille de style propre à la place des styles en ligne de Qt, ou un export PDF.
 - **Correcteur orthographique** (via `pyspellchecker` ou l'intégration d'un dictionnaire système).
 
 ## Interface

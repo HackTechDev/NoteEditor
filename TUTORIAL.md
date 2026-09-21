@@ -872,6 +872,11 @@ fichier dont l'extension est `.md` ou `.markdown` ; une note qui n'est pas encor
 à un fichier n'en est pas un. Faites `Ctrl+S` (qui l'enregistre en `.md`) ou **Enregistrer sous**
 avec un nom en `.md`.
 
+**Comment obtenir une page web à partir de ma note Markdown ?**
+**Fichier → Exporter en HTML...** (voir la [partie 12](#exporter-en-html)). L'entrée est
+grisée si l'onglet actif n'est pas un fichier Markdown. Gardez le dossier proposé si la
+note contient des images.
+
 **Comment récupérer le chemin d'un fichier pour le coller ailleurs ?**
 Clic droit sur la note (dans le panneau ou sur son onglet) → **Copier le chemin
 complet du fichier**, puis `Ctrl+V` là où vous en avez besoin. **Copier le nom du
