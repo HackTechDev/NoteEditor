@@ -17,6 +17,7 @@ La liste détaillée et complète est dans [`FEATURES.md`](FEATURES.md), et un d
 - Menu contextuel sur les onglets (clic droit) : fermer / fermer les autres / fermer à droite / fermer tout, dupliquer, renommer, historique des versions, mettre à la corbeille (l'onglet se ferme et la note quitte le panneau Brouillons), épingler / détacher, copier le nom du fichier, copier le chemin complet du fichier, ouvrir le dossier du fichier
 - Notes épinglées : « Épingler » (menu contextuel d'un onglet ou du panneau Brouillons) bloque la fermeture et la mise à la corbeille de la note, jusqu'à « Détacher » ; les onglets épinglés sont regroupés à gauche de la barre d'onglets ; une petite punaise s'affiche à gauche de son nom (dans l'onglet, où la croix de fermeture disparaît, et dans le panneau), et l'état est restauré avec la session
 - Numéros de ligne avec surlignage de la ligne courante
+- Indentation : avec du texte sélectionné, `Tab` décale de 4 espaces vers la droite chaque ligne touchée par la sélection et `Maj+Tab` la décale de 4 espaces vers la gauche (une seule étape d'annulation)
 - Coloration syntaxique automatique selon l'extension : Python (`.py`, `.pyw`), JSON (`.json`), Markdown (`.md`, `.markdown`)
 - Aperçu Markdown en volet séparé pour les fichiers `.md` / `.markdown` (icône de la barre d'outils, désactivée pour les autres onglets) : le rendu, mis à jour en direct pendant la frappe, s'affiche à droite de l'éditeur
 - Recherche / remplacement (`Ctrl+F` / `Ctrl+H`) : suivant, précédent, remplacer, tout remplacer
@@ -73,6 +74,8 @@ cmake --build build -j"$(nproc)"
 | Rétablir                 | Ctrl+Shift+Z|
 | Couper / Copier / Coller | Ctrl+X / Ctrl+C / Ctrl+V |
 | Tout sélectionner        | Ctrl+A      |
+| Indenter les lignes sélectionnées | Tab |
+| Retirer une indentation  | Shift+Tab   |
 
 ## Structure du projet
 

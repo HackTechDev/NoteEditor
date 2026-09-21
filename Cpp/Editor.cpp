@@ -2,6 +2,7 @@
 
 #include <QFont>
 #include <QJsonArray>
+#include <QKeyEvent>
 #include <QFontMetrics>
 #include <QPainter>
 #include <QScrollBar>
@@ -120,6 +121,97 @@ void Editor::updateLineNumberArea(const QRect &rect, int dy)
         m_lineNumberArea->update(0, rect.y(), m_lineNumberArea->width(), rect.height());
     if (rect.contains(viewport()->rect()))
         updateLineNumberAreaWidth();
+}
+
+// Tab : décale de 4 espaces vers la droite les lignes touchées par la sélection ;
+// Maj+Tab : les décale vers la gauche (jusqu'à 4 espaces, ou une tabulation, en moins).
+void Editor::keyPressEvent(QKeyEvent *event)
+{
+    const Qt::KeyboardModifiers mods = event->modifiers();
+    const bool plain = !(mods & (Qt::ControlModifier | Qt::AltModifier | Qt::MetaModifier));
+    const bool shift = mods & Qt::ShiftModifier;
+    const int key = event->key();
+    if (plain && (key == Qt::Key_Backtab || (shift && key == Qt::Key_Tab))) {
+        shiftLines(false);
+        event->accept();
+    } else if (plain && !shift && key == Qt::Key_Tab && textCursor().hasSelection()) {
+        shiftLines(true);
+        event->accept();
+    } else {
+        QPlainTextEdit::keyPressEvent(event);
+    }
+}
+
+// Une seule étape d'annulation ; la sélection suit le texte.
+void Editor::shiftLines(bool indent)
+{
+    static const QString kIndent = "    ";
+    QTextDocument *doc = document();
+    QTextCursor cursor = textCursor();
+    const int anchor = cursor.anchor(), position = cursor.position();
+    const int start = qMin(anchor, position), end = qMax(anchor, position);
+    QTextBlock block = doc->findBlock(start);
+    QTextBlock last = doc->findBlock(end);
+    if (end > start && end == last.position())
+        last = last.previous(); // la ligne où la sélection ne fait que commencer n'est pas touchée
+
+    struct Change { int at; int delta; }; // début de ligne avant modification, variation de longueur
+    QVector<Change> changes;
+    int applied = 0;
+    cursor.beginEditBlock();
+    QTextCursor edit(doc);
+    while (block.isValid()) {
+        const QString text = block.text();
+        int delta = 0;
+        if (indent) {
+            delta = text.isEmpty() ? 0 : kIndent.size(); // une ligne vide reste vide
+            if (delta) {
+                edit.setPosition(block.position());
+                edit.insertText(kIndent);
+            }
+        } else {
+            if (text.startsWith('\t')) {
+                delta = -1;
+            } else {
+                int spaces = 0;
+                while (spaces < text.size() && text[spaces] == ' ')
+                    ++spaces;
+                delta = -qMin(int(kIndent.size()), spaces);
+            }
+            if (delta) {
+                edit.setPosition(block.position());
+                edit.setPosition(block.position() - delta, QTextCursor::KeepAnchor);
+                edit.removeSelectedText();
+            }
+        }
+        if (delta) {
+            changes.append({block.position() - applied, delta});
+            applied += delta;
+        }
+        if (block == last)
+            break;
+        block = block.next();
+    }
+    cursor.endEditBlock();
+
+    auto moved = [&changes](int pos, bool isStart) {
+        int shift = 0;
+        for (const Change &c : changes) {
+            if (c.delta > 0) {
+                if (pos > c.at || (pos == c.at && !isStart))
+                    shift += c.delta;
+            } else if (pos >= c.at - c.delta) {
+                shift += c.delta;
+            } else if (pos > c.at) {
+                shift -= pos - c.at;
+            }
+        }
+        return pos + shift;
+    };
+    QTextCursor result = textCursor();
+    result.setPosition(moved(anchor, anchor == start));
+    result.setPosition(moved(position, position == start), QTextCursor::KeepAnchor);
+    setTextCursor(result);
 }
 
 void Editor::resizeEvent(QResizeEvent *event)

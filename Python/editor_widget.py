@@ -7,6 +7,7 @@ from PyQt6.QtWidgets import QPlainTextEdit, QTextEdit, QWidget
 from highlighters import highlighter_class_for
 
 AUTOSAVE_DELAY_MS = 1500
+INDENT = "    "
 
 # Historique annuler/rétablir mémorisé d'un lancement à l'autre : nombre maximal
 # d'étapes de chaque côté du point courant, et volume total de texte conservé.
@@ -281,6 +282,77 @@ class Editor(QPlainTextEdit):
             self.line_number_area.update(0, rect.y(), self.line_number_area.width(), rect.height())
         if rect.contains(self.viewport().rect()):
             self.update_line_number_area_width()
+
+    def keyPressEvent(self, event):
+        key, mods = event.key(), event.modifiers()
+        plain = not mods & (Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.AltModifier
+                            | Qt.KeyboardModifier.MetaModifier)
+        shift = bool(mods & Qt.KeyboardModifier.ShiftModifier)
+        if plain and (key == Qt.Key.Key_Backtab or (shift and key == Qt.Key.Key_Tab)):
+            self._shift_lines(indent=False)
+            event.accept()
+        elif plain and not shift and key == Qt.Key.Key_Tab and self.textCursor().hasSelection():
+            self._shift_lines(indent=True)
+            event.accept()
+        else:
+            super().keyPressEvent(event)
+
+    def _shift_lines(self, indent):
+        """Tab : décale de 4 espaces vers la droite les lignes touchées par la sélection ;
+        Maj+Tab : les décale vers la gauche (jusqu'à 4 espaces, ou une tabulation, en
+        moins). Une seule étape d'annulation ; la sélection suit le texte."""
+        doc = self.document()
+        cursor = self.textCursor()
+        anchor, position = cursor.anchor(), cursor.position()
+        start, end = min(anchor, position), max(anchor, position)
+        block = doc.findBlock(start)
+        last = doc.findBlock(end)
+        if end > start and end == last.position():
+            last = last.previous()  # la ligne où la sélection ne fait que commencer n'est pas touchée
+        changes = []  # (début de ligne avant modification, variation de longueur)
+        applied = 0
+        cursor.beginEditBlock()
+        edit = QTextCursor(doc)
+        while block.isValid():
+            text = block.text()
+            if indent:
+                delta = len(INDENT) if text else 0  # une ligne vide reste vide
+                if delta:
+                    edit.setPosition(block.position())
+                    edit.insertText(INDENT)
+            else:
+                if text.startswith("\t"):
+                    delta = -1
+                else:
+                    delta = -min(len(INDENT), len(text) - len(text.lstrip(" ")))
+                if delta:
+                    edit.setPosition(block.position())
+                    edit.setPosition(block.position() - delta, QTextCursor.MoveMode.KeepAnchor)
+                    edit.removeSelectedText()
+            if delta:
+                changes.append((block.position() - applied, delta))
+                applied += delta
+            if block == last:
+                break
+            block = block.next()
+        cursor.endEditBlock()
+
+        def moved(pos, is_start):
+            shift = 0
+            for at, delta in changes:
+                if delta > 0:
+                    if pos > at or (pos == at and not is_start):
+                        shift += delta
+                elif pos >= at - delta:
+                    shift += delta
+                elif pos > at:
+                    shift -= pos - at
+            return pos + shift
+
+        result = self.textCursor()
+        result.setPosition(moved(anchor, anchor == start))
+        result.setPosition(moved(position, position == start), QTextCursor.MoveMode.KeepAnchor)
+        self.setTextCursor(result)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)

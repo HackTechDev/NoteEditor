@@ -167,6 +167,12 @@ adapter si le dépôt est cloné ailleurs.
   - les images et liens relatifs sont résolus depuis le dossier du fichier, et les
     liens externes s'ouvrent dans le navigateur ;
   - l'activation de l'aperçu est mémorisée d'un lancement à l'autre.
+- **Indentation** : quand du texte est sélectionné, `Tab` ajoute 4 espaces au début de
+  chaque ligne touchée par la sélection (une ligne vide reste vide) et `Maj+Tab` retire
+  jusqu'à 4 espaces (ou une tabulation) au début de chacune. Une ligne où la sélection ne
+  fait que commencer, en fin de plage, n'est pas touchée. La sélection suit le texte et
+  l'opération s'annule en un seul `Ctrl+Z`. Sans sélection, `Tab` insère une tabulation
+  comme d'habitude et `Maj+Tab` retire l'indentation de la ligne du curseur.
 - Annuler (`Ctrl+Z`) / Rétablir (`Ctrl+Maj+Z`), Couper / Copier / Coller
   (`Ctrl+X` / `Ctrl+C` / `Ctrl+V`), Tout sélectionner (`Ctrl+A`), dans le menu Édition.
 

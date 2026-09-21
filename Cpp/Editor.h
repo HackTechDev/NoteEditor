@@ -11,6 +11,7 @@
 #include <QWidget>
 
 class QPaintEvent;
+class QKeyEvent;
 class QResizeEvent;
 class QShowEvent;
 class Editor;
@@ -78,6 +79,7 @@ signals:
 
 protected:
     void resizeEvent(QResizeEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) override;
     void showEvent(QShowEvent *event) override;
 
 private slots:
@@ -85,6 +87,7 @@ private slots:
     void updateLineNumberArea(const QRect &rect, int dy);
     void highlightCurrentLine();
     void trackHistory();
+    void shiftLines(bool indent);
 
 private:
     // Qt ne permet ni de lire ni d'exporter la pile annuler/rétablir : on en garde une

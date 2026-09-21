@@ -115,6 +115,9 @@ position, comme la taille et l'emplacement de la fenêtre, sera retenue.
 4. Utilisez les raccourcis habituels : `Ctrl+Z` annuler, `Ctrl+Maj+Z` rétablir,
    `Ctrl+X` / `Ctrl+C` / `Ctrl+V` couper, copier, coller, `Ctrl+A` tout
    sélectionner (ils sont aussi dans le menu **Édition**).
+5. Pour **indenter** plusieurs lignes, sélectionnez-les puis appuyez sur `Tab` : chaque
+   ligne est décalée de 4 espaces vers la droite. `Maj+Tab` fait l'inverse (retrait de
+   4 espaces). Un seul `Ctrl+Z` annule toute l'opération.
 
 **Bon à savoir :** votre texte est **archivé automatiquement** environ une
 seconde et demie après votre dernière frappe. Vous n'avez rien à faire pour ne
@@ -740,6 +743,8 @@ les mêmes notes.
 | Annuler / Rétablir | `Ctrl+Z` / `Ctrl+Maj+Z` |
 | Couper / Copier / Coller | `Ctrl+X` / `Ctrl+C` / `Ctrl+V` |
 | Tout sélectionner | `Ctrl+A` |
+| Indenter les lignes sélectionnées | `Tab` |
+| Retirer une indentation | `Maj+Tab` |
 | Rechercher | `Ctrl+F` |
 | Rechercher / Remplacer | `Ctrl+H` |
 | Occurrence suivante | `F3` |
