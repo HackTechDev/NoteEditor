@@ -121,6 +121,9 @@ position, comme la taille et l'emplacement de la fenêtre, sera retenue.
    revenez en mode insertion. C'est le fonctionnement de l'éditeur Vim. `Échap` deux
    fois de suite active puis quitte le mode commande sans rien changer ; dans ce mode
    la frappe n'insère pas de texte.
+   Toujours en mode commande, `Maj+O` **joint la ligne courante à la suivante** : elles
+   sont rassemblées sur une seule ligne, séparées par une espace, et vous restez en
+   mode commande.
 6. Pour **indenter** plusieurs lignes, sélectionnez-les puis appuyez sur `Tab` : chaque
    ligne est décalée de 4 espaces vers la droite. `Maj+Tab` fait l'inverse (retrait de
    4 espaces). Un seul `Ctrl+Z` annule toute l'opération. Sans sélection, `Tab` insère
@@ -756,6 +759,7 @@ les mêmes notes.
 | Retirer une indentation | `Maj+Tab` |
 | Mode commande (activer / quitter) | `Échap` |
 | Insérer une ligne dessous (mode commande) | `o` |
+| Joindre la ligne à la suivante (mode commande) | `Maj+O` |
 | Rechercher | `Ctrl+F` |
 | Rechercher / Remplacer | `Ctrl+H` |
 | Occurrence suivante | `F3` |

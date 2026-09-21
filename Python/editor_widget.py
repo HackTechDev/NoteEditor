@@ -302,6 +302,29 @@ class Editor(QPlainTextEdit):
         cursor.insertBlock()
         self.setTextCursor(cursor)
 
+    def _join_next_line(self):
+        """Commande `Maj+O` : joint la ligne du curseur à la suivante. Le saut de ligne et
+        l'indentation de la suivante disparaissent, remplacés par une seule espace (sauf si
+        l'une des deux lignes est vide ou si la ligne courante finit déjà par une espace) ;
+        le curseur se place sur le raccord. Rien sur la dernière ligne."""
+        cursor = self.textCursor()
+        block = cursor.block()
+        following = block.next()
+        if not following.isValid():
+            return
+        text = following.text()
+        rest = text.lstrip(" \t")
+        current = block.text()
+        separator = bool(current) and not current[-1].isspace() and bool(rest) and not rest.startswith(")")
+        cursor.beginEditBlock()
+        cursor.movePosition(QTextCursor.MoveOperation.EndOfBlock)
+        join = cursor.position()
+        cursor.setPosition(following.position() + len(text) - len(rest), QTextCursor.MoveMode.KeepAnchor)
+        cursor.insertText(" " if separator else "")
+        cursor.endEditBlock()
+        cursor.setPosition(join)
+        self.setTextCursor(cursor)
+
     def keyPressEvent(self, event):
         key, mods = event.key(), event.modifiers()
         plain = not mods & (Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.AltModifier
@@ -312,9 +335,12 @@ class Editor(QPlainTextEdit):
             event.accept()
             return
         if self.command_mode and plain:
-            if event.text() == "o":
-                self._open_line_below()
-                self.set_command_mode(False)
+            if key == Qt.Key.Key_O:
+                if shift or event.text() == "O":  # Maj+O (ou majuscules verrouillées)
+                    self._join_next_line()
+                else:
+                    self._open_line_below()
+                    self.set_command_mode(False)
                 event.accept()
                 return
             if event.text() or key in (Qt.Key.Key_Delete, Qt.Key.Key_Insert,

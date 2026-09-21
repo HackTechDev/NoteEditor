@@ -143,6 +143,34 @@ void Editor::openLineBelow()
     setTextCursor(cursor);
 }
 
+// Commande `Maj+O` : joint la ligne du curseur à la suivante. Le saut de ligne et
+// l'indentation de la suivante disparaissent, remplacés par une seule espace (sauf si l'une
+// des deux lignes est vide ou si la ligne courante finit déjà par une espace) ; le curseur se
+// place sur le raccord. Rien sur la dernière ligne.
+void Editor::joinNextLine()
+{
+    QTextCursor cursor = textCursor();
+    const QTextBlock block = cursor.block();
+    const QTextBlock following = block.next();
+    if (!following.isValid())
+        return;
+    const QString text = following.text();
+    int lead = 0;
+    while (lead < text.size() && (text[lead] == ' ' || text[lead] == '\t'))
+        ++lead;
+    const QString rest = text.mid(lead);
+    const QString current = block.text();
+    const bool separator = !current.isEmpty() && !current.back().isSpace() && !rest.isEmpty() && !rest.startsWith(')');
+    cursor.beginEditBlock();
+    cursor.movePosition(QTextCursor::EndOfBlock);
+    const int join = cursor.position();
+    cursor.setPosition(following.position() + lead, QTextCursor::KeepAnchor);
+    cursor.insertText(separator ? " " : "");
+    cursor.endEditBlock();
+    cursor.setPosition(join);
+    setTextCursor(cursor);
+}
+
 // Tab : décale de 4 espaces vers la droite les lignes touchées par la sélection ;
 // Maj+Tab : les décale vers la gauche (jusqu'à 4 espaces, ou une tabulation, en moins).
 void Editor::keyPressEvent(QKeyEvent *event)
@@ -157,9 +185,13 @@ void Editor::keyPressEvent(QKeyEvent *event)
         return;
     }
     if (m_commandMode && plain) {
-        if (event->text() == "o") {
-            openLineBelow();
-            setCommandMode(false);
+        if (key == Qt::Key_O) {
+            if (shift || event->text() == "O") { // Maj+O (ou majuscules verrouillées)
+                joinNextLine();
+            } else {
+                openLineBelow();
+                setCommandMode(false);
+            }
             event->accept();
             return;
         }

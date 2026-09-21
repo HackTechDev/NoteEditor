@@ -95,6 +95,7 @@ private slots:
     void trackHistory();
     void shiftLines(bool indent);
     void openLineBelow();
+    void joinNextLine();
 
 private:
     // Qt ne permet ni de lire ni d'exporter la pile annuler/rétablir : on en garde une

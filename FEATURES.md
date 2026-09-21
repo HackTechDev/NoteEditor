@@ -173,7 +173,12 @@ adapter si le dépôt est cloné ailleurs.
   Début, Fin, les pages, la souris et les raccourcis `Ctrl+…` continuent de fonctionner).
   `Échap` de nouveau ramène au mode insertion. La touche **`o`** insère une ligne vide
   sous la ligne du curseur, s'y place et repasse en mode insertion, comme dans Vim (une
-  seule étape d'annulation). Chaque onglet a son propre mode ; il n'est pas mémorisé d'un
+  seule étape d'annulation). **`Maj+O`** joint la ligne du curseur à la suivante : le
+  saut de ligne et l'indentation de la suivante disparaissent, remplacés par une seule
+  espace (pas d'espace si l'une des deux lignes est vide, si la ligne courante finit déjà
+  par une espace ou si la suivante commence par `)`) ; le curseur se place sur le raccord
+  et l'on reste en mode commande ; sans effet sur la dernière ligne, un seul `Ctrl+Z`
+  l'annule. Chaque onglet a son propre mode ; il n'est pas mémorisé d'un
   lancement à l'autre.
 - **Indentation** : quand du texte est sélectionné, `Tab` ajoute 4 espaces au début de
   chaque ligne touchée par la sélection (une ligne vide reste vide) et `Maj+Tab` retire
