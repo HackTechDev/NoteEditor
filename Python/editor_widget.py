@@ -341,6 +341,12 @@ class Editor(QPlainTextEdit):
                 self.set_command_mode(False)
                 event.accept()
                 return
+            if event.text() == "$":  # fin de la ligne (logique, même avec le retour à la ligne)
+                cursor = self.textCursor()
+                cursor.movePosition(QTextCursor.MoveOperation.EndOfBlock)
+                self.setTextCursor(cursor)
+                event.accept()
+                return
             if key == Qt.Key.Key_J and upper:
                 self._join_next_line()
                 event.accept()

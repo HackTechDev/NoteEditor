@@ -178,7 +178,9 @@ adapter si le dépôt est cloné ailleurs.
   espace (pas d'espace si l'une des deux lignes est vide, si la ligne courante finit déjà
   par une espace ou si la suivante commence par `)`) ; le curseur se place sur le raccord
   et l'on reste en mode commande ; sans effet sur la dernière ligne, un seul `Ctrl+Z`
-  l'annule. Chaque onglet a son propre mode ; il n'est pas mémorisé d'un
+  l'annule. **`$`** déplace le curseur à la fin de la ligne (la ligne logique, même quand
+  le retour automatique à la ligne la répartit sur plusieurs lignes à l'écran) et lève la
+  sélection éventuelle. Chaque onglet a son propre mode ; il n'est pas mémorisé d'un
   lancement à l'autre.
 - **Indentation** : quand du texte est sélectionné, `Tab` ajoute 4 espaces au début de
   chaque ligne touchée par la sélection (une ligne vide reste vide) et `Maj+Tab` retire

@@ -192,6 +192,13 @@ void Editor::keyPressEvent(QKeyEvent *event)
             event->accept();
             return;
         }
+        if (event->text() == "$") { // fin de la ligne (logique, même avec le retour à la ligne)
+            QTextCursor cursor = textCursor();
+            cursor.movePosition(QTextCursor::EndOfBlock);
+            setTextCursor(cursor);
+            event->accept();
+            return;
+        }
         if (key == Qt::Key_J && upper) {
             joinNextLine();
             event->accept();
