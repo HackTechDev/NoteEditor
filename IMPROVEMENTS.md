@@ -7,6 +7,8 @@ implémentées sont documentées dans `README.md` et `FEATURES.md`, pas ici.
 ## Édition
 
 - **Police et taille configurables** : actuellement fixées en dur (Monospace 11) dans `editor_widget.py` et `Editor.cpp`. Un réglage (menu ou raccourci `Ctrl+molette`) rendrait l'appli plus confortable selon l'écran.
+- **Plus de commandes dans le mode commande** : seul `o` existe aujourd'hui ; `O` (ligne au-dessus), `h`/`j`/`k`/`l`, `x`, `dd`, `yy`/`p`, `u`, `gg`/`G`, `/` pour chercher, voire `:w` / `:q`, en feraient un vrai mode Vim. Les touches non gérées sont simplement ignorées.
+- **Réglage de l'indentation** : `Tab` / `Maj+Tab` décalent de 4 espaces en dur ; une largeur configurable, ou le choix entre espaces et tabulation, s'accorderait à l'usage de chacun (et à celui de chaque langage).
 - **Indentation automatique** et **correspondance des parenthèses/accolades** pour les fichiers de code.
 - **Plus de langages** pour la coloration syntaxique (`highlighters.py` / `Highlighters.cpp` ne couvrent que Python/JSON/Markdown) : JS, HTML, CSS, YAML, Shell seraient des ajouts naturels.
 - **Aperçu Markdown** : synchroniser son défilement avec celui de l'éditeur, et pouvoir exporter le rendu en HTML.

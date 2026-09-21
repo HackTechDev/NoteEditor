@@ -106,8 +106,8 @@ position, comme la taille et l'emplacement de la fenêtre, sera retenue.
 **À essayer**
 
 1. Cliquez dans la zone d'édition et tapez quelques lignes.
-2. Regardez la **barre de statut** : la ligne, la colonne, le nombre de mots et de
-   caractères changent en direct.
+2. Regardez la **barre de statut** : le mode (`-- INSERTION --`), la ligne, la
+   colonne, le nombre de mots et de caractères changent en direct.
 3. Regardez le **nom de l'onglet** : il ressemble à `260919_07352346`. C'est la
    date et l'heure de création de la note, au format `aammjj_hhmmssmm` (année,
    mois, jour, heure, minute, seconde, centièmes). Chaque nouvelle note reçoit
@@ -123,7 +123,9 @@ position, comme la taille et l'emplacement de la fenêtre, sera retenue.
    la frappe n'insère pas de texte.
 6. Pour **indenter** plusieurs lignes, sélectionnez-les puis appuyez sur `Tab` : chaque
    ligne est décalée de 4 espaces vers la droite. `Maj+Tab` fait l'inverse (retrait de
-   4 espaces). Un seul `Ctrl+Z` annule toute l'opération.
+   4 espaces). Un seul `Ctrl+Z` annule toute l'opération. Sans sélection, `Tab` insère
+   une tabulation comme d'habitude et `Maj+Tab` retire l'indentation de la ligne du
+   curseur.
 
 **Bon à savoir :** votre texte est **archivé automatiquement** environ une
 seconde et demie après votre dernière frappe. Vous n'avez rien à faire pour ne
