@@ -123,6 +123,26 @@ void Editor::updateLineNumberArea(const QRect &rect, int dy)
         updateLineNumberAreaWidth();
 }
 
+// Mode commande (Échap) : le curseur devient un bloc et la frappe n'insère plus de texte ;
+// Échap de nouveau, ou une commande comme `o`, ramène au mode insertion.
+void Editor::setCommandMode(bool enabled)
+{
+    if (enabled == m_commandMode)
+        return;
+    m_commandMode = enabled;
+    setCursorWidth(enabled ? fontMetrics().horizontalAdvance(' ') : 1);
+    emit modeChanged();
+}
+
+// Commande `o` : insère une ligne vide sous la ligne du curseur et s'y place.
+void Editor::openLineBelow()
+{
+    QTextCursor cursor = textCursor();
+    cursor.movePosition(QTextCursor::EndOfBlock);
+    cursor.insertBlock();
+    setTextCursor(cursor);
+}
+
 // Tab : décale de 4 espaces vers la droite les lignes touchées par la sélection ;
 // Maj+Tab : les décale vers la gauche (jusqu'à 4 espaces, ou une tabulation, en moins).
 void Editor::keyPressEvent(QKeyEvent *event)
@@ -131,6 +151,24 @@ void Editor::keyPressEvent(QKeyEvent *event)
     const bool plain = !(mods & (Qt::ControlModifier | Qt::AltModifier | Qt::MetaModifier));
     const bool shift = mods & Qt::ShiftModifier;
     const int key = event->key();
+    if (plain && key == Qt::Key_Escape) {
+        setCommandMode(!m_commandMode);
+        event->accept();
+        return;
+    }
+    if (m_commandMode && plain) {
+        if (event->text() == "o") {
+            openLineBelow();
+            setCommandMode(false);
+            event->accept();
+            return;
+        }
+        if (!event->text().isEmpty() || key == Qt::Key_Delete || key == Qt::Key_Insert
+            || key == Qt::Key_Tab || key == Qt::Key_Backtab) {
+            event->accept(); // pas de saisie en mode commande ; les flèches, Début, Fin… passent
+            return;
+        }
+    }
     if (plain && (key == Qt::Key_Backtab || (shift && key == Qt::Key_Tab))) {
         shiftLines(false);
         event->accept();

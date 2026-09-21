@@ -652,10 +652,12 @@ void MainWindow::setWordWrap(bool enabled)
 
 void MainWindow::createStatusBar()
 {
+    m_statusMode = new QLabel(this);
     m_statusPosition = new QLabel(this);
     m_statusCounts = new QLabel(this);
     m_statusEncoding = new QLabel("UTF-8", this);
     QStatusBar *bar = statusBar();
+    bar->addPermanentWidget(m_statusMode);
     bar->addPermanentWidget(m_statusPosition);
     bar->addPermanentWidget(m_statusCounts);
     bar->addPermanentWidget(m_statusEncoding);
@@ -666,12 +668,15 @@ void MainWindow::updateStatusBar()
 {
     Editor *editor = currentEditor();
     if (!editor) {
+        m_statusMode->setText(QString());
         m_statusPosition->setText(QString());
         m_statusCounts->setText(QString());
         m_statusEncoding->setText(QString());
         return;
     }
 
+    m_statusMode->setText(editor->commandMode() ? "-- COMMANDE --" : "-- INSERTION --");
+    m_statusMode->setStyleSheet(editor->commandMode() ? "font-weight: bold;" : QString());
     const QTextCursor cursor = editor->textCursor();
     const int line = cursor.blockNumber() + 1;
     const int col = cursor.columnNumber() + 1;
@@ -754,6 +759,7 @@ Editor *MainWindow::newTab(const QString &filePath, const QString &content, cons
     connect(editor, &Editor::autosaveRequested, this, [this, editor] { autosaveTab(editor); });
     editor->setLineWrapMode(m_wordWrapEnabled ? QPlainTextEdit::WidgetWidth : QPlainTextEdit::NoWrap);
     connect(editor, &QPlainTextEdit::cursorPositionChanged, this, &MainWindow::updateStatusBar);
+    connect(editor, &Editor::modeChanged, this, &MainWindow::updateStatusBar);
     connect(editor, &QPlainTextEdit::textChanged, this, &MainWindow::updateStatusBar);
     connect(editor, &QPlainTextEdit::textChanged, this, &MainWindow::schedulePreview);
 

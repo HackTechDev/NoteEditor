@@ -75,6 +75,7 @@ class LineNumberArea(QWidget):
 
 class Editor(QPlainTextEdit):
     autosave_requested = pyqtSignal()
+    mode_changed = pyqtSignal()  # entrée / sortie du mode commande
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -84,6 +85,8 @@ class Editor(QPlainTextEdit):
         self.session_id = uuid.uuid4().hex
         self.disk_mtime = None
         self._pending_scroll = None
+        # mode « commande » à la Vim (Échap) ; sinon on est en mode insertion
+        self.command_mode = False
         # suivi de l'historique annuler/rétablir : Qt ne permet pas de le lire ni de
         # l'exporter, on en garde donc une copie sous forme d'étapes (début, retiré, ajouté)
         self._hist_steps = []
@@ -283,11 +286,41 @@ class Editor(QPlainTextEdit):
         if rect.contains(self.viewport().rect()):
             self.update_line_number_area_width()
 
+    def set_command_mode(self, enabled):
+        """Mode commande (Échap) : le curseur devient un bloc et la frappe n'insère plus de
+        texte ; Échap de nouveau, ou une commande comme `o`, ramène au mode insertion."""
+        if enabled == self.command_mode:
+            return
+        self.command_mode = enabled
+        self.setCursorWidth(self.fontMetrics().horizontalAdvance(" ") if enabled else 1)
+        self.mode_changed.emit()
+
+    def _open_line_below(self):
+        """Commande `o` : insère une ligne vide sous la ligne du curseur et s'y place."""
+        cursor = self.textCursor()
+        cursor.movePosition(QTextCursor.MoveOperation.EndOfBlock)
+        cursor.insertBlock()
+        self.setTextCursor(cursor)
+
     def keyPressEvent(self, event):
         key, mods = event.key(), event.modifiers()
         plain = not mods & (Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.AltModifier
                             | Qt.KeyboardModifier.MetaModifier)
         shift = bool(mods & Qt.KeyboardModifier.ShiftModifier)
+        if plain and key == Qt.Key.Key_Escape:
+            self.set_command_mode(not self.command_mode)
+            event.accept()
+            return
+        if self.command_mode and plain:
+            if event.text() == "o":
+                self._open_line_below()
+                self.set_command_mode(False)
+                event.accept()
+                return
+            if event.text() or key in (Qt.Key.Key_Delete, Qt.Key.Key_Insert,
+                                       Qt.Key.Key_Tab, Qt.Key.Key_Backtab):
+                event.accept()  # pas de saisie en mode commande ; les flèches, Début, Fin… passent
+                return
         if plain and (key == Qt.Key.Key_Backtab or (shift and key == Qt.Key.Key_Tab)):
             self._shift_lines(indent=False)
             event.accept()

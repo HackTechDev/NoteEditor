@@ -93,8 +93,8 @@ prête à recevoir du texte.
    le dernier.
 5. **La zone d'édition** : avec les numéros de ligne à gauche, et la ligne où se
    trouve le curseur légèrement surlignée.
-6. **La barre de statut** : la position du curseur, le nombre de mots et de
-   caractères, et l'encodage.
+6. **La barre de statut** : le mode (insertion ou commande), la position du curseur,
+   le nombre de mots et de caractères, et l'encodage.
 
 Le séparateur entre le panneau et la zone d'édition se déplace à la souris. Sa
 position, comme la taille et l'emplacement de la fenêtre, sera retenue.
@@ -115,7 +115,13 @@ position, comme la taille et l'emplacement de la fenêtre, sera retenue.
 4. Utilisez les raccourcis habituels : `Ctrl+Z` annuler, `Ctrl+Maj+Z` rétablir,
    `Ctrl+X` / `Ctrl+C` / `Ctrl+V` couper, copier, coller, `Ctrl+A` tout
    sélectionner (ils sont aussi dans le menu **Édition**).
-5. Pour **indenter** plusieurs lignes, sélectionnez-les puis appuyez sur `Tab` : chaque
+5. Pour **insérer une ligne sous la ligne courante** sans aller à sa fin : appuyez sur
+   `Échap` (la barre de statut affiche `-- COMMANDE --` et le curseur devient un bloc),
+   puis sur `o`. Une ligne vide apparaît en dessous, le curseur s'y place et vous
+   revenez en mode insertion. C'est le fonctionnement de l'éditeur Vim. `Échap` deux
+   fois de suite active puis quitte le mode commande sans rien changer ; dans ce mode
+   la frappe n'insère pas de texte.
+6. Pour **indenter** plusieurs lignes, sélectionnez-les puis appuyez sur `Tab` : chaque
    ligne est décalée de 4 espaces vers la droite. `Maj+Tab` fait l'inverse (retrait de
    4 espaces). Un seul `Ctrl+Z` annule toute l'opération.
 
@@ -658,6 +664,7 @@ suivante à l'écran garde un seul numéro).
 
 En bas de la fenêtre, pour l'onglet actif :
 
+- **-- INSERTION -- / -- COMMANDE --** : le mode de l'éditeur (voir la partie 3) ;
 - **Ligne X, Colonne Y** : la position du curseur ;
 - **N mots, M caractères** : sur l'ensemble de la note ;
 - **UTF-8** : l'encodage utilisé.
@@ -745,6 +752,8 @@ les mêmes notes.
 | Tout sélectionner | `Ctrl+A` |
 | Indenter les lignes sélectionnées | `Tab` |
 | Retirer une indentation | `Maj+Tab` |
+| Mode commande (activer / quitter) | `Échap` |
+| Insérer une ligne dessous (mode commande) | `o` |
 | Rechercher | `Ctrl+F` |
 | Rechercher / Remplacer | `Ctrl+H` |
 | Occurrence suivante | `F3` |

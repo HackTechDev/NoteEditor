@@ -676,10 +676,12 @@ class MainWindow(QMainWindow):
             self.tabs.widget(i).setLineWrapMode(mode)
 
     def _create_status_bar(self):
+        self.status_mode = QLabel()
         self.status_position = QLabel()
         self.status_counts = QLabel()
         self.status_encoding = QLabel("UTF-8")
         bar = self.statusBar()
+        bar.addPermanentWidget(self.status_mode)
         bar.addPermanentWidget(self.status_position)
         bar.addPermanentWidget(self.status_counts)
         bar.addPermanentWidget(self.status_encoding)
@@ -688,10 +690,13 @@ class MainWindow(QMainWindow):
     def _update_status_bar(self):
         editor = self.current_editor()
         if editor is None:
+            self.status_mode.setText("")
             self.status_position.setText("")
             self.status_counts.setText("")
             self.status_encoding.setText("")
             return
+        self.status_mode.setText("-- COMMANDE --" if editor.command_mode else "-- INSERTION --")
+        self.status_mode.setStyleSheet("font-weight: bold;" if editor.command_mode else "")
         cursor = editor.textCursor()
         line = cursor.blockNumber() + 1
         col = cursor.columnNumber() + 1
@@ -820,6 +825,7 @@ class MainWindow(QMainWindow):
         editor.document().modificationChanged.connect(lambda _: self.update_title())
         editor.autosave_requested.connect(lambda: self._autosave_tab(editor))
         editor.cursorPositionChanged.connect(self._update_status_bar)
+        editor.mode_changed.connect(self._update_status_bar)
         editor.textChanged.connect(self._update_status_bar)
         editor.textChanged.connect(self._schedule_preview)
         editor.setLineWrapMode(

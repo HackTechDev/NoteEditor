@@ -167,6 +167,14 @@ adapter si le dépôt est cloné ailleurs.
   - les images et liens relatifs sont résolus depuis le dossier du fichier, et les
     liens externes s'ouvrent dans le navigateur ;
   - l'activation de l'aperçu est mémorisée d'un lancement à l'autre.
+- **Mode « commande » à la Vim** : `Échap` bascule l'éditeur en mode commande, indiqué
+  dans la barre de statut (`-- COMMANDE --`, contre `-- INSERTION --` en temps normal) ;
+  le curseur devient un bloc. Dans ce mode la frappe n'insère plus de texte (les flèches,
+  Début, Fin, les pages, la souris et les raccourcis `Ctrl+…` continuent de fonctionner).
+  `Échap` de nouveau ramène au mode insertion. La touche **`o`** insère une ligne vide
+  sous la ligne du curseur, s'y place et repasse en mode insertion, comme dans Vim (une
+  seule étape d'annulation). Chaque onglet a son propre mode ; il n'est pas mémorisé d'un
+  lancement à l'autre.
 - **Indentation** : quand du texte est sélectionné, `Tab` ajoute 4 espaces au début de
   chaque ligne touchée par la sélection (une ligne vide reste vide) et `Maj+Tab` retire
   jusqu'à 4 espaces (ou une tabulation) au début de chacune. Une ligne où la sélection ne
@@ -319,7 +327,7 @@ Icônes (dessinées par l'application, sans fichier d'image), de gauche à droit
 
 ## 10. Barre de statut
 
-Pour l'onglet actif : **ligne et colonne** du curseur, **nombre de mots** et de
+Pour l'onglet actif : le **mode** (`-- INSERTION --` ou `-- COMMANDE --`), **ligne et colonne** du curseur, **nombre de mots** et de
 **caractères**, et **encodage** (UTF-8).
 
 ## 11. Menus

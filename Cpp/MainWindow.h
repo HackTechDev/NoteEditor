@@ -152,6 +152,7 @@ private:
     QString m_previewNoteId, m_previewPath, m_previewText;
     bool m_hasPreviewKey = false;
     FindReplaceDialog *m_findDialog;
+    QLabel *m_statusMode;
     QLabel *m_statusPosition;
     QLabel *m_statusCounts;
     QLabel *m_statusEncoding;

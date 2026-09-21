@@ -64,6 +64,10 @@ public:
     int lineNumberAreaWidth() const;
     void lineNumberAreaPaintEvent(QPaintEvent *event);
 
+    // Mode « commande » à la Vim (Échap) ; sinon on est en mode insertion.
+    bool commandMode() const { return m_commandMode; }
+    void setCommandMode(bool enabled);
+
     QString filePath;    // empty == no associated file
     QString defaultName; // empty == not applicable (has filePath instead)
     QString sessionId;
@@ -76,6 +80,8 @@ signals:
     // uses this to archive the draft continuously, not just on tab
     // creation/close/quit.
     void autosaveRequested();
+    // Entrée / sortie du mode commande.
+    void modeChanged();
 
 protected:
     void resizeEvent(QResizeEvent *event) override;
@@ -88,6 +94,7 @@ private slots:
     void highlightCurrentLine();
     void trackHistory();
     void shiftLines(bool indent);
+    void openLineBelow();
 
 private:
     // Qt ne permet ni de lire ni d'exporter la pile annuler/rétablir : on en garde une
@@ -107,4 +114,5 @@ private:
     QString m_histText;
     bool m_histNewStep = false;
     bool m_histBusy = false;
+    bool m_commandMode = false;
 };
