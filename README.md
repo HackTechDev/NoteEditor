@@ -20,7 +20,7 @@ La liste détaillée et complète est dans [`FEATURES.md`](FEATURES.md), et un d
 - Mode « commande » à la Vim : `Échap` l'active (le curseur devient un bloc et la frappe n'insère plus de texte), `Échap` de nouveau en sort ; `o` y insère une ligne sous celle du curseur et repasse en mode insertion ; `Maj+J` y joint la ligne du curseur à la suivante ; `0` et `$` placent le curseur au début et à la fin de la ligne. Le mode est indiqué dans la barre de statut
 - Indentation : avec du texte sélectionné, `Tab` décale de 4 espaces vers la droite chaque ligne touchée par la sélection et `Maj+Tab` la décale de 4 espaces vers la gauche (une seule étape d'annulation)
 - Coloration syntaxique automatique selon l'extension : Python (`.py`, `.pyw`), JSON (`.json`), Markdown (`.md`, `.markdown`)
-- Aperçu Markdown en volet séparé pour les fichiers `.md` / `.markdown` (icône de la barre d'outils, désactivée pour les autres onglets) : le rendu, mis à jour en direct pendant la frappe, s'affiche à droite de l'éditeur
+- Aperçu Markdown en volet séparé pour les fichiers `.md` / `.markdown` (icône de la barre d'outils, désactivée pour les autres onglets) : le rendu, mis à jour en direct pendant la frappe, s'affiche à droite de l'éditeur et suit son défilement ; « Fichier → Exporter en HTML... » enregistre le rendu dans une page HTML autonome
 - Recherche / remplacement (`Ctrl+F` / `Ctrl+H`) : suivant, précédent, remplacer, tout remplacer
 - `Ctrl+S` sur un onglet sans fichier associé l'enregistre directement dans `~/.noteeditor/docs/` (sous son nom par défaut, en `.md`), sans ouvrir de boîte de dialogue ; `Ctrl+Shift+S` (Enregistrer sous) permet de choisir un autre emplacement
 - Glisser-déposer un fichier dans la fenêtre pour l'ouvrir dans un nouvel onglet

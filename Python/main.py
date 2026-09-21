@@ -4,7 +4,17 @@ import sys
 from datetime import datetime
 
 from PyQt6.QtCore import QEvent, Qt, QPoint, QRect, QSize, QTimer, QUrl
-from PyQt6.QtGui import QAction, QDesktopServices, QIcon, QKeySequence, QPainter, QPen, QPixmap, QPolygon
+from PyQt6.QtGui import (
+    QAction,
+    QDesktopServices,
+    QIcon,
+    QKeySequence,
+    QPainter,
+    QPen,
+    QPixmap,
+    QPolygon,
+    QTextDocument,
+)
 from PyQt6.QtWidgets import (
     QApplication,
     QComboBox,
@@ -465,6 +475,8 @@ class MainWindow(QMainWindow):
         # préserve le format de window.json.
         self.preview = QTextBrowser()
         self.preview.setOpenExternalLinks(True)
+        # la plage de défilement de l'aperçu se précise après la mise en page : on recale
+        self.preview.verticalScrollBar().rangeChanged.connect(lambda _min, _max: self._sync_preview_scroll())
         self.preview.hide()
         self._preview_key = None
         self._preview_timer = QTimer(self)
@@ -564,6 +576,10 @@ class MainWindow(QMainWindow):
         self.save_as_action = QAction(_save_as_icon(), "Enregistrer &sous...", self)
         self.save_as_action.setShortcut(QKeySequence.StandardKey.SaveAs)
         self.save_as_action.triggered.connect(self.save_file_as)
+
+        self.export_html_action = QAction("&Exporter en HTML...", self)
+        self.export_html_action.setEnabled(False)
+        self.export_html_action.triggered.connect(self.export_html)
 
         self.close_tab_action = QAction(_close_tab_icon(), "&Fermer l'onglet", self)
         self.close_tab_action.setShortcut(QKeySequence.StandardKey.Close)
@@ -670,6 +686,7 @@ class MainWindow(QMainWindow):
         editor = self.current_editor()
         markdown = self._is_markdown(editor)
         self.preview_action.setEnabled(markdown)
+        self.export_html_action.setEnabled(markdown)
         show = markdown and self.preview_action.isChecked()
         was_visible = self.preview.isVisible()
         same_note = markdown and self._preview_key is not None and self._preview_key[0] == editor.session_id
@@ -680,6 +697,49 @@ class MainWindow(QMainWindow):
                 self._preview_timer.start()
             else:
                 self._render_preview()
+            self._sync_preview_scroll()
+
+    def _sync_preview_scroll(self):
+        """Le défilement de l'aperçu suit celui de l'éditeur, proportionnellement à la
+        longueur de chacun."""
+        editor = self.current_editor()
+        if editor is None or not self.preview.isVisible():
+            return
+        source = editor.verticalScrollBar()
+        target = self.preview.verticalScrollBar()
+        ratio = source.value() / source.maximum() if source.maximum() > 0 else 0
+        target.setValue(round(ratio * target.maximum()))
+
+    def export_html(self):
+        """Exporte le rendu de la note Markdown active dans un fichier HTML."""
+        editor = self.current_editor()
+        if not self._is_markdown(editor):
+            return
+        start = os.path.splitext(editor.file_path)[0] + ".html"
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Exporter en HTML", start, "Pages HTML (*.html *.htm);;Tous les fichiers (*)"
+        )
+        if not path:
+            return
+        if not os.path.splitext(path)[1]:
+            path += ".html"
+        try:
+            self._write_html(editor, path)
+        except OSError as e:
+            QMessageBox.warning(self, "Exporter en HTML", f"Impossible d'écrire le fichier :\n{e}")
+            return
+        self.statusBar().showMessage("Exporté en HTML : " + path, 4000)
+
+    @staticmethod
+    def _write_html(editor, path):
+        """Page HTML autonome (UTF-8, titre = nom du fichier) du texte actuel de la note.
+        Les images et liens relatifs restent relatifs au dossier du fichier Markdown : ils
+        s'affichent si la page est enregistrée dans ce même dossier (proposé par défaut)."""
+        doc = QTextDocument()
+        doc.setMarkdown(editor.toPlainText())
+        doc.setMetaInformation(QTextDocument.MetaInformation.DocumentTitle, os.path.basename(editor.file_path))
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(doc.toHtml())
 
     def _schedule_preview(self):
         if self.preview.isVisible():
@@ -701,6 +761,8 @@ class MainWindow(QMainWindow):
         self.preview.setSearchPaths([os.path.dirname(editor.file_path)])
         self.preview.setMarkdown(text)
         bar.setValue(scroll)
+        self._sync_preview_scroll()
+        QTimer.singleShot(0, self._sync_preview_scroll)  # la plage de défilement se met à jour après la mise en page
 
     def _set_drafts_panel_visible(self, visible):
         """Affiche ou masque le panneau Brouillons ; il retrouve sa largeur en revenant."""
@@ -831,6 +893,7 @@ class MainWindow(QMainWindow):
         file_menu.aboutToShow.connect(self._refresh_recent_menu)
         file_menu.addAction(self.save_action)
         file_menu.addAction(self.save_as_action)
+        file_menu.addAction(self.export_html_action)
         file_menu.addSeparator()
         file_menu.addAction(self.trash_action)
         file_menu.addSeparator()
@@ -884,6 +947,10 @@ class MainWindow(QMainWindow):
         editor.mode_changed.connect(self._update_status_bar)
         editor.textChanged.connect(self._update_status_bar)
         editor.textChanged.connect(self._schedule_preview)
+        # (le défilement d'un onglet qui n'est pas l'actif ne compte pas)
+        editor.verticalScrollBar().valueChanged.connect(
+            lambda _value, e=editor: self._sync_preview_scroll() if e is self.current_editor() else None
+        )
         editor.setLineWrapMode(
             QPlainTextEdit.LineWrapMode.WidgetWidth if self.word_wrap_enabled else QPlainTextEdit.LineWrapMode.NoWrap
         )

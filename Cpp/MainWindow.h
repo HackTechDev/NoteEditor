@@ -110,6 +110,9 @@ private:
     void updatePreviewState();
     void schedulePreview();
     void renderPreview();
+    void syncPreviewScroll();
+    void exportHtml();
+    static bool writeHtml(const Editor *editor, const QString &path);
     void closeTabByButton(QToolButton *button);
     QVector<QToolButton *> nativeScrollButtons() const;
     void repositionNewTabButton();
@@ -163,6 +166,7 @@ private:
     QAction *m_openAction;
     QAction *m_saveAction;
     QAction *m_saveAsAction;
+    QAction *m_exportHtmlAction;
     QAction *m_closeTabAction;
     QAction *m_quitAction;
     QAction *m_undoAction;

@@ -162,6 +162,14 @@ adapter si le dépôt est cloné ailleurs.
   - le rendu (titres, gras, italique, listes, cases à cocher, citations, code,
     liens, images) se **met à jour en direct** pendant la frappe, avec un court
     délai, et **conserve la position de défilement** ;
+  - son **défilement suit celui de l'éditeur**, proportionnellement à la longueur de chacun
+    (il se recale aussi après chaque mise à jour du rendu et au changement d'onglet) ;
+  - **Fichier → Exporter en HTML...** enregistre le rendu dans un fichier HTML autonome
+    (UTF-8, titre = nom du fichier), à partir du texte actuel de la note, y compris ses
+    modifications non enregistrées. L'entrée est grisée hors d'un onglet Markdown, et
+    n'exige pas que l'aperçu soit affiché. La boîte de dialogue propose le dossier du
+    fichier Markdown et le nom `note.html` : les images et liens relatifs y restent
+    valables ; l'extension `.html` est ajoutée si on l'oublie ;
   - le volet suit l'onglet actif : il se masque sur un onglet qui n'est pas
     Markdown et revient sur un onglet Markdown, tant que l'icône est activée ;
   - les images et liens relatifs sont résolus depuis le dossier du fichier, et les
@@ -349,7 +357,7 @@ Pour l'onglet actif : le **mode** (`-- INSERTION --` ou `-- COMMANDE --`), **lig
 ## 11. Menus
 
 - **Fichier** : Nouveau, Ouvrir, Notes fermées récemment (sous-menu), Enregistrer,
-  Enregistrer sous, Corbeille, Fermer l'onglet, Quitter.
+  Enregistrer sous, Exporter en HTML (notes Markdown), Corbeille, Fermer l'onglet, Quitter.
 - **Édition** : Annuler, Rétablir, Couper, Copier, Coller, Tout sélectionner.
 - **Rechercher** : Rechercher, Rechercher / Remplacer, Suivant.
 - **Aide** : À propos.

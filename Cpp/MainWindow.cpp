@@ -44,6 +44,7 @@
 #include <QTabBar>
 #include <QTabWidget>
 #include <QTextBrowser>
+#include <QTextDocument>
 #include <QTextCursor>
 #include <QTextStream>
 #include <QTimer>
@@ -498,6 +499,8 @@ MainWindow::MainWindow(QWidget *parent)
     m_previewTimer->setSingleShot(true);
     m_previewTimer->setInterval(250);
     connect(m_previewTimer, &QTimer::timeout, this, &MainWindow::renderPreview);
+    // la plage de défilement de l'aperçu se précise après la mise en page : on recale
+    connect(m_preview->verticalScrollBar(), &QScrollBar::rangeChanged, this, [this](int, int) { syncPreviewScroll(); });
     m_editorSplitter = new QSplitter(this);
     m_editorSplitter->addWidget(m_tabs);
     m_editorSplitter->addWidget(m_preview);
@@ -579,6 +582,10 @@ void MainWindow::createActions()
     m_saveAsAction = new QAction(saveAsIcon(), "Enregistrer &sous...", this);
     m_saveAsAction->setShortcut(QKeySequence::SaveAs);
     connect(m_saveAsAction, &QAction::triggered, this, &MainWindow::saveFileAs);
+
+    m_exportHtmlAction = new QAction("&Exporter en HTML...", this);
+    m_exportHtmlAction->setEnabled(false);
+    connect(m_exportHtmlAction, &QAction::triggered, this, &MainWindow::exportHtml);
 
     m_closeTabAction = new QAction(closeTabIcon(), "&Fermer l'onglet", this);
     m_closeTabAction->setShortcut(QKeySequence::Close);
@@ -765,6 +772,7 @@ void MainWindow::createMenu()
     connect(fileMenu, &QMenu::aboutToShow, this, &MainWindow::refreshRecentMenu);
     fileMenu->addAction(m_saveAction);
     fileMenu->addAction(m_saveAsAction);
+    fileMenu->addAction(m_exportHtmlAction);
     fileMenu->addSeparator();
     fileMenu->addAction(m_trashAction);
     fileMenu->addSeparator();
@@ -823,6 +831,11 @@ Editor *MainWindow::newTab(const QString &filePath, const QString &content, cons
     connect(editor, &Editor::modeChanged, this, &MainWindow::updateStatusBar);
     connect(editor, &QPlainTextEdit::textChanged, this, &MainWindow::updateStatusBar);
     connect(editor, &QPlainTextEdit::textChanged, this, &MainWindow::schedulePreview);
+    // (le défilement d'un onglet qui n'est pas l'actif ne compte pas)
+    connect(editor->verticalScrollBar(), &QScrollBar::valueChanged, this, [this, editor](int) {
+        if (editor == currentEditor())
+            syncPreviewScroll();
+    });
 
     const QString label = !filePath.isEmpty() ? QFileInfo(filePath).fileName() : editor->defaultName;
     const int index = m_tabs->addTab(editor, label);
@@ -1615,6 +1628,7 @@ void MainWindow::updatePreviewState()
     Editor *editor = currentEditor();
     const bool markdown = isMarkdown(editor);
     m_previewAction->setEnabled(markdown);
+    m_exportHtmlAction->setEnabled(markdown);
     const bool show = markdown && m_previewAction->isChecked();
     const bool wasVisible = m_preview->isVisible();
     const bool sameNote = markdown && m_hasPreviewKey && m_previewNoteId == editor->sessionId;
@@ -1624,7 +1638,56 @@ void MainWindow::updatePreviewState()
             m_previewTimer->start(); // simple changement d'état (ex. « modifié ») : rendu différé comme à la frappe
         else
             renderPreview();
+        syncPreviewScroll();
     }
+}
+
+// Le défilement de l'aperçu suit celui de l'éditeur, proportionnellement à la longueur
+// de chacun.
+void MainWindow::syncPreviewScroll()
+{
+    Editor *editor = currentEditor();
+    if (!editor || !m_preview->isVisible())
+        return;
+    const QScrollBar *source = editor->verticalScrollBar();
+    QScrollBar *target = m_preview->verticalScrollBar();
+    const double ratio = source->maximum() > 0 ? double(source->value()) / source->maximum() : 0.0;
+    target->setValue(qRound(ratio * target->maximum()));
+}
+
+// Exporte le rendu de la note Markdown active dans un fichier HTML.
+void MainWindow::exportHtml()
+{
+    Editor *editor = currentEditor();
+    if (!isMarkdown(editor))
+        return;
+    const QString start = QFileInfo(editor->filePath).absolutePath() + "/" + QFileInfo(editor->filePath).completeBaseName() + ".html";
+    QString path = QFileDialog::getSaveFileName(this, "Exporter en HTML", start,
+                                                "Pages HTML (*.html *.htm);;Tous les fichiers (*)");
+    if (path.isEmpty())
+        return;
+    if (QFileInfo(path).suffix().isEmpty())
+        path += ".html";
+    if (!writeHtml(editor, path)) {
+        QMessageBox::warning(this, "Exporter en HTML", "Impossible d'écrire le fichier :\n" + path);
+        return;
+    }
+    statusBar()->showMessage("Exporté en HTML : " + path, 4000);
+}
+
+// Page HTML autonome (UTF-8, titre = nom du fichier) du texte actuel de la note. Les images
+// et liens relatifs restent relatifs au dossier du fichier Markdown : ils s'affichent si la
+// page est enregistrée dans ce même dossier (proposé par défaut).
+bool MainWindow::writeHtml(const Editor *editor, const QString &path)
+{
+    QTextDocument doc;
+    doc.setMarkdown(editor->toPlainText());
+    doc.setMetaInformation(QTextDocument::DocumentTitle, QFileInfo(editor->filePath).fileName());
+    QFile f(path);
+    if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate))
+        return false;
+    f.write(doc.toHtml().toUtf8());
+    return true;
 }
 
 void MainWindow::schedulePreview()
@@ -1653,6 +1716,8 @@ void MainWindow::renderPreview()
     m_preview->setSearchPaths({QFileInfo(editor->filePath).absolutePath()});
     m_preview->setMarkdown(text);
     bar->setValue(scroll);
+    syncPreviewScroll();
+    QTimer::singleShot(0, this, &MainWindow::syncPreviewScroll); // la plage de défilement se met à jour après la mise en page
 }
 
 void MainWindow::updateTitle()

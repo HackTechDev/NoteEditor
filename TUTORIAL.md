@@ -650,6 +650,9 @@ italique, listes, cases à cocher, citations, code, liens, images.
 
 - Le rendu se **met à jour en direct** pendant que vous tapez, et garde sa
   position de défilement.
+- Le volet **suit le défilement de l'éditeur** : quand vous faites défiler le texte à
+  gauche (molette, barre de défilement, curseur qui descend), le rendu à droite
+  défile en même temps, au même endroit relatif.
 - L'icône est **grisée** tant que l'onglet actif n'est pas un fichier Markdown. Une
   note qui n'est pas encore liée à un fichier n'en est pas un : faites d'abord
   `Ctrl+S`, qui l'enregistre en `.md`, ou **Enregistrer sous** avec un nom en `.md`.
@@ -670,6 +673,21 @@ italique, listes, cases à cocher, citations, code, liens, images.
    l'icône **Aperçu Markdown** devient active.
 3. Cliquez dessus : le rendu s'affiche à droite. Modifiez le texte à gauche et
    regardez le rendu suivre.
+
+### Exporter en HTML
+
+Pour partager le rendu ou le mettre en ligne, choisissez **Fichier → Exporter en
+HTML...** : la note Markdown active est enregistrée sous forme de **page HTML**
+autonome (encodage UTF-8, titre = nom du fichier). L'entrée est grisée pour une note
+qui n'est pas un fichier Markdown ; l'aperçu n'a pas besoin d'être affiché.
+
+- La boîte de dialogue propose le **dossier du fichier Markdown** et le nom
+  `note.html` (le nom de la note avec l'extension `.html`). Gardez ce dossier si la
+  note contient des **images** ou des liens relatifs : ils sont conservés tels quels
+  dans la page et ne s'affichent que si elle est à côté d'eux.
+- L'export part du **texte actuel**, y compris les modifications pas encore
+  enregistrées dans le fichier `.md`.
+- Une fois l'export fait, un message dans la barre de statut donne le fichier créé.
 
 ### Numéros de ligne
 
