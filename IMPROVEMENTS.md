@@ -18,6 +18,7 @@ implémentées sont documentées dans `README.md` et `FEATURES.md`, pas ici.
 
 - **Thème sombre**, avec bascule manuelle ou suivi du thème système — les couleurs sont actuellement pensées uniquement pour un fond clair (`highlighters.py`, styles des onglets, aperçu Markdown).
 - **Raccourci pour rouvrir la dernière note fermée** (par exemple `Ctrl+Maj+T`, comme dans un navigateur) : les notes fermées récemment sont déjà listées dans le menu Fichier, un raccourci les rendrait accessibles sans la souris.
+- **Menu « Affichage » et raccourcis pour les réglages d'affichage** : le panneau Brouillons, le retour à la ligne et l'aperçu Markdown ne sont aujourd'hui accessibles que par la barre d'outils ; une entrée de menu chacun, avec un raccourci (par exemple `Ctrl+B` pour le panneau), les rendrait utilisables au clavier.
 - **Palette de commandes** (`Ctrl+Maj+P`) pour retrouver rapidement une action sans fouiller les menus.
 
 ## Panneau Brouillons
