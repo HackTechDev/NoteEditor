@@ -303,7 +303,7 @@ class Editor(QPlainTextEdit):
         self.setTextCursor(cursor)
 
     def _join_next_line(self):
-        """Commande `Maj+O` : joint la ligne du curseur à la suivante. Le saut de ligne et
+        """Commande `Maj+J` : joint la ligne du curseur à la suivante. Le saut de ligne et
         l'indentation de la suivante disparaissent, remplacés par une seule espace (sauf si
         l'une des deux lignes est vide ou si la ligne courante finit déjà par une espace) ;
         le curseur se place sur le raccord. Rien sur la dernière ligne."""
@@ -335,12 +335,14 @@ class Editor(QPlainTextEdit):
             event.accept()
             return
         if self.command_mode and plain:
-            if key == Qt.Key.Key_O:
-                if shift or event.text() == "O":  # Maj+O (ou majuscules verrouillées)
-                    self._join_next_line()
-                else:
-                    self._open_line_below()
-                    self.set_command_mode(False)
+            upper = shift or event.text().isupper()  # Maj, ou majuscules verrouillées
+            if key == Qt.Key.Key_O and not upper:
+                self._open_line_below()
+                self.set_command_mode(False)
+                event.accept()
+                return
+            if key == Qt.Key.Key_J and upper:
+                self._join_next_line()
                 event.accept()
                 return
             if event.text() or key in (Qt.Key.Key_Delete, Qt.Key.Key_Insert,

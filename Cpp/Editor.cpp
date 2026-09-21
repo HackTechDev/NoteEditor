@@ -143,7 +143,7 @@ void Editor::openLineBelow()
     setTextCursor(cursor);
 }
 
-// Commande `Maj+O` : joint la ligne du curseur à la suivante. Le saut de ligne et
+// Commande `Maj+J` : joint la ligne du curseur à la suivante. Le saut de ligne et
 // l'indentation de la suivante disparaissent, remplacés par une seule espace (sauf si l'une
 // des deux lignes est vide ou si la ligne courante finit déjà par une espace) ; le curseur se
 // place sur le raccord. Rien sur la dernière ligne.
@@ -185,13 +185,15 @@ void Editor::keyPressEvent(QKeyEvent *event)
         return;
     }
     if (m_commandMode && plain) {
-        if (key == Qt::Key_O) {
-            if (shift || event->text() == "O") { // Maj+O (ou majuscules verrouillées)
-                joinNextLine();
-            } else {
-                openLineBelow();
-                setCommandMode(false);
-            }
+        const bool upper = shift || (!event->text().isEmpty() && event->text()[0].isUpper()); // Maj, ou majuscules verrouillées
+        if (key == Qt::Key_O && !upper) {
+            openLineBelow();
+            setCommandMode(false);
+            event->accept();
+            return;
+        }
+        if (key == Qt::Key_J && upper) {
+            joinNextLine();
             event->accept();
             return;
         }

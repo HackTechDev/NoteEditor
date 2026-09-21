@@ -173,7 +173,7 @@ adapter si le dépôt est cloné ailleurs.
   Début, Fin, les pages, la souris et les raccourcis `Ctrl+…` continuent de fonctionner).
   `Échap` de nouveau ramène au mode insertion. La touche **`o`** insère une ligne vide
   sous la ligne du curseur, s'y place et repasse en mode insertion, comme dans Vim (une
-  seule étape d'annulation). **`Maj+O`** joint la ligne du curseur à la suivante : le
+  seule étape d'annulation). **`Maj+J`** joint la ligne du curseur à la suivante : le
   saut de ligne et l'indentation de la suivante disparaissent, remplacés par une seule
   espace (pas d'espace si l'une des deux lignes est vide, si la ligne courante finit déjà
   par une espace ou si la suivante commence par `)`) ; le curseur se place sur le raccord
