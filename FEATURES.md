@@ -161,7 +161,10 @@ adapter si le dépôt est cloné ailleurs.
     n'a pas été enregistrée sous un tel nom) ;
   - le rendu (titres, gras, italique, listes, cases à cocher, citations, code,
     liens, images) se **met à jour en direct** pendant la frappe, avec un court
-    délai, et **conserve la position de défilement** ;
+    délai, et **conserve la position de défilement** ; au-delà du rendu de base de
+    Qt, un peu de mise en forme est ajoutée après coup : fond gris pour le code (en
+    ligne ou en bloc) et les citations, bordures pour les tableaux et sous les
+    titres de niveau 1 et 2 — la même, dans l'aperçu comme dans l'export HTML ;
   - son **défilement suit celui de l'éditeur**, proportionnellement à la longueur de chacun
     (il se recale aussi après chaque mise à jour du rendu et au changement d'onglet) ;
   - **Fichier → Exporter en HTML...** enregistre le rendu dans un fichier HTML autonome

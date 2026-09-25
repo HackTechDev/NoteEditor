@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import re
 import sys
 from datetime import datetime
 
@@ -258,6 +259,41 @@ def _close_tab_icon():
     painter.drawLine(14, 9, 8, 15)
     painter.end()
     return QIcon(pixmap)
+
+
+# QTextDocument.setMarkdown() rend un HTML très nu (pas de fond pour le code, pas de
+# bordure pour les tableaux ou les citations) : on l'enrichit un peu après coup, pour
+# l'aperçu comme pour l'export HTML.
+_MARKDOWN_EXTRA_CSS = """
+h1, h2 { border-bottom: 1px solid #dddddd; padding-bottom: 4px; }
+pre { background-color: #f5f5f5; border: none; margin: 0; padding: 2px 10px; }
+table { border: 1px solid #dddddd; border-collapse: collapse; margin: 8px 0; }
+table td { border: 1px solid #dddddd; padding: 4px 10px; }
+hr { background-color: #dddddd; height: 1px; border: none; margin: 12px 0; }
+"""
+# Qt sérialise le code (en ligne ou dans un bloc) comme le seul type de <span> qui ne fixe
+# QUE font-family (gras, italique et liens ajoutent toujours au moins une autre propriété) :
+# une signature structurelle fiable, indépendante du nom de police que Qt a résolu.
+_MARKDOWN_CODE_SPAN_RE = re.compile(r"<span style=\" font-family:'[^']+';\">")
+# Qt ne produit pas de balise <blockquote> : une citation est un simple <p> avec cette
+# marge gauche/droite précise (40px, son indentation par défaut) — une signature tout
+# aussi fiable, à défaut d'être plus explicite. (Qt ignore "border-left" sur un <p> :
+# seul le fond distingue visuellement la citation.)
+_MARKDOWN_BLOCKQUOTE_RE = re.compile(
+    r'(<p style=" margin-top:\d+px; margin-bottom:\d+px; margin-left:)40px(; margin-right:)40px(;)'
+)
+
+
+def _style_markdown_html(html):
+    """Ajoute la mise en forme ci-dessus au HTML produit par QTextDocument.setMarkdown()
+    (via toHtml()) : fonds et bordures pour le code, les tableaux, les citations et le
+    filet horizontal, sans toucher au texte ni à sa mise en forme d'origine."""
+    html = html.replace('<style type="text/css">\n', '<style type="text/css">\n' + _MARKDOWN_EXTRA_CSS)
+    html = _MARKDOWN_CODE_SPAN_RE.sub(
+        lambda m: m.group(0)[:-2] + ' background-color:#eef0f2; border-radius:3px; padding:0 3px;">', html
+    )
+    html = _MARKDOWN_BLOCKQUOTE_RE.sub(r'\g<1>40px\g<2>40px\g<3> background-color:#f5f5f5;', html)
+    return html
 
 
 def _preview_icon():
@@ -739,7 +775,7 @@ class MainWindow(QMainWindow):
         doc.setMarkdown(editor.toPlainText())
         doc.setMetaInformation(QTextDocument.MetaInformation.DocumentTitle, os.path.basename(editor.file_path))
         with open(path, "w", encoding="utf-8") as f:
-            f.write(doc.toHtml())
+            f.write(_style_markdown_html(doc.toHtml()))
 
     def _schedule_preview(self):
         if self.preview.isVisible():
@@ -759,7 +795,9 @@ class MainWindow(QMainWindow):
         self._preview_key = key
         # les images et liens relatifs se résolvent depuis le dossier du fichier
         self.preview.setSearchPaths([os.path.dirname(editor.file_path)])
-        self.preview.setMarkdown(text)
+        doc = QTextDocument()
+        doc.setMarkdown(text)
+        self.preview.setHtml(_style_markdown_html(doc.toHtml()))
         bar.setValue(scroll)
         self._sync_preview_scroll()
         QTimer.singleShot(0, self._sync_preview_scroll)  # la plage de défilement se met à jour après la mise en page

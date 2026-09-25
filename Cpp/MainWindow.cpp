@@ -302,6 +302,37 @@ QIcon closeTabIcon()
     return QIcon(pixmap);
 }
 
+// QTextDocument::setMarkdown() rend un HTML très nu (pas de fond pour le code, pas de
+// bordure pour les tableaux ou les citations) : on l'enrichit un peu après coup, pour
+// l'aperçu comme pour l'export HTML.
+const char *const kMarkdownExtraCss =
+    "\nh1, h2 { border-bottom: 1px solid #dddddd; padding-bottom: 4px; }"
+    "\npre { background-color: #f5f5f5; border: none; margin: 0; padding: 2px 10px; }"
+    "\ntable { border: 1px solid #dddddd; border-collapse: collapse; margin: 8px 0; }"
+    "\ntable td { border: 1px solid #dddddd; padding: 4px 10px; }"
+    "\nhr { background-color: #dddddd; height: 1px; border: none; margin: 12px 0; }\n";
+
+// Ajoute la mise en forme ci-dessus au HTML produit par QTextDocument::setMarkdown() (via
+// toHtml()) : fonds et bordures pour le code, les tableaux, les citations et le filet
+// horizontal, sans toucher au texte ni à sa mise en forme d'origine.
+QString styleMarkdownHtml(QString html)
+{
+    html.replace("<style type=\"text/css\">\n", QString("<style type=\"text/css\">\n") + kMarkdownExtraCss);
+    // Qt sérialise le code (en ligne ou dans un bloc) comme le seul type de <span> qui ne
+    // fixe QUE font-family (gras, italique et liens ajoutent toujours au moins une autre
+    // propriété) : une signature structurelle fiable, indépendante du nom de police résolu.
+    static const QRegularExpression codeSpanRe("(<span style=\" font-family:'[^']+')(;\">)");
+    html.replace(codeSpanRe, "\\1; background-color:#eef0f2; border-radius:3px; padding:0 3px;\">");
+    // Qt ne produit pas de balise <blockquote> : une citation est un simple <p> avec cette
+    // marge gauche/droite précise (40px, son indentation par défaut) — une signature tout
+    // aussi fiable, à défaut d'être plus explicite. (Qt ignore "border-left" sur un <p> :
+    // seul le fond distingue visuellement la citation.)
+    static const QRegularExpression blockquoteRe(
+        "(<p style=\" margin-top:\\d+px; margin-bottom:\\d+px; margin-left:40px; margin-right:40px;)");
+    html.replace(blockquoteRe, "\\1 background-color:#f5f5f5;");
+    return html;
+}
+
 // Dessine une icône « fenêtre coupée en deux » (aperçu Markdown) : du texte à
 // gauche, son rendu (un titre et des lignes) à droite. Glyphes dessinés, pas
 // de fichier externe.
@@ -1718,7 +1749,7 @@ bool MainWindow::writeHtml(const Editor *editor, const QString &path)
     QFile f(path);
     if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate))
         return false;
-    f.write(doc.toHtml().toUtf8());
+    f.write(styleMarkdownHtml(doc.toHtml()).toUtf8());
     return true;
 }
 
@@ -1746,7 +1777,9 @@ void MainWindow::renderPreview()
     m_previewText = text;
     // les images et liens relatifs se résolvent depuis le dossier du fichier
     m_preview->setSearchPaths({QFileInfo(editor->filePath).absolutePath()});
-    m_preview->setMarkdown(text);
+    QTextDocument doc;
+    doc.setMarkdown(text);
+    m_preview->setHtml(styleMarkdownHtml(doc.toHtml()));
     bar->setValue(scroll);
     syncPreviewScroll();
     QTimer::singleShot(0, this, &MainWindow::syncPreviewScroll); // la plage de défilement se met à jour après la mise en page

@@ -657,6 +657,9 @@ italique, listes, cases à cocher, citations, code, liens, images.
 
 - Le rendu se **met à jour en direct** pendant que vous tapez, et garde sa
   position de défilement.
+- Un peu de mise en forme habille le rendu de base : les blocs de code et les
+  citations ont un fond gris, les tableaux et les titres principaux une bordure —
+  la même mise en forme que dans l'export HTML (voir plus bas).
 - Le volet **suit le défilement de l'éditeur** : quand vous faites défiler le texte à
   gauche (molette, barre de défilement, curseur qui descend), le rendu à droite
   défile en même temps, au même endroit relatif.
