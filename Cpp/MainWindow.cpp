@@ -307,7 +307,7 @@ QIcon closeTabIcon()
 // l'aperçu comme pour l'export HTML.
 const char *const kMarkdownExtraCss =
     "\nh1, h2 { border-bottom: 1px solid #dddddd; padding-bottom: 4px; }"
-    "\npre { background-color: #f5f5f5; border: none; margin: 0; padding: 2px 10px; }"
+    "\npre { background-color: #f5f5f5; border: none; margin: 0; padding: 2px 10px; white-space: pre; }"
     "\ntable { border: 1px solid #dddddd; border-collapse: collapse; margin: 8px 0; }"
     "\ntable td { border: 1px solid #dddddd; padding: 4px 10px; }"
     "\nhr { background-color: #dddddd; height: 1px; border: none; margin: 12px 0; }\n";
@@ -321,8 +321,10 @@ QString styleMarkdownHtml(QString html)
     // Qt sérialise le code (en ligne ou dans un bloc) comme le seul type de <span> qui ne
     // fixe QUE font-family (gras, italique et liens ajoutent toujours au moins une autre
     // propriété) : une signature structurelle fiable, indépendante du nom de police résolu.
-    static const QRegularExpression codeSpanRe("(<span style=\" font-family:'[^']+')(;\">)");
-    html.replace(codeSpanRe, "\\1; background-color:#eef0f2; border-radius:3px; padding:0 3px;\">");
+    // On y impose aussi une police à chasse fixe : Qt garde sinon celle de l'aperçu
+    // (proportionnelle), ce qui casse l'alignement des schémas en caractères de dessin.
+    static const QRegularExpression codeSpanRe("<span style=\" font-family:'[^']+';\">");
+    html.replace(codeSpanRe, "<span style=\" font-family:'Monospace'; background-color:#eef0f2; border-radius:3px; padding:0 3px;\">");
     // Qt ne produit pas de balise <blockquote> : une citation est un simple <p> avec cette
     // marge gauche/droite précise (40px, son indentation par défaut) — une signature tout
     // aussi fiable, à défaut d'être plus explicite. (Qt ignore "border-left" sur un <p> :

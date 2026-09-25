@@ -266,7 +266,7 @@ def _close_tab_icon():
 # l'aperçu comme pour l'export HTML.
 _MARKDOWN_EXTRA_CSS = """
 h1, h2 { border-bottom: 1px solid #dddddd; padding-bottom: 4px; }
-pre { background-color: #f5f5f5; border: none; margin: 0; padding: 2px 10px; }
+pre { background-color: #f5f5f5; border: none; margin: 0; padding: 2px 10px; white-space: pre; }
 table { border: 1px solid #dddddd; border-collapse: collapse; margin: 8px 0; }
 table td { border: 1px solid #dddddd; padding: 4px 10px; }
 hr { background-color: #dddddd; height: 1px; border: none; margin: 12px 0; }
@@ -289,8 +289,10 @@ def _style_markdown_html(html):
     (via toHtml()) : fonds et bordures pour le code, les tableaux, les citations et le
     filet horizontal, sans toucher au texte ni à sa mise en forme d'origine."""
     html = html.replace('<style type="text/css">\n', '<style type="text/css">\n' + _MARKDOWN_EXTRA_CSS)
+    # police à chasse fixe : Qt garde ici celle de l'aperçu (proportionnelle), ce qui casse
+    # l'alignement des schémas en caractères de dessin (┌──┐) dans les blocs de code
     html = _MARKDOWN_CODE_SPAN_RE.sub(
-        lambda m: m.group(0)[:-2] + ' background-color:#eef0f2; border-radius:3px; padding:0 3px;">', html
+        "<span style=\" font-family:'Monospace'; background-color:#eef0f2; border-radius:3px; padding:0 3px;\">", html
     )
     html = _MARKDOWN_BLOCKQUOTE_RE.sub(r'\g<1>40px\g<2>40px\g<3> background-color:#f5f5f5;', html)
     return html

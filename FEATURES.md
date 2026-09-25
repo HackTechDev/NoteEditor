@@ -162,8 +162,9 @@ adapter si le dépôt est cloné ailleurs.
   - le rendu (titres, gras, italique, listes, cases à cocher, citations, code,
     liens, images) se **met à jour en direct** pendant la frappe, avec un court
     délai, et **conserve la position de défilement** ; au-delà du rendu de base de
-    Qt, un peu de mise en forme est ajoutée après coup : fond gris pour le code (en
-    ligne ou en bloc) et les citations, bordures pour les tableaux et sous les
+    Qt, un peu de mise en forme est ajoutée après coup : fond gris et police à chasse fixe pour le code (en
+    ligne ou en bloc, sans retour à la ligne : un schéma en caractères de dessin reste
+    aligné), fond gris pour les citations, bordures pour les tableaux et sous les
     titres de niveau 1 et 2 — la même, dans l'aperçu comme dans l'export HTML ;
   - son **défilement est synchronisé avec celui de l'éditeur, dans les deux sens** et
     proportionnellement à la longueur de chacun : faire défiler l'un fait défiler l'autre
