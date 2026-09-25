@@ -165,7 +165,8 @@ adapter si le dépôt est cloné ailleurs.
     Qt, un peu de mise en forme est ajoutée après coup : fond gris pour le code (en
     ligne ou en bloc) et les citations, bordures pour les tableaux et sous les
     titres de niveau 1 et 2 — la même, dans l'aperçu comme dans l'export HTML ;
-  - son **défilement suit celui de l'éditeur**, proportionnellement à la longueur de chacun
+  - son **défilement est synchronisé avec celui de l'éditeur, dans les deux sens** et
+    proportionnellement à la longueur de chacun : faire défiler l'un fait défiler l'autre
     (il se recale aussi après chaque mise à jour du rendu et au changement d'onglet) ;
   - **Fichier → Exporter en HTML...** enregistre le rendu dans un fichier HTML autonome
     (UTF-8, titre = nom du fichier), à partir du texte actuel de la note, y compris ses

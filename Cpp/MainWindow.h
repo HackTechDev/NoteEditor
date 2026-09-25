@@ -111,6 +111,7 @@ private:
     void schedulePreview();
     void renderPreview();
     void syncPreviewScroll();
+    void syncEditorScroll();
     void exportHtml();
     static bool writeHtml(const Editor *editor, const QString &path);
     void closeTabByButton(QToolButton *button);
@@ -156,6 +157,7 @@ private:
     QTimer *m_previewTimer;
     QString m_previewNoteId, m_previewPath, m_previewText;
     bool m_hasPreviewKey = false;
+    bool m_syncingScroll = false; // coupe-circuit anti-boucle entre les deux sens de synchro
     FindReplaceDialog *m_findDialog;
     QLabel *m_statusMode;
     QLabel *m_statusPosition;

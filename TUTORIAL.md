@@ -660,9 +660,10 @@ italique, listes, cases à cocher, citations, code, liens, images.
 - Un peu de mise en forme habille le rendu de base : les blocs de code et les
   citations ont un fond gris, les tableaux et les titres principaux une bordure —
   la même mise en forme que dans l'export HTML (voir plus bas).
-- Le volet **suit le défilement de l'éditeur** : quand vous faites défiler le texte à
+- Le défilement est **synchronisé dans les deux sens** : faites défiler le texte à
   gauche (molette, barre de défilement, curseur qui descend), le rendu à droite
-  défile en même temps, au même endroit relatif.
+  défile en même temps, au même endroit relatif — et inversement, faire défiler le
+  rendu à droite fait défiler le texte à gauche.
 - L'icône est **grisée** tant que l'onglet actif n'est pas un fichier Markdown. Une
   note qui n'est pas encore liée à un fichier n'en est pas un : faites d'abord
   `Ctrl+S`, qui l'enregistre en `.md`, ou **Enregistrer sous** avec un nom en `.md`.

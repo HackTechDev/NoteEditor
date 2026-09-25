@@ -513,6 +513,9 @@ class MainWindow(QMainWindow):
         self.preview.setOpenExternalLinks(True)
         # la plage de défilement de l'aperçu se précise après la mise en page : on recale
         self.preview.verticalScrollBar().rangeChanged.connect(lambda _min, _max: self._sync_preview_scroll())
+        # sens inverse : faire défiler l'aperçu (souris, barre) déplace aussi l'éditeur
+        self.preview.verticalScrollBar().valueChanged.connect(lambda _value: self._sync_editor_scroll())
+        self._syncing_scroll = False  # coupe-circuit anti-boucle entre les deux sens
         self.preview.hide()
         self._preview_key = None
         self._preview_timer = QTimer(self)
@@ -737,14 +740,37 @@ class MainWindow(QMainWindow):
 
     def _sync_preview_scroll(self):
         """Le défilement de l'aperçu suit celui de l'éditeur, proportionnellement à la
-        longueur de chacun."""
+        longueur de chacun (et réciproquement, voir _sync_editor_scroll)."""
+        if self._syncing_scroll:
+            return  # le déplacement vient de l'autre sens : ne pas rebondir
         editor = self.current_editor()
         if editor is None or not self.preview.isVisible():
             return
         source = editor.verticalScrollBar()
         target = self.preview.verticalScrollBar()
         ratio = source.value() / source.maximum() if source.maximum() > 0 else 0
-        target.setValue(round(ratio * target.maximum()))
+        self._syncing_scroll = True
+        try:
+            target.setValue(round(ratio * target.maximum()))
+        finally:
+            self._syncing_scroll = False
+
+    def _sync_editor_scroll(self):
+        """Le défilement de l'éditeur suit celui de l'aperçu, proportionnellement à la
+        longueur de chacun (sens inverse de _sync_preview_scroll)."""
+        if self._syncing_scroll:
+            return
+        editor = self.current_editor()
+        if editor is None or not self.preview.isVisible():
+            return
+        source = self.preview.verticalScrollBar()
+        target = editor.verticalScrollBar()
+        ratio = source.value() / source.maximum() if source.maximum() > 0 else 0
+        self._syncing_scroll = True
+        try:
+            target.setValue(round(ratio * target.maximum()))
+        finally:
+            self._syncing_scroll = False
 
     def export_html(self):
         """Exporte le rendu de la note Markdown active dans un fichier HTML."""
@@ -797,8 +823,16 @@ class MainWindow(QMainWindow):
         self.preview.setSearchPaths([os.path.dirname(editor.file_path)])
         doc = QTextDocument()
         doc.setMarkdown(text)
-        self.preview.setHtml(_style_markdown_html(doc.toHtml()))
-        bar.setValue(scroll)
+        # setHtml() peut remettre le défilement de l'aperçu à zéro le temps de charger le
+        # nouveau contenu : ce mouvement transitoire ne doit pas se répercuter sur l'éditeur
+        # (le recalcul définitif vient juste après, depuis l'éditeur), d'où le garde-fou dès
+        # avant setHtml() et pas seulement autour de bar.setValue().
+        self._syncing_scroll = True
+        try:
+            self.preview.setHtml(_style_markdown_html(doc.toHtml()))
+            bar.setValue(scroll)
+        finally:
+            self._syncing_scroll = False
         self._sync_preview_scroll()
         QTimer.singleShot(0, self._sync_preview_scroll)  # la plage de défilement se met à jour après la mise en page
 

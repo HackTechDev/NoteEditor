@@ -532,6 +532,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_previewTimer, &QTimer::timeout, this, &MainWindow::renderPreview);
     // la plage de défilement de l'aperçu se précise après la mise en page : on recale
     connect(m_preview->verticalScrollBar(), &QScrollBar::rangeChanged, this, [this](int, int) { syncPreviewScroll(); });
+    // sens inverse : faire défiler l'aperçu (souris, barre) déplace aussi l'éditeur
+    connect(m_preview->verticalScrollBar(), &QScrollBar::valueChanged, this, [this](int) { syncEditorScroll(); });
     m_editorSplitter = new QSplitter(this);
     m_editorSplitter->addWidget(m_tabs);
     m_editorSplitter->addWidget(m_preview);
@@ -1706,16 +1708,37 @@ void MainWindow::updatePreviewState()
 }
 
 // Le défilement de l'aperçu suit celui de l'éditeur, proportionnellement à la longueur
-// de chacun.
+// de chacun (et réciproquement, voir syncEditorScroll()).
 void MainWindow::syncPreviewScroll()
 {
+    if (m_syncingScroll)
+        return; // le déplacement vient de l'autre sens : ne pas rebondir
     Editor *editor = currentEditor();
     if (!editor || !m_preview->isVisible())
         return;
     const QScrollBar *source = editor->verticalScrollBar();
     QScrollBar *target = m_preview->verticalScrollBar();
     const double ratio = source->maximum() > 0 ? double(source->value()) / source->maximum() : 0.0;
+    m_syncingScroll = true;
     target->setValue(qRound(ratio * target->maximum()));
+    m_syncingScroll = false;
+}
+
+// Le défilement de l'éditeur suit celui de l'aperçu, proportionnellement à la longueur
+// de chacun (sens inverse de syncPreviewScroll()).
+void MainWindow::syncEditorScroll()
+{
+    if (m_syncingScroll)
+        return;
+    Editor *editor = currentEditor();
+    if (!editor || !m_preview->isVisible())
+        return;
+    const QScrollBar *source = m_preview->verticalScrollBar();
+    QScrollBar *target = editor->verticalScrollBar();
+    const double ratio = source->maximum() > 0 ? double(source->value()) / source->maximum() : 0.0;
+    m_syncingScroll = true;
+    target->setValue(qRound(ratio * target->maximum()));
+    m_syncingScroll = false;
 }
 
 // Exporte le rendu de la note Markdown active dans un fichier HTML.
@@ -1779,8 +1802,14 @@ void MainWindow::renderPreview()
     m_preview->setSearchPaths({QFileInfo(editor->filePath).absolutePath()});
     QTextDocument doc;
     doc.setMarkdown(text);
+    // setHtml() peut remettre le défilement de l'aperçu à zéro le temps de charger le
+    // nouveau contenu : ce mouvement transitoire ne doit pas se répercuter sur l'éditeur
+    // (le recalcul définitif vient juste après, depuis l'éditeur), d'où le garde-fou dès
+    // avant setHtml() et pas seulement autour de bar->setValue().
+    m_syncingScroll = true;
     m_preview->setHtml(styleMarkdownHtml(doc.toHtml()));
     bar->setValue(scroll);
+    m_syncingScroll = false;
     syncPreviewScroll();
     QTimer::singleShot(0, this, &MainWindow::syncPreviewScroll); // la plage de défilement se met à jour après la mise en page
 }
