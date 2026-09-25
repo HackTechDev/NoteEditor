@@ -88,6 +88,14 @@ class TrashDialog(QDialog):
             question = f"Supprimer définitivement « {_label_for(entries[0])} » ? Cette action est irréversible."
         else:
             question = f"Supprimer définitivement ces {len(entries)} brouillons ? Cette action est irréversible."
+        if any(e.get("file_path") for e in entries):
+            # purge_draft() ne touche que le brouillon dans trash/, jamais le fichier réel
+            plural = len(entries) > 1
+            question += "\n\n" + (
+                "Les fichiers associés ne sont pas supprimés du disque : ils restent à leur emplacement."
+                if plural else
+                "Le fichier associé n'est pas supprimé du disque : il reste à son emplacement."
+            )
         result = QMessageBox.question(
             self,
             "Supprimer définitivement",

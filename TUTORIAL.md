@@ -520,7 +520,9 @@ vous ne le demandez pas explicitement.
 
 - Clic droit sur l'onglet, ou sur la note dans le panneau Brouillons, puis
   **Mettre à la corbeille**.
-- L'application demande une **confirmation**.
+- L'application demande une **confirmation**. Pour une note liée à un **vrai fichier**
+  (enregistré avec `Ctrl+S`, ouvert avec **Ouvrir**...), elle rappelle que ce fichier
+  **reste sur le disque** : seule la copie de secours interne part à la corbeille.
 - La note **quitte les onglets et le panneau Brouillons**.
 - Une note **épinglée** ne peut pas être mise à la corbeille : détachez-la
   d'abord.
@@ -538,7 +540,8 @@ La fenêtre liste les notes avec leur date de suppression
 - **Restaurer** : la note retourne dans le panneau Brouillons (elle n'est pas
   rouverte automatiquement dans un onglet : double-cliquez dessus).
 - **Supprimer définitivement** : efface la note pour de bon, après confirmation.
-  **Cette action est irréversible.**
+  **Cette action est irréversible.** Là encore, si la note a un vrai fichier associé, la
+  confirmation rappelle qu'il n'est **pas supprimé** : seule la copie interne disparaît.
 
 ### Sélectionner plusieurs notes
 

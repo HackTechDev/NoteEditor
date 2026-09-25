@@ -1076,10 +1076,15 @@ class MainWindow(QMainWindow):
             self.statusBar().showMessage("Note épinglée : détachez-la pour la mettre à la corbeille.", 3000)
             return
         label = os.path.basename(entry["file_path"]) if entry.get("file_path") else entry.get("default_name") or entry["id"][:8]
+        text = f"Mettre « {label} » à la corbeille ?"
+        if entry.get("file_path"):
+            # ce n'est que le brouillon interne qui part à la corbeille ; le fichier réel
+            # (dans ~/.noteeditor/docs/ ou ailleurs) n'est jamais touché par cette action
+            text += "\n\nLe fichier n'est pas supprimé du disque : il reste à son emplacement. Seule la note disparaît de l'application."
         result = QMessageBox.question(
             self,
             "Mettre à la corbeille",
-            f"Mettre « {label} » à la corbeille ?",
+            text,
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
         if result == QMessageBox.StandardButton.Yes:
@@ -1116,6 +1121,8 @@ class MainWindow(QMainWindow):
         if skipped:
             s = "s" if skipped > 1 else ""
             text += f"\n({skipped} note{s} épinglée{s} ignorée{s}.)"
+        if any(e.get("file_path") for e in targets):
+            text += "\n\n" + "Les fichiers associés ne sont pas supprimés du disque : ils restent à leur emplacement. Seules les notes disparaissent de l'application."
         result = QMessageBox.question(
             self,
             "Mettre à la corbeille",

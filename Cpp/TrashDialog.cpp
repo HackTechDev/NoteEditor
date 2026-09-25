@@ -102,6 +102,19 @@ void TrashDialog::purgeSelected()
     } else {
         question = QString("Supprimer définitivement ces %1 brouillons ? Cette action est irréversible.").arg(ids.size());
     }
+    {
+        // purgeDraft() ne touche que le brouillon dans trash/, jamais le fichier réel
+        const QVector<Session::TrashEntry> all = Session::listTrash();
+        bool hasFiles = false;
+        for (const Session::TrashEntry &e : all) {
+            if (ids.contains(e.id) && !e.filePath.isEmpty()) { hasFiles = true; break; }
+        }
+        if (hasFiles) {
+            question += ids.size() == 1
+                ? QString("\n\nLe fichier associé n'est pas supprimé du disque : il reste à son emplacement.")
+                : QString("\n\nLes fichiers associés ne sont pas supprimés du disque : ils restent à leur emplacement.");
+        }
+    }
 
     const auto result = QMessageBox::question(this, "Supprimer définitivement", question,
         QMessageBox::Yes | QMessageBox::No);

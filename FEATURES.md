@@ -323,11 +323,14 @@ ouverts.
 ## 7. Corbeille
 
 - **Mettre à la corbeille** demande une confirmation, retire la note des onglets et
-  du panneau Brouillons, et la déplace dans la corbeille sans la détruire.
+  du panneau Brouillons, et la déplace dans la corbeille sans la détruire. Si la note est
+  liée à un vrai fichier (dans `~/.noteeditor/docs/` ou ailleurs), la confirmation rappelle
+  que ce fichier n'est pas supprimé du disque — seule la copie interne part à la corbeille.
 - Bouton **Corbeille...** (avec son icône de poubelle) en bas du panneau Brouillons, icône de la barre d'outils
   et entrée du menu Fichier ouvrent la fenêtre de la corbeille.
 - Depuis la corbeille : **Restaurer** une note (elle réapparaît dans les
-  brouillons) ou la **supprimer définitivement**.
+  brouillons) ou la **supprimer définitivement**. Là aussi, un fichier réel associé à la
+  note n'est jamais supprimé, seulement la copie dans `trash/` ; la confirmation le rappelle.
 - **Sélection multiple** : `Ctrl+clic` ajoute ou retire une note, `Maj+clic`
   sélectionne une plage, `Ctrl+A` sélectionne tout. **Restaurer** et **Supprimer
   définitivement** s'appliquent alors à toute la sélection ; la suppression

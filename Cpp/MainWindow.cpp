@@ -1087,9 +1087,13 @@ void MainWindow::trashDraftEntry(const Session::DraftEntry &entry)
     const QString label = !entry.filePath.isEmpty()
         ? QFileInfo(entry.filePath).fileName()
         : (!entry.defaultName.isEmpty() ? entry.defaultName : entry.id.left(8));
-    const auto result = QMessageBox::question(this, "Mettre à la corbeille",
-        QString("Mettre « %1 » à la corbeille ?").arg(label),
-        QMessageBox::Yes | QMessageBox::No);
+    QString text = QString("Mettre « %1 » à la corbeille ?").arg(label);
+    if (!entry.filePath.isEmpty()) {
+        // ce n'est que le brouillon interne qui part à la corbeille ; le fichier réel
+        // (dans ~/.noteeditor/docs/ ou ailleurs) n'est jamais touché par cette action
+        text += "\n\nLe fichier n'est pas supprimé du disque : il reste à son emplacement. Seule la note disparaît de l'application.";
+    }
+    const auto result = QMessageBox::question(this, "Mettre à la corbeille", text, QMessageBox::Yes | QMessageBox::No);
     if (result == QMessageBox::Yes) {
         trashNow(entry);
         afterTrash();
@@ -1140,6 +1144,12 @@ void MainWindow::trashEntries(const QVector<Session::DraftEntry> &entries)
     if (skipped) {
         const QString s = skipped > 1 ? "s" : "";
         text += QString("\n(%1 note%2 épinglée%2 ignorée%2.)").arg(skipped).arg(s);
+    }
+    const bool hasFiles = std::any_of(targets.begin(), targets.end(),
+        [](const Session::DraftEntry &e) { return !e.filePath.isEmpty(); });
+    if (hasFiles) {
+        text += "\n\nLes fichiers associés ne sont pas supprimés du disque : ils restent à leur emplacement. "
+                "Seules les notes disparaissent de l'application.";
     }
     const auto result = QMessageBox::question(this, "Mettre à la corbeille", text, QMessageBox::Yes | QMessageBox::No);
     if (result == QMessageBox::Yes) {
