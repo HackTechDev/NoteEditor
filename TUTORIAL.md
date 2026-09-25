@@ -339,6 +339,10 @@ panneau Brouillons une fois fermé.
   conservées et vous les retrouvez au prochain lancement.
 - Pour le rouvrir, utilisez **Ouvrir** (`Ctrl+O`). Vous retrouvez la même note, avec
   son historique des versions.
+- **Mettre à la corbeille est impossible** pour un tel fichier : l'entrée est grisée
+  dans le menu contextuel, sur l'onglet comme dans le panneau. C'est voulu : la
+  corbeille ne doit jamais donner l'impression qu'elle touche à un fichier qui n'est
+  pas à vous — fermer suffit à le retirer du panneau.
 - Les notes **sans fichier** et les fichiers enregistrés dans `~/.noteeditor/docs/`
   (par `Ctrl+S` sur une nouvelle note) ne sont pas concernés : ils restent dans le
   panneau.

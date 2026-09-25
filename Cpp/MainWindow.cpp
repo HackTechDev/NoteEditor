@@ -1084,6 +1084,10 @@ void MainWindow::trashDraftEntry(const Session::DraftEntry &entry)
         statusBar()->showMessage("Note épinglée : détachez-la pour la mettre à la corbeille.", 3000);
         return;
     }
+    if (Session::isExternalFile(entry.filePath)) {
+        statusBar()->showMessage("Fichier extérieur : fermez-le plutôt que de le mettre à la corbeille.", 3000);
+        return;
+    }
     const QString label = !entry.filePath.isEmpty()
         ? QFileInfo(entry.filePath).fileName()
         : (!entry.defaultName.isEmpty() ? entry.defaultName : entry.id.left(8));
@@ -1124,26 +1128,44 @@ void MainWindow::afterTrash()
 
 // Mise à la corbeille de plusieurs notes : une seule confirmation, les notes
 // épinglées sont ignorées.
+// Mise à la corbeille de plusieurs notes : une seule confirmation ; les notes épinglées et
+// les fichiers extérieurs à ~/.noteeditor sont ignorés (ces derniers se ferment plutôt
+// qu'ils ne se mettent à la corbeille).
 void MainWindow::trashEntries(const QVector<Session::DraftEntry> &entries)
 {
     QVector<Session::DraftEntry> targets;
+    int skippedPinned = 0, skippedExternal = 0;
     for (const Session::DraftEntry &e : entries) {
-        if (!Session::isPinned(e.id))
+        if (Session::isPinned(e.id))
+            ++skippedPinned;
+        else if (Session::isExternalFile(e.filePath))
+            ++skippedExternal;
+        else
             targets.append(e);
     }
-    const int skipped = entries.size() - targets.size();
     if (targets.isEmpty()) {
-        statusBar()->showMessage("Notes épinglées : détachez-les pour les mettre à la corbeille.", 3000);
+        QString msg;
+        if (skippedPinned && skippedExternal)
+            msg = "Notes épinglées ou fichiers extérieurs : détachez ou fermez-les pour les mettre à la corbeille.";
+        else if (skippedPinned)
+            msg = "Notes épinglées : détachez-les pour les mettre à la corbeille.";
+        else
+            msg = "Fichiers extérieurs : fermez-les plutôt que de les mettre à la corbeille.";
+        statusBar()->showMessage(msg, 3000);
         return;
     }
-    if (targets.size() == 1 && skipped == 0) {
+    if (targets.size() == 1 && !skippedPinned && !skippedExternal) {
         trashDraftEntry(targets.first());
         return;
     }
     QString text = QString("Mettre %1 note%2 à la corbeille ?").arg(targets.size()).arg(targets.size() > 1 ? "s" : "");
-    if (skipped) {
-        const QString s = skipped > 1 ? "s" : "";
-        text += QString("\n(%1 note%2 épinglée%2 ignorée%2.)").arg(skipped).arg(s);
+    if (skippedPinned) {
+        const QString s = skippedPinned > 1 ? "s" : "";
+        text += QString("\n(%1 note%2 épinglée%2 ignorée%2.)").arg(skippedPinned).arg(s);
+    }
+    if (skippedExternal) {
+        const QString s = skippedExternal > 1 ? "s" : "";
+        text += QString("\n(%1 fichier%2 extérieur%2 ignoré%2 — fermez-le%2 plutôt.)").arg(skippedExternal).arg(s);
     }
     const bool hasFiles = std::any_of(targets.begin(), targets.end(),
         [](const Session::DraftEntry &e) { return !e.filePath.isEmpty(); });
@@ -1378,7 +1400,7 @@ void MainWindow::showTabContextMenu(const QPoint &pos)
     openFolderAction->setEnabled(editor && !editor->filePath.isEmpty());
     menu.addSeparator();
     QAction *trashAction = menu.addAction("Mettre à la corbeille");
-    trashAction->setEnabled(editor && !editor->pinned);
+    trashAction->setEnabled(editor && !editor->pinned && !Session::isExternalFile(editor->filePath));
 
     QAction *chosen = menu.exec(bar->mapToGlobal(pos));
     if (chosen == closeAction)

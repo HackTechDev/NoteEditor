@@ -206,6 +206,7 @@ class DraftsBrowser(QListWidget):
             pinned = [e for e in selected if e.get("pinned")]
             unpinned = [e for e in selected if not e.get("pinned")]
             closable = [e for e in unpinned if e["id"] in self._open_ids]
+            trashable = [e for e in unpinned if not session.is_external_file(e.get("file_path"))]
             menu = QMenu(self)
             close_selected = menu.addAction(f"Fermer les {n} notes sélectionnées")
             close_selected.setEnabled(bool(closable))
@@ -215,9 +216,10 @@ class DraftsBrowser(QListWidget):
             unpin_selected = menu.addAction(f"Détacher les {n} notes sélectionnées")
             unpin_selected.setEnabled(bool(pinned))
             menu.addSeparator()
-            # les notes épinglées ne peuvent pas être mises à la corbeille : elles sont ignorées
+            # les notes épinglées ni les fichiers extérieurs ne peuvent être mis à la corbeille :
+            # ils sont ignorés (le filtrage définitif se fait dans _trash_entries)
             trash_selected = menu.addAction(f"Mettre les {n} notes sélectionnées à la corbeille")
-            trash_selected.setEnabled(bool(unpinned))
+            trash_selected.setEnabled(bool(trashable))
             chosen = menu.exec(self.mapToGlobal(pos))
             for action, name in (
                 (close_selected, "close"),
@@ -269,7 +271,7 @@ class DraftsBrowser(QListWidget):
         menu.addSeparator()
 
         delete_action = menu.addAction("Mettre à la corbeille")
-        delete_action.setEnabled(not is_pinned)
+        delete_action.setEnabled(not is_pinned and not session.is_external_file(entry.get("file_path")))
 
         chosen = menu.exec(self.mapToGlobal(pos))
         if chosen == delete_action:

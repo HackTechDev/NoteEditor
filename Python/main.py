@@ -1075,6 +1075,9 @@ class MainWindow(QMainWindow):
         if session.is_pinned(entry["id"]):
             self.statusBar().showMessage("Note épinglée : détachez-la pour la mettre à la corbeille.", 3000)
             return
+        if session.is_external_file(entry.get("file_path")):
+            self.statusBar().showMessage("Fichier extérieur : fermez-le plutôt que de le mettre à la corbeille.", 3000)
+            return
         label = os.path.basename(entry["file_path"]) if entry.get("file_path") else entry.get("default_name") or entry["id"][:8]
         text = f"Mettre « {label} » à la corbeille ?"
         if entry.get("file_path"):
@@ -1107,20 +1110,34 @@ class MainWindow(QMainWindow):
         self.update_title()
 
     def _trash_entries(self, entries):
-        """Mise à la corbeille de plusieurs notes : une seule confirmation, les
-        notes épinglées sont ignorées."""
-        targets = [e for e in entries if not session.is_pinned(e["id"])]
-        skipped = len(entries) - len(targets)
+        """Mise à la corbeille de plusieurs notes : une seule confirmation ; les notes
+        épinglées et les fichiers extérieurs à ~/.noteeditor sont ignorés (ces derniers se
+        ferment plutôt qu'ils ne se mettent à la corbeille)."""
+        pinned_ids = {e["id"] for e in entries if session.is_pinned(e["id"])}
+        external_ids = {
+            e["id"] for e in entries if e["id"] not in pinned_ids and session.is_external_file(e.get("file_path"))
+        }
+        targets = [e for e in entries if e["id"] not in pinned_ids and e["id"] not in external_ids]
+        skipped_pinned, skipped_external = len(pinned_ids), len(external_ids)
         if not targets:
-            self.statusBar().showMessage("Notes épinglées : détachez-les pour les mettre à la corbeille.", 3000)
+            if skipped_pinned and skipped_external:
+                msg = "Notes épinglées ou fichiers extérieurs : détachez ou fermez-les pour les mettre à la corbeille."
+            elif skipped_pinned:
+                msg = "Notes épinglées : détachez-les pour les mettre à la corbeille."
+            else:
+                msg = "Fichiers extérieurs : fermez-les plutôt que de les mettre à la corbeille."
+            self.statusBar().showMessage(msg, 3000)
             return
-        if len(targets) == 1 and skipped == 0:
+        if len(targets) == 1 and not skipped_pinned and not skipped_external:
             self._trash_draft(targets[0])
             return
         text = f"Mettre {len(targets)} note{'s' if len(targets) > 1 else ''} à la corbeille ?"
-        if skipped:
-            s = "s" if skipped > 1 else ""
-            text += f"\n({skipped} note{s} épinglée{s} ignorée{s}.)"
+        if skipped_pinned:
+            s = "s" if skipped_pinned > 1 else ""
+            text += f"\n({skipped_pinned} note{s} épinglée{s} ignorée{s}.)"
+        if skipped_external:
+            s = "s" if skipped_external > 1 else ""
+            text += f"\n({skipped_external} fichier{s} extérieur{s} ignoré{s} — fermez-le{s} plutôt.)"
         if any(e.get("file_path") for e in targets):
             text += "\n\n" + "Les fichiers associés ne sont pas supprimés du disque : ils restent à leur emplacement. Seules les notes disparaissent de l'application."
         result = QMessageBox.question(
@@ -1300,7 +1317,7 @@ class MainWindow(QMainWindow):
         open_folder_action.setEnabled(bool(editor.file_path))
         menu.addSeparator()
         trash_action = menu.addAction("Mettre à la corbeille")
-        trash_action.setEnabled(not editor.pinned)
+        trash_action.setEnabled(not editor.pinned and not session.is_external_file(editor.file_path))
 
         chosen = menu.exec(bar.mapToGlobal(pos))
         if chosen == close_action:

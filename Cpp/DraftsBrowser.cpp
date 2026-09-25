@@ -217,7 +217,7 @@ void DraftsBrowser::showContextMenu(const QPoint &pos)
     const QList<QListWidgetItem *> selectedItems = this->selectedItems();
     if (selectedItems.size() > 1 && it->isSelected()) {
         QVector<Session::DraftEntry> selected;
-        bool anyPinned = false, anyUnpinned = false, anyClosable = false;
+        bool anyPinned = false, anyUnpinned = false, anyClosable = false, anyTrashable = false;
         for (QListWidgetItem *s : selectedItems) {
             const QString sid = s->data(Qt::UserRole).toString();
             if (!m_entriesById.contains(sid))
@@ -227,6 +227,7 @@ void DraftsBrowser::showContextMenu(const QPoint &pos)
             anyPinned = anyPinned || e.pinned;
             anyUnpinned = anyUnpinned || !e.pinned;
             anyClosable = anyClosable || (m_openIds.contains(e.id) && !e.pinned);
+            anyTrashable = anyTrashable || (!e.pinned && !Session::isExternalFile(e.filePath));
         }
         const int n = selected.size();
         QMenu multi(this);
@@ -238,9 +239,10 @@ void DraftsBrowser::showContextMenu(const QPoint &pos)
         QAction *unpinSelected = multi.addAction(QString("Détacher les %1 notes sélectionnées").arg(n));
         unpinSelected->setEnabled(anyPinned);
         multi.addSeparator();
-        // les notes épinglées ne peuvent pas être mises à la corbeille : elles sont ignorées
+        // les notes épinglées ni les fichiers extérieurs ne peuvent être mis à la corbeille :
+        // ils sont ignorés (le filtrage définitif se fait dans MainWindow::trashEntries)
         QAction *trashSelected = multi.addAction(QString("Mettre les %1 notes sélectionnées à la corbeille").arg(n));
-        trashSelected->setEnabled(anyUnpinned);
+        trashSelected->setEnabled(anyTrashable);
         QAction *chosen = multi.exec(mapToGlobal(pos));
         if (chosen == closeSelected)
             emit bulkActionRequested("close", selected);
@@ -291,7 +293,7 @@ void DraftsBrowser::showContextMenu(const QPoint &pos)
     menu.addSeparator();
 
     QAction *deleteAction = menu.addAction("Mettre à la corbeille");
-    deleteAction->setEnabled(!isPinned);
+    deleteAction->setEnabled(!isPinned && !Session::isExternalFile(entry.filePath));
 
     QAction *chosen = menu.exec(mapToGlobal(pos));
     if (chosen == deleteAction)

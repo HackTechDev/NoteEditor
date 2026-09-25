@@ -226,6 +226,10 @@ adapter si le dépôt est cloné ailleurs.
   le disque par un autre programme, l'application propose de le recharger lorsque
   l'on revient sur l'onglet ou sur la fenêtre. Recharger remplace le texte de
   l'onglet ; refuser le conserve.
+- Un fichier extérieur **ne peut pas être mis à la corbeille** : l'entrée est grisée
+  dans le menu contextuel de son onglet comme dans celui du panneau (mise à la
+  corbeille en lot : il est ignoré, avec un message si c'est le seul concerné).
+  Fermer est le seul moyen de le retirer du panneau, voir ci-dessous.
 - **Fermer un fichier extérieur** à `~/.noteeditor` (par la croix, `Ctrl+W`, ou
   **Fermer** depuis le panneau Brouillons) le **retire du panneau Brouillons** : son
   texte est dans le fichier lui-même, il n'a plus besoin d'y figurer. S'il a des
@@ -324,8 +328,10 @@ ouverts.
 
 - **Mettre à la corbeille** demande une confirmation, retire la note des onglets et
   du panneau Brouillons, et la déplace dans la corbeille sans la détruire. Si la note est
-  liée à un vrai fichier (dans `~/.noteeditor/docs/` ou ailleurs), la confirmation rappelle
-  que ce fichier n'est pas supprimé du disque — seule la copie interne part à la corbeille.
+  liée à un fichier enregistré dans `~/.noteeditor/docs/`, la confirmation rappelle que ce
+  fichier n'est pas supprimé du disque — seule la copie interne part à la corbeille. Un
+  fichier **extérieur** à `~/.noteeditor` ne peut pas être mis à la corbeille du tout : voir
+  la section 4.
 - Bouton **Corbeille...** (avec son icône de poubelle) en bas du panneau Brouillons, icône de la barre d'outils
   et entrée du menu Fichier ouvrent la fenêtre de la corbeille.
 - Depuis la corbeille : **Restaurer** une note (elle réapparaît dans les
