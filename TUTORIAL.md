@@ -124,7 +124,9 @@ position, comme la taille et l'emplacement de la fenêtre, sera retenue.
    - `Maj+J` : **joint la ligne courante à la suivante** (elles sont séparées par une
      espace) ; vous restez en mode commande ;
    - `0` : le curseur va **au début de la ligne** ;
-   - `$` : le curseur va **à la fin de la ligne**.
+   - `$` : le curseur va **à la fin de la ligne** ;
+   - `u` : **annule** la dernière modification (plusieurs `u` remontent plus loin), et
+     vous restez en mode commande. Pour rétablir, `Ctrl+Maj+Z`.
 6. Pour **indenter** plusieurs lignes, sélectionnez-les puis appuyez sur `Tab` : chaque
    ligne est décalée de 4 espaces vers la droite. `Maj+Tab` fait l'inverse (retrait de
    4 espaces). Un seul `Ctrl+Z` annule toute l'opération. Sans sélection, `Tab` insère
@@ -805,6 +807,7 @@ les mêmes notes.
 | Joindre la ligne à la suivante (mode commande) | `Maj+J` |
 | Début de ligne (mode commande) | `0` |
 | Fin de ligne (mode commande) | `$` |
+| Annuler (mode commande) | `u` |
 | Rechercher | `Ctrl+F` |
 | Rechercher / Remplacer | `Ctrl+H` |
 | Occurrence suivante | `F3` |

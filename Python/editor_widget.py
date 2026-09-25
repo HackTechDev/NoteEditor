@@ -348,6 +348,10 @@ class Editor(QPlainTextEdit):
                 self.setTextCursor(cursor)
                 event.accept()
                 return
+            if key == Qt.Key.Key_U and not upper:  # annuler, on reste en mode commande
+                self.undo()
+                event.accept()
+                return
             if key == Qt.Key.Key_J and upper:
                 self._join_next_line()
                 event.accept()

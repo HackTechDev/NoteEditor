@@ -199,6 +199,11 @@ void Editor::keyPressEvent(QKeyEvent *event)
             event->accept();
             return;
         }
+        if (key == Qt::Key_U && !upper) { // annuler, on reste en mode commande
+            undo();
+            event->accept();
+            return;
+        }
         if (key == Qt::Key_J && upper) {
             joinNextLine();
             event->accept();

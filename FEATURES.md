@@ -197,7 +197,11 @@ adapter si le dépôt est cloné ailleurs.
   - **`0`** et **`$`** : déplacent le curseur au début (colonne 0, avant l'éventuelle
     indentation) et à la fin de la ligne. C'est la ligne logique, même quand le retour
     automatique à la ligne la répartit sur plusieurs lignes à l'écran ; une sélection
-    éventuelle est levée.
+    éventuelle est levée ;
+  - **`u`** : annule la dernière modification, comme `Ctrl+Z` (un appui remonte d'une
+    étape, plusieurs appuis de suite remontent plus loin) et sans quitter le mode
+    commande ; sans effet s'il n'y a plus rien à annuler. Pour rétablir, `Ctrl+Maj+Z`
+    fonctionne aussi en mode commande. `Maj+U` est ignoré.
 - **Indentation** : quand du texte est sélectionné, `Tab` ajoute 4 espaces au début de
   chaque ligne touchée par la sélection (une ligne vide reste vide) et `Maj+Tab` retire
   jusqu'à 4 espaces (ou une tabulation) au début de chacune. Une ligne où la sélection ne
