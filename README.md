@@ -11,6 +11,7 @@ La liste détaillée et complète est dans [`FEATURES.md`](FEATURES.md), et un d
 
 - Session persistante : à la fermeture, tous les onglets (contenu, fichier associé, état modifié, onglet actif) sont sauvegardés automatiquement dans `~/.noteeditor` et restaurés tels quels au prochain lancement (avec la position du curseur, la sélection, le défilement et l'historique annuler/rétablir de chaque onglet, et les réglages d'affichage : panneau Brouillons, retour à la ligne, aperçu Markdown), ainsi que la taille et la position de la fenêtre sur l'écran (ignorée si elle n'est plus visible, p. ex. écran débranché) et la position du séparateur du panneau latéral
 - Chaque onglet est archivé dans `~/.noteeditor` dès sa création, et à nouveau en continu pendant la frappe (1,5s après la dernière touche), à sa fermeture (croix ou Ctrl+W, sans confirmation pour une note interne ; pour un fichier extérieur à `~/.noteeditor`, une alerte s'affiche s'il a des modifications non enregistrées) et à la fermeture de l'appli
+- Quitter l'application (croix de la fenêtre, `Ctrl+Q`, Fichier → Quitter) demande d'abord une confirmation ; les notes sont de toute façon archivées et restaurées au lancement suivant
 - Onglets multiples (fermables, réordonnables), onglet actif bien visible
 - Bouton **+** pour créer un nouvel onglet, collé juste après le dernier onglet (style Gedit) ; se déplace automatiquement à côté des flèches de défilement quand les onglets débordent de la largeur disponible
 - Nouveaux onglets nommés par date/heure (`aammjj_hhmmssmm`)

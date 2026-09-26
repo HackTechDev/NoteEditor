@@ -50,7 +50,10 @@ la position du curseur l'est).
 
 ### Comment c'est garanti
 
-- **À la fermeture** de la fenêtre (croix, `Ctrl+Q`, menu Fichier → Quitter), la
+- **À la fermeture** de la fenêtre (croix, `Ctrl+Q`, menu Fichier → Quitter) — après une
+  **confirmation** (« Quitter NoteEditor ? », avec le rappel que les notes sont archivées
+  et seront restaurées ; répondre **Non** garde l'application ouverte, sans rien
+  enregistrer de plus ; pas de confirmation quand c'est le bureau qui ferme la session) —, la
   liste des onglets ouverts, l'onglet actif, la taille et la position de la
   fenêtre sont enregistrés, ainsi que le texte de chaque onglet.
 - **Pendant le travail**, chaque onglet est aussi archivé automatiquement : dès sa

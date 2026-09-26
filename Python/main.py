@@ -8,6 +8,7 @@ from PyQt6.QtCore import QEvent, Qt, QPoint, QRect, QSize, QTimer, QUrl
 from PyQt6.QtGui import (
     QAction,
     QDesktopServices,
+    QGuiApplication,
     QIcon,
     QKeySequence,
     QPainter,
@@ -1860,6 +1861,20 @@ class MainWindow(QMainWindow):
         return any(screen.availableGeometry().intersects(rect) for screen in QApplication.screens())
 
     def closeEvent(self, event):
+        # confirmation avant de quitter (croix de la fenêtre, Fichier → Quitter, Ctrl+Q) ;
+        # pas pendant l'arrêt de la session du bureau, qu'un dialogue bloquerait
+        if not QGuiApplication.instance().isSavingSession():
+            answer = QMessageBox.question(
+                self,
+                "Quitter",
+                "Quitter NoteEditor ?\n\nVos notes sont archivées automatiquement et seront "
+                "restaurées au prochain lancement.",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.Yes,
+            )
+            if answer != QMessageBox.StandardButton.Yes:
+                event.ignore()
+                return
         self._save_session()
         session.save_window_state(
             self.width(),

@@ -155,7 +155,8 @@ laissé.
    différent dans chacune.
 2. Placez-vous sur la deuxième note.
 3. **Fermez complètement l'application** (croix de la fenêtre, `Ctrl+Q`, ou menu
-   Fichier → Quitter). Aucune question ne vous est posée.
+   Fichier → Quitter). Un message demande de **confirmer** (« Quitter NoteEditor ? ») :
+   répondez **Oui** — c'est la seule question, aucune alerte ne concerne vos notes.
 4. Relancez l'application.
 
 Vous retrouvez :

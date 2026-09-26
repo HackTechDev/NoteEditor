@@ -2072,6 +2072,19 @@ void MainWindow::saveSessionToDisk()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
+    // confirmation avant de quitter (croix de la fenêtre, Fichier → Quitter, Ctrl+Q) ;
+    // pas pendant l'arrêt de la session du bureau, qu'un dialogue bloquerait
+    if (!qGuiApp->isSavingSession()) {
+        const auto answer = QMessageBox::question(
+            this, "Quitter",
+            "Quitter NoteEditor ?\n\nVos notes sont archivées automatiquement et seront "
+            "restaurées au prochain lancement.",
+            QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+        if (answer != QMessageBox::Yes) {
+            event->ignore();
+            return;
+        }
+    }
     saveSessionToDisk();
     Session::saveWindowState(width(), height(), splitterSizesToSave(), x(), y(), m_wordWrapAction->isChecked(),
                              m_previewAction->isChecked(), m_draftsPanelAction->isChecked());
