@@ -1,8 +1,8 @@
 import uuid
 
 from PyQt6.QtCore import QRect, QSize, Qt, QTimer, pyqtSignal
-from PyQt6.QtGui import QColor, QFont, QPainter, QTextCursor, QTextFormat
-from PyQt6.QtWidgets import QPlainTextEdit, QTextEdit, QWidget
+from PyQt6.QtGui import QColor, QFont, QKeySequence, QPainter, QPalette, QTextCursor, QTextFormat
+from PyQt6.QtWidgets import QApplication, QPlainTextEdit, QTextEdit, QWidget
 
 from highlighters import highlighter_class_for
 
@@ -94,6 +94,9 @@ class Editor(QPlainTextEdit):
         self._hist_text = ""
         self._hist_new_step = False
         self._hist_busy = False
+        # blocs disjoints verrouillés par [Ctrl]+glisser, en vue d'une copie groupée ;
+        # chacun (début, fin), toujours avec début <= fin
+        self._multi_selections = []
 
         font = QFont("Monospace")
         font.setStyleHint(QFont.StyleHint.TypeWriter)
@@ -111,6 +114,7 @@ class Editor(QPlainTextEdit):
         self._autosave_timer.setInterval(AUTOSAVE_DELAY_MS)
         self._autosave_timer.timeout.connect(self.autosave_requested)
         self.document().contentsChanged.connect(self._autosave_timer.start)
+        self.document().contentsChanged.connect(self._clear_multi_selections)
 
         self.document().undoCommandAdded.connect(self._on_undo_command_added)
         self.document().contentsChange.connect(self._track_history)
@@ -325,8 +329,67 @@ class Editor(QPlainTextEdit):
         cursor.setPosition(join)
         self.setTextCursor(cursor)
 
+    def mousePressEvent(self, event):
+        """[Ctrl]+glisser accumule des blocs de texte disjoints au lieu de remplacer la
+        sélection en cours : un clic sans [Ctrl] repart de zéro (comportement normal),
+        un clic avec [Ctrl] verrouille d'abord la sélection en cours (s'il y en a une)
+        avant de laisser Qt démarrer la suivante normalement."""
+        if event.button() == Qt.MouseButton.LeftButton:
+            if event.modifiers() & Qt.KeyboardModifier.ControlModifier:
+                cursor = self.textCursor()
+                if cursor.hasSelection():
+                    self._multi_selections.append((cursor.selectionStart(), cursor.selectionEnd()))
+            else:
+                self._multi_selections = []
+            self.highlight_current_line()
+        super().mousePressEvent(event)
+
+    def _clear_multi_selections(self):
+        """Toute modification du texte invalide les positions verrouillées."""
+        if self._multi_selections:
+            self._multi_selections = []
+            self.highlight_current_line()
+
+    def copy(self):
+        """Remplace QPlainTextEdit.copy() : si des blocs ont été verrouillés par
+        [Ctrl]+glisser, copie leur concatenation (plus la sélection active, s'il y en a
+        une), dans l'ordre du document et séparés par des retours à la ligne. Sinon,
+        comportement normal (sélection unique)."""
+        if not self._multi_selections:
+            super().copy()
+            return
+        ranges = list(self._multi_selections)
+        cursor = self.textCursor()
+        if cursor.hasSelection():
+            ranges.append((cursor.selectionStart(), cursor.selectionEnd()))
+        ranges.sort()
+        text = self.toPlainText()
+        QApplication.clipboard().setText("\n".join(text[start:end] for start, end in ranges))
+
+    def contextMenuEvent(self, event):
+        """Le « Copy » du menu contextuel standard de QPlainTextEdit (toujours en anglais :
+        ni Qt ni ce projet ne traduisent ces libellés internes, voir le raccourci « Ctrl+C »
+        accolé au texte, pas posé comme un vrai QAction.shortcut()) appelle sa propre copy()
+        en C++, sans passer par notre redéfinition : on le reconnecte ici à la nôtre quand
+        des blocs sont verrouillés."""
+        menu = self.createStandardContextMenu()
+        if self._multi_selections:
+            for action in menu.actions():
+                label = action.text().split("\t", 1)[0].replace("&", "").strip().lower()
+                if label == "copy":
+                    action.setEnabled(True)
+                    action.triggered.disconnect()
+                    action.triggered.connect(self.copy)
+        menu.exec(event.globalPos())
+
     def keyPressEvent(self, event):
         key, mods = event.key(), event.modifiers()
+        if self._multi_selections and event.matches(QKeySequence.StandardKey.Copy):
+            # [Ctrl+C] appelle QPlainTextEdit.copy() en C++ en interne, sans passer par
+            # notre redéfinition Python : on l'intercepte ici pour agréger les blocs.
+            self.copy()
+            event.accept()
+            return
         plain = not mods & (Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.AltModifier
                             | Qt.KeyboardModifier.MetaModifier)
         shift = bool(mods & Qt.KeyboardModifier.ShiftModifier)
@@ -458,7 +521,20 @@ class Editor(QPlainTextEdit):
         selection.format.setProperty(QTextFormat.Property.FullWidthSelection, True)
         selection.cursor = self.textCursor()
         selection.cursor.clearSelection()
-        self.setExtraSelections([selection])
+        selections = [selection]
+        # blocs verrouillés par [Ctrl]+glisser, rendus comme la sélection normale
+        # (donc après le surlignage de ligne, pour rester visibles par-dessus)
+        highlight = self.palette().color(QPalette.ColorRole.Highlight)
+        highlighted_text = self.palette().color(QPalette.ColorRole.HighlightedText)
+        for start, end in self._multi_selections:
+            extra = QTextEdit.ExtraSelection()
+            extra.format.setBackground(highlight)
+            extra.format.setForeground(highlighted_text)
+            extra.cursor = self.textCursor()
+            extra.cursor.setPosition(start)
+            extra.cursor.setPosition(end, QTextCursor.MoveMode.KeepAnchor)
+            selections.append(extra)
+        self.setExtraSelections(selections)
 
     def set_file_path(self, path):
         self.file_path = path

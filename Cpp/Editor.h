@@ -3,6 +3,7 @@
 #include "Highlighters.h"
 
 #include <QJsonObject>
+#include <QPair>
 #include <QPlainTextEdit>
 #include <QString>
 #include <QVector>
@@ -14,6 +15,8 @@ class QPaintEvent;
 class QKeyEvent;
 class QResizeEvent;
 class QShowEvent;
+class QMouseEvent;
+class QContextMenuEvent;
 class Editor;
 
 constexpr int kAutosaveDelayMs = 1500;
@@ -64,6 +67,14 @@ public:
     int lineNumberAreaWidth() const;
     void lineNumberAreaPaintEvent(QPaintEvent *event);
 
+    // Remplace QPlainTextEdit::copy() (non virtuelle : masquée pour tout appel fait via
+    // un Editor*, mais pas pour celui que QPlainTextEdit::keyPressEvent() fait lui-même
+    // sur [Ctrl+C], d'où l'interception dans keyPressEvent()). Si des blocs ont été
+    // verrouillés par [Ctrl]+glisser, copie leur concatenation (plus la sélection
+    // active, s'il y en a une), dans l'ordre du document, séparés par des retours à la
+    // ligne. Sinon, comportement normal (sélection unique).
+    void copy();
+
     // Mode « commande » à la Vim (Échap) ; sinon on est en mode insertion.
     bool commandMode() const { return m_commandMode; }
     void setCommandMode(bool enabled);
@@ -87,6 +98,8 @@ protected:
     void resizeEvent(QResizeEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
     void showEvent(QShowEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void contextMenuEvent(QContextMenuEvent *event) override;
 
 private slots:
     void updateLineNumberAreaWidth();
@@ -96,6 +109,7 @@ private slots:
     void shiftLines(bool indent);
     void openLineBelow();
     void joinNextLine();
+    void clearMultiSelections();
 
 private:
     // Qt ne permet ni de lire ni d'exporter la pile annuler/rétablir : on en garde une
@@ -116,4 +130,7 @@ private:
     bool m_histNewStep = false;
     bool m_histBusy = false;
     bool m_commandMode = false;
+    // blocs disjoints verrouillés par [Ctrl]+glisser (début, fin), en vue d'une copie
+    // groupée ; chacun toujours avec début <= fin
+    QVector<QPair<int, int>> m_multiSelections;
 };

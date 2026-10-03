@@ -1,16 +1,27 @@
 #include "Editor.h"
 
+#include <QAction>
+#include <QApplication>
+#include <QClipboard>
+#include <QContextMenuEvent>
 #include <QFont>
 #include <QJsonArray>
 #include <QKeyEvent>
+#include <QKeySequence>
 #include <QFontMetrics>
+#include <QMenu>
+#include <QMouseEvent>
 #include <QPainter>
+#include <QPalette>
 #include <QScrollBar>
 #include <QShowEvent>
+#include <QStringList>
 #include <QTextBlock>
 #include <QTextCursor>
 #include <QTextDocument>
 #include <QTextEdit>
+
+#include <algorithm>
 
 namespace {
 
@@ -95,6 +106,7 @@ Editor::Editor(QWidget *parent)
     m_autosaveTimer->setInterval(kAutosaveDelayMs);
     connect(m_autosaveTimer, &QTimer::timeout, this, &Editor::autosaveRequested);
     connect(document(), &QTextDocument::contentsChanged, m_autosaveTimer, qOverload<>(&QTimer::start));
+    connect(document(), &QTextDocument::contentsChanged, this, &Editor::clearMultiSelections);
     connect(document(), &QTextDocument::undoCommandAdded, this, [this] { m_histNewStep = true; });
     connect(document(), &QTextDocument::contentsChange, this, [this](int, int, int) { trackHistory(); });
 
@@ -171,6 +183,75 @@ void Editor::joinNextLine()
     setTextCursor(cursor);
 }
 
+// [Ctrl]+glisser accumule des blocs de texte disjoints au lieu de remplacer la
+// sélection en cours : un clic sans [Ctrl] repart de zéro (comportement normal), un
+// clic avec [Ctrl] verrouille d'abord la sélection en cours (s'il y en a une) avant de
+// laisser Qt démarrer la suivante normalement.
+void Editor::mousePressEvent(QMouseEvent *event)
+{
+    if (event->button() == Qt::LeftButton) {
+        if (event->modifiers() & Qt::ControlModifier) {
+            const QTextCursor cursor = textCursor();
+            if (cursor.hasSelection())
+                m_multiSelections.append({cursor.selectionStart(), cursor.selectionEnd()});
+        } else {
+            m_multiSelections.clear();
+        }
+        highlightCurrentLine();
+    }
+    QPlainTextEdit::mousePressEvent(event);
+}
+
+// Toute modification du texte invalide les positions verrouillées.
+void Editor::clearMultiSelections()
+{
+    if (!m_multiSelections.isEmpty()) {
+        m_multiSelections.clear();
+        highlightCurrentLine();
+    }
+}
+
+void Editor::copy()
+{
+    if (m_multiSelections.isEmpty()) {
+        QPlainTextEdit::copy();
+        return;
+    }
+    QVector<QPair<int, int>> ranges = m_multiSelections;
+    const QTextCursor cursor = textCursor();
+    if (cursor.hasSelection())
+        ranges.append({cursor.selectionStart(), cursor.selectionEnd()});
+    std::sort(ranges.begin(), ranges.end());
+    const QString text = toPlainText();
+    QStringList parts;
+    for (const auto &range : ranges)
+        parts.append(text.mid(range.first, range.second - range.first));
+    QApplication::clipboard()->setText(parts.join('\n'));
+}
+
+// Le « Copy » du menu contextuel standard de QPlainTextEdit (toujours en anglais : ni
+// Qt ni ce projet ne traduisent ces libellés internes, voir le raccourci « Ctrl+C »
+// accolé au texte, pas posé comme un vrai QAction::shortcut()) appelle sa propre copy()
+// en C++ directement (non virtuelle), sans passer par notre redéfinition : on le
+// reconnecte ici à la nôtre quand des blocs sont verrouillés.
+void Editor::contextMenuEvent(QContextMenuEvent *event)
+{
+    QMenu *menu = createStandardContextMenu();
+    if (!m_multiSelections.isEmpty()) {
+        for (QAction *action : menu->actions()) {
+            QString label = action->text().split('\t').first();
+            label.remove('&');
+            if (label.trimmed().compare("copy", Qt::CaseInsensitive) == 0) {
+                action->setEnabled(true);
+                action->disconnect();
+                connect(action, &QAction::triggered, this, &Editor::copy);
+            }
+        }
+    }
+    menu->exec(event->globalPos());
+    delete menu;
+}
+
 // Tab : décale de 4 espaces vers la droite les lignes touchées par la sélection ;
 // Maj+Tab : les décale vers la gauche (jusqu'à 4 espaces, ou une tabulation, en moins).
 void Editor::keyPressEvent(QKeyEvent *event)
@@ -179,6 +260,13 @@ void Editor::keyPressEvent(QKeyEvent *event)
     const bool plain = !(mods & (Qt::ControlModifier | Qt::AltModifier | Qt::MetaModifier));
     const bool shift = mods & Qt::ShiftModifier;
     const int key = event->key();
+    if (!m_multiSelections.isEmpty() && event->matches(QKeySequence::Copy)) {
+        // [Ctrl+C] appelle QPlainTextEdit::copy() en interne (non virtuelle), sans
+        // passer par notre redéfinition : on l'intercepte ici pour agréger les blocs.
+        copy();
+        event->accept();
+        return;
+    }
     if (plain && key == Qt::Key_Escape) {
         setCommandMode(!m_commandMode);
         event->accept();
@@ -515,7 +603,21 @@ void Editor::highlightCurrentLine()
     selection.format.setProperty(QTextFormat::FullWidthSelection, true);
     selection.cursor = textCursor();
     selection.cursor.clearSelection();
-    setExtraSelections({selection});
+    QList<QTextEdit::ExtraSelection> selections{selection};
+    // blocs verrouillés par [Ctrl]+glisser, rendus comme la sélection normale (donc
+    // après le surlignage de ligne, pour rester visibles par-dessus)
+    const QColor highlight = palette().color(QPalette::Highlight);
+    const QColor highlightedText = palette().color(QPalette::HighlightedText);
+    for (const auto &range : m_multiSelections) {
+        QTextEdit::ExtraSelection extra;
+        extra.format.setBackground(highlight);
+        extra.format.setForeground(highlightedText);
+        extra.cursor = textCursor();
+        extra.cursor.setPosition(range.first);
+        extra.cursor.setPosition(range.second, QTextCursor::KeepAnchor);
+        selections.append(extra);
+    }
+    setExtraSelections(selections);
 }
 
 void Editor::setFilePath(const QString &path)
