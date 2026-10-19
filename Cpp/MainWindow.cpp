@@ -912,7 +912,9 @@ void MainWindow::refreshTabButton(Editor *editor)
     refreshTabTooltips();
 }
 
-// Même infobulle que dans le panneau Brouillons : le chemin du fichier.
+// Même infobulle que dans le panneau Brouillons : le chemin du fichier,
+// précédée de la date et l'heure de dernière modification de ce fichier (ou
+// du brouillon, pour une note pas encore enregistrée).
 void MainWindow::refreshTabTooltips()
 {
     for (int i = 0; i < m_tabs->count(); ++i) {
@@ -921,6 +923,11 @@ void MainWindow::refreshTabTooltips()
             continue;
         const QString name = !editor->filePath.isEmpty() ? QFileInfo(editor->filePath).fileName() : editor->defaultName;
         QString tip = pathTooltip(editor->filePath, name, editor->sessionId);
+        const QString path = !editor->filePath.isEmpty() ? editor->filePath
+                                                           : Session::draftsDir() + "/" + editor->sessionId + ".txt";
+        const QFileInfo info(path);
+        if (info.exists())
+            tip = "Le " + info.lastModified().toString("dd/MM/yy") + " à " + info.lastModified().toString("HH:mm:ss") + "\n" + tip;
         if (editor->pinned)
             tip += "\nNote épinglée";
         m_tabs->setTabToolTip(i, tip);

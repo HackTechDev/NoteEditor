@@ -1498,12 +1498,25 @@ class MainWindow(QMainWindow):
         self._refresh_tab_tooltips()
 
     def _tab_tooltip(self, editor):
-        """Même infobulle que dans le panneau Brouillons : le chemin du fichier."""
+        """Même infobulle que dans le panneau Brouillons : le chemin du fichier,
+        précédée de la date et l'heure de dernière modification de ce fichier
+        (ou du brouillon, pour une note pas encore enregistrée)."""
         name = os.path.basename(editor.file_path) if editor.file_path else editor.default_name
         tip = path_tooltip(editor.file_path, name, editor.session_id)
+        stamp = self._tab_tooltip_timestamp(editor)
+        if stamp:
+            tip = stamp + "\n" + tip
         if editor.pinned:
             tip += "\nNote épinglée"
         return tip
+
+    def _tab_tooltip_timestamp(self, editor):
+        path = editor.file_path or os.path.join(session.DRAFTS_DIR, editor.session_id + ".txt")
+        try:
+            mtime = os.path.getmtime(path)
+        except OSError:
+            return None
+        return datetime.fromtimestamp(mtime).strftime("Le %d/%m/%y à %H:%M:%S")
 
     def _refresh_tab_tooltips(self):
         for i in range(self.tabs.count()):
