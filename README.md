@@ -33,8 +33,7 @@ La liste détaillée et complète est dans [`FEATURES.md`](FEATURES.md), et un d
 - Infobulles : le survol d'une note du panneau ou d'un onglet affiche le chemin complet de son fichier (ou, pour une note sans fichier, l'emplacement de son brouillon), même quand la fenêtre de l'application n'est pas au premier plan
 - Corbeille : la suppression d'un brouillon est réversible (bouton « Corbeille... » avec son icône en bas du panneau Brouillons, ou menu Fichier), avec restauration ou suppression définitive, y compris de plusieurs brouillons à la fois (sélection multiple)
 - Historique des versions (10 dernières) : chaque enregistrement archive le contenu précédent du fichier, consultable et restaurable depuis le menu contextuel d'un onglet (clic droit)
-- Mise en forme Markdown du texte sélectionné (icônes de la barre d'outils ou menu contextuel de l'éditeur) : Gras (`Ctrl+B`), Italique (`Ctrl+I`), Barré et Couleur du texte (sélecteur de couleur, `<span>` HTML) ; sans sélection, insère des marqueurs vides avec le curseur entre les deux ; bascule (retire la mise en forme) si la sélection l'entoure déjà, et reprend la couleur actuelle pour recolorer sans imbriquer
-- Barre d'outils avec icônes Nouveau, Ouvrir, Enregistrer, Enregistrer sous, Fermer l'onglet, Épingler, Détacher, Corbeille, Rechercher, Rechercher / Remplacer, Gras, Italique, Barré, Couleur du texte, afficher / masquer le panneau Brouillons, retour à la ligne automatique (activable/désactivable, actif par défaut, s'applique à tous les onglets) et Aperçu Markdown
+- Barre d'outils avec icônes Nouveau, Ouvrir, Enregistrer, Enregistrer sous, Fermer l'onglet, Épingler, Détacher, Corbeille, Rechercher, Rechercher / Remplacer, afficher / masquer le panneau Brouillons, retour à la ligne automatique (activable/désactivable, actif par défaut, s'applique à tous les onglets) et Aperçu Markdown
 - Démarrage automatique : un lanceur `noteeditor.desktop` est fourni dans `Python/` et `Cpp/` (à copier dans `~/.config/autostart/`) ; l'application restaure alors la session au lancement
 - Barre de statut : mode (insertion / commande), position ligne/colonne, nombre de mots/caractères et encodage (UTF-8) de l'onglet actif
 - Menu Aide → À propos
@@ -77,7 +76,6 @@ cmake --build build -j"$(nproc)"
 | Rétablir                 | Ctrl+Shift+Z|
 | Couper / Copier / Coller | Ctrl+X / Ctrl+C / Ctrl+V |
 | Tout sélectionner        | Ctrl+A      |
-| Gras / Italique          | Ctrl+B / Ctrl+I |
 | Indenter les lignes sélectionnées | Tab |
 | Mode commande (on / off) | Échap |
 | Insérer une ligne dessous (mode commande) | o |

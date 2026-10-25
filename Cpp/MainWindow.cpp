@@ -335,38 +335,6 @@ QString styleMarkdownHtml(QString html)
     return html;
 }
 
-// Dessine une icône composée d'une lettre (gras/italique/barrée selon la mise en forme
-// qu'elle représente), avec éventuellement une barre de couleur en bas (couleur du
-// texte). Glyphe dessiné, pas de fichier externe.
-QIcon letterIcon(const QString &letter, bool bold = false, bool italic = false, bool strike = false,
-                  const QColor &barColor = QColor())
-{
-    QPixmap pixmap(22, 22);
-    pixmap.fill(Qt::transparent);
-    QPainter painter(&pixmap);
-    painter.setRenderHint(QPainter::Antialiasing);
-    QFont font;
-    font.setPointSize(13);
-    font.setBold(bold);
-    font.setItalic(italic);
-    font.setStrikeOut(strike);
-    painter.setFont(font);
-    painter.setPen(Qt::darkGray);
-    QRect rect = pixmap.rect();
-    if (barColor.isValid())
-        rect.adjust(0, 0, 0, -4);
-    painter.drawText(rect, Qt::AlignCenter, letter);
-    if (barColor.isValid())
-        painter.fillRect(3, 18, 16, 3, barColor);
-    painter.end();
-    return QIcon(pixmap);
-}
-
-QIcon boldIcon() { return letterIcon("B", true); }
-QIcon italicIcon() { return letterIcon("I", false, true); }
-QIcon strikethroughIcon() { return letterIcon("S", false, false, true); }
-QIcon textColorIcon() { return letterIcon("A", false, false, false, Qt::red); }
-
 // Dessine une icône « fenêtre coupée en deux » (aperçu Markdown) : du texte à
 // gauche, son rendu (un titre et des lignes) à droite. Glyphes dessinés, pas
 // de fichier externe.
@@ -698,22 +666,6 @@ void MainWindow::createActions()
     m_findNextAction->setShortcut(QKeySequence::FindNext);
     connect(m_findNextAction, &QAction::triggered, m_findDialog, &FindReplaceDialog::findNext);
 
-    m_boldAction = new QAction(boldIcon(), "&Gras", this);
-    m_boldAction->setShortcut(QKeySequence::Bold);
-    connect(m_boldAction, &QAction::triggered, this, [this] { if (auto *e = currentEditor()) e->toggleBold(); });
-
-    m_italicAction = new QAction(italicIcon(), "&Italique", this);
-    m_italicAction->setShortcut(QKeySequence::Italic);
-    connect(m_italicAction, &QAction::triggered, this, [this] { if (auto *e = currentEditor()) e->toggleItalic(); });
-
-    m_strikethroughAction = new QAction(strikethroughIcon(), "&Barré", this);
-    connect(m_strikethroughAction, &QAction::triggered, this,
-            [this] { if (auto *e = currentEditor()) e->toggleStrikethrough(); });
-
-    m_textColorAction = new QAction(textColorIcon(), "Couleur du &texte...", this);
-    connect(m_textColorAction, &QAction::triggered, this,
-            [this] { if (auto *e = currentEditor()) e->applyTextColor(); });
-
     m_aboutAction = new QAction("À &propos...", this);
     connect(m_aboutAction, &QAction::triggered, this, &MainWindow::showAbout);
 
@@ -757,11 +709,6 @@ void MainWindow::createToolBar()
     toolbar->addSeparator();
     toolbar->addAction(m_findAction);
     toolbar->addAction(m_replaceAction);
-    toolbar->addSeparator();
-    toolbar->addAction(m_boldAction);
-    toolbar->addAction(m_italicAction);
-    toolbar->addAction(m_strikethroughAction);
-    toolbar->addAction(m_textColorAction);
     toolbar->addSeparator();
     toolbar->addAction(m_draftsPanelAction);
     toolbar->addAction(m_wordWrapAction);

@@ -79,17 +79,6 @@ public:
     bool commandMode() const { return m_commandMode; }
     void setCommandMode(bool enabled);
 
-    // Insèrent/retirent des marqueurs Markdown autour de la sélection (bascule), ou,
-    // sans sélection, les insèrent vides avec le curseur entre les deux, prêt à taper
-    // le texte mis en forme.
-    void toggleBold();
-    void toggleItalic();
-    void toggleStrikethrough();
-    // Demande une couleur (QColorDialog) et l'applique à la sélection via un <span>
-    // HTML (le seul moyen de colorer du texte en Markdown ; voir styleMarkdownHtml()
-    // dans MainWindow.cpp, qui rend ce <span> dans l'aperçu et l'export HTML).
-    void applyTextColor();
-
     QString filePath;    // empty == no associated file
     QString defaultName; // empty == not applicable (has filePath instead)
     QString sessionId;
@@ -123,8 +112,6 @@ private slots:
     void clearMultiSelections();
 
 private:
-    void wrapSelection(const QString &prefix, const QString &suffix);
-
     // Qt ne permet ni de lire ni d'exporter la pile annuler/rétablir : on en garde une
     // copie sous forme d'étapes (début, texte retiré, texte ajouté).
     struct HistoryStep {

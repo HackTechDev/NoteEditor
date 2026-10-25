@@ -8,7 +8,6 @@ from PyQt6.QtCore import QEvent, Qt, QPoint, QRect, QSize, QTimer, QUrl
 from PyQt6.QtGui import (
     QAction,
     QDesktopServices,
-    QFont,
     QGuiApplication,
     QIcon,
     QKeySequence,
@@ -298,52 +297,6 @@ def _style_markdown_html(html):
     )
     html = _MARKDOWN_BLOCKQUOTE_RE.sub(r'\g<1>40px\g<2>40px\g<3> background-color:#f5f5f5;', html)
     return html
-
-
-def _letter_icon(letter, bold=False, italic=False, strike=False, bar_color=None):
-    """Dessine une icône composée d'une lettre (gras/italique/barré selon les mise en
-    forme du texte qu'elle représente), avec éventuellement une barre de couleur en bas
-    (couleur du texte). Glyphe dessiné, pas de fichier externe."""
-    pixmap = QPixmap(22, 22)
-    pixmap.fill(Qt.GlobalColor.transparent)
-    painter = QPainter(pixmap)
-    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-    font = QFont()
-    font.setPointSize(13)
-    font.setBold(bold)
-    font.setItalic(italic)
-    font.setStrikeOut(strike)
-    painter.setFont(font)
-    painter.setPen(Qt.GlobalColor.darkGray)
-    rect = pixmap.rect()
-    if bar_color is not None:
-        rect = rect.adjusted(0, 0, 0, -4)
-    painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, letter)
-    if bar_color is not None:
-        painter.fillRect(3, 18, 16, 3, bar_color)
-    painter.end()
-    return QIcon(pixmap)
-
-
-def _bold_icon():
-    """Dessine l'icône « Gras » (B gras). Voir _letter_icon()."""
-    return _letter_icon("B", bold=True)
-
-
-def _italic_icon():
-    """Dessine l'icône « Italique » (I italique). Voir _letter_icon()."""
-    return _letter_icon("I", italic=True)
-
-
-def _strikethrough_icon():
-    """Dessine l'icône « Barré » (S barré). Voir _letter_icon()."""
-    return _letter_icon("S", strike=True)
-
-
-def _text_color_icon():
-    """Dessine l'icône « Couleur du texte » (A surmontant une barre de couleur,
-    convention classique des traitements de texte). Voir _letter_icon()."""
-    return _letter_icon("A", bar_color=Qt.GlobalColor.red)
 
 
 def _preview_icon():
@@ -714,20 +667,6 @@ class MainWindow(QMainWindow):
         self.find_next_action.setShortcut(QKeySequence.StandardKey.FindNext)
         self.find_next_action.triggered.connect(self.find_dialog.find_next)
 
-        self.bold_action = QAction(_bold_icon(), "&Gras", self)
-        self.bold_action.setShortcut(QKeySequence.StandardKey.Bold)
-        self.bold_action.triggered.connect(lambda: self.current_editor().toggle_bold())
-
-        self.italic_action = QAction(_italic_icon(), "&Italique", self)
-        self.italic_action.setShortcut(QKeySequence.StandardKey.Italic)
-        self.italic_action.triggered.connect(lambda: self.current_editor().toggle_italic())
-
-        self.strikethrough_action = QAction(_strikethrough_icon(), "&Barré", self)
-        self.strikethrough_action.triggered.connect(lambda: self.current_editor().toggle_strikethrough())
-
-        self.text_color_action = QAction(_text_color_icon(), "Couleur du &texte...", self)
-        self.text_color_action.triggered.connect(lambda: self.current_editor().apply_text_color())
-
         self.about_action = QAction("À &propos...", self)
         self.about_action.triggered.connect(self.show_about)
 
@@ -769,11 +708,6 @@ class MainWindow(QMainWindow):
         toolbar.addSeparator()
         toolbar.addAction(self.find_action)
         toolbar.addAction(self.replace_action)
-        toolbar.addSeparator()
-        toolbar.addAction(self.bold_action)
-        toolbar.addAction(self.italic_action)
-        toolbar.addAction(self.strikethrough_action)
-        toolbar.addAction(self.text_color_action)
         toolbar.addSeparator()
         toolbar.addAction(self.drafts_panel_action)
         toolbar.addAction(self.word_wrap_action)

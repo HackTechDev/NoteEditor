@@ -84,8 +84,7 @@ prête à recevoir du texte.
 2. **La barre d'outils** : les actions les plus courantes en un clic. De gauche à
    droite : **Nouveau**, **Ouvrir**, **Enregistrer**, **Enregistrer sous**,
    **Fermer l'onglet**, **Épingler**, **Détacher**, **Corbeille**, **Rechercher**,
-   **Rechercher / Remplacer**, **Gras**, **Italique**, **Barré**, **Couleur du
-   texte**, **Panneau Brouillons**, **Retour automatique à la
+   **Rechercher / Remplacer**, **Panneau Brouillons**, **Retour automatique à la
    ligne** et **Aperçu Markdown**. Laissez la
    souris un instant sur une icône : une infobulle donne son nom.
 3. **Le panneau Brouillons** : la liste de toutes vos notes, ouvertes ou non
@@ -645,26 +644,6 @@ est la même, avec le champ **Remplacer par :** :
 
 ## 12. Confort d'écriture
 
-### Mettre le texte en forme
-
-Quatre icônes de la barre d'outils insèrent la syntaxe Markdown correspondante
-autour du texte sélectionné : **Gras** (`**...**`), **Italique** (`*...*`),
-**Barré** (`~~...~~`) et **Couleur du texte...** (qui ouvre un sélecteur de
-couleur et insère `<span style="color:...">...</span>`). Les mêmes entrées sont
-dans le **menu contextuel** (clic droit dans l'éditeur). `Ctrl+B` et `Ctrl+I`
-sont les raccourcis clavier de Gras et Italique.
-
-- Avec une **sélection**, cliquer de nouveau **retire** la mise en forme (bascule)
-  si elle l'entoure déjà — à condition d'inclure les marqueurs dans la sélection.
-  Pour la couleur, resélectionner un texte déjà coloré rouvre le sélecteur avec sa
-  couleur actuelle, et la remplace plutôt que d'imbriquer un second `<span>`.
-- **Sans sélection**, les marqueurs vides sont insérés avec le curseur entre les
-  deux : tapez directement le texte mis en forme.
-- Toute la mise en forme, y compris la couleur, est rendue dans **l'aperçu
-  Markdown** et dans l'**export HTML** (voir plus bas) ; dans un fichier qui n'est
-  pas affiché en Markdown, c'est du texte brut avec cette syntaxe autour.
-- Chaque mise en forme s'annule en un seul `Ctrl+Z`.
-
 ### Retour automatique à la ligne
 
 L'icône **Retour automatique à la ligne** (à droite de la barre d'outils) fait
@@ -822,7 +801,6 @@ les mêmes notes.
 | Annuler / Rétablir | `Ctrl+Z` / `Ctrl+Maj+Z` |
 | Couper / Copier / Coller | `Ctrl+X` / `Ctrl+C` / `Ctrl+V` |
 | Tout sélectionner | `Ctrl+A` |
-| Gras / Italique | `Ctrl+B` / `Ctrl+I` |
 | Indenter les lignes sélectionnées | `Tab` |
 | Retirer une indentation | `Maj+Tab` |
 | Mode commande (activer / quitter) | `Échap` |

@@ -1,9 +1,8 @@
-import re
 import uuid
 
 from PyQt6.QtCore import QRect, QSize, Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import QColor, QFont, QKeySequence, QPainter, QPalette, QTextCursor, QTextFormat
-from PyQt6.QtWidgets import QApplication, QColorDialog, QPlainTextEdit, QTextEdit, QWidget
+from PyQt6.QtWidgets import QApplication, QPlainTextEdit, QTextEdit, QWidget
 
 from highlighters import highlighter_class_for
 
@@ -17,11 +16,6 @@ HISTORY_MAX_CHARS = 1_000_000
 # Au-delà de cette taille de note, l'historique n'est plus suivi (chaque frappe
 # coûterait une comparaison du texte entier) ; annuler/rétablir continue de marcher.
 HISTORY_TRACK_MAX_CHARS = 300_000
-
-# Repère une sélection déjà entièrement colorée (apply_text_color), pour reprendre sa
-# couleur et la remplacer plutôt que l'imbriquer. re.DOTALL : une sélection colorée peut
-# s'étendre sur plusieurs lignes.
-_COLOR_SPAN_RE = re.compile(r'^<span style="color:([^"]+)">(.*)</span>$', re.DOTALL)
 
 
 def _u16(text):
@@ -372,75 +366,6 @@ class Editor(QPlainTextEdit):
         text = self.toPlainText()
         QApplication.clipboard().setText("\n".join(text[start:end] for start, end in ranges))
 
-    def _wrap_selection(self, prefix, suffix):
-        """Insère `prefix`/`suffix` Markdown autour de la sélection ; bascule (les retire)
-        si la sélection les inclut déjà. Sans sélection, les insère vides et place le
-        curseur entre les deux, prêt à taper le texte mis en forme. Les positions passent
-        par `_u16`/`_from_u16` : celles de QTextCursor sont en unités UTF-16, pas en
-        caractères Python."""
-        cursor = self.textCursor()
-        start, end = cursor.selectionStart(), cursor.selectionEnd()
-        full = self.toPlainText()
-        text = full[_from_u16(full, start) : _from_u16(full, end)]
-        cursor.beginEditBlock()
-        if text and text.startswith(prefix) and text.endswith(suffix) and len(text) >= len(prefix) + len(suffix):
-            replacement = text[len(prefix) : len(text) - len(suffix)]
-        elif text:
-            replacement = prefix + text + suffix
-        else:
-            replacement = None
-        if replacement is not None:
-            cursor.setPosition(start)
-            cursor.setPosition(end, QTextCursor.MoveMode.KeepAnchor)
-            cursor.insertText(replacement)
-            cursor.setPosition(start)
-            cursor.setPosition(start + _u16(replacement), QTextCursor.MoveMode.KeepAnchor)
-        else:
-            cursor.insertText(prefix + suffix)
-            cursor.setPosition(start + _u16(prefix))
-        cursor.endEditBlock()
-        self.setTextCursor(cursor)
-
-    def toggle_bold(self):
-        self._wrap_selection("**", "**")
-
-    def toggle_italic(self):
-        self._wrap_selection("*", "*")
-
-    def toggle_strikethrough(self):
-        self._wrap_selection("~~", "~~")
-
-    def apply_text_color(self):
-        """Demande une couleur et l'applique à la sélection via un `<span>` HTML (le seul
-        moyen de colorer du texte en Markdown ; l'aperçu et l'export HTML le rendent
-        correctement, voir styleMarkdownHtml() dans main.py). Si la sélection est déjà
-        entièrement un tel `<span>`, sa couleur est reprise comme point de départ dans le
-        sélecteur, et remplacée plutôt que ré-imbriquée."""
-        cursor = self.textCursor()
-        start, end = cursor.selectionStart(), cursor.selectionEnd()
-        full = self.toPlainText()
-        text = full[_from_u16(full, start) : _from_u16(full, end)]
-        match = _COLOR_SPAN_RE.match(text) if text else None
-        initial = QColor(match.group(1)) if match else QColor(Qt.GlobalColor.black)
-        color = QColorDialog.getColor(initial, self, "Couleur du texte")
-        if not color.isValid():
-            return
-        prefix = f'<span style="color:{color.name()}">'
-        suffix = "</span>"
-        inner = match.group(2) if match else text
-        replacement = prefix + inner + suffix
-        cursor.beginEditBlock()
-        cursor.setPosition(start)
-        cursor.setPosition(end, QTextCursor.MoveMode.KeepAnchor)
-        cursor.insertText(replacement)
-        if text:
-            cursor.setPosition(start)
-            cursor.setPosition(start + _u16(replacement), QTextCursor.MoveMode.KeepAnchor)
-        else:
-            cursor.setPosition(start + _u16(prefix))
-        cursor.endEditBlock()
-        self.setTextCursor(cursor)
-
     def contextMenuEvent(self, event):
         """Le « Copy » du menu contextuel standard de QPlainTextEdit (toujours en anglais :
         ni Qt ni ce projet ne traduisent ces libellés internes, voir le raccourci « Ctrl+C »
@@ -455,11 +380,6 @@ class Editor(QPlainTextEdit):
                     action.setEnabled(True)
                     action.triggered.disconnect()
                     action.triggered.connect(self.copy)
-        menu.addSeparator()
-        menu.addAction("Gras", self.toggle_bold)
-        menu.addAction("Italique", self.toggle_italic)
-        menu.addAction("Barré", self.toggle_strikethrough)
-        menu.addAction("Couleur du texte...", self.apply_text_color)
         menu.exec(event.globalPos())
 
     def keyPressEvent(self, event):
