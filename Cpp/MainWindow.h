@@ -180,6 +180,10 @@ private:
     QAction *m_findAction;
     QAction *m_replaceAction;
     QAction *m_findNextAction;
+    QAction *m_boldAction;
+    QAction *m_italicAction;
+    QAction *m_strikethroughAction;
+    QAction *m_textColorAction;
     QAction *m_aboutAction;
     QAction *m_trashAction;
     QAction *m_pinAction = nullptr;
