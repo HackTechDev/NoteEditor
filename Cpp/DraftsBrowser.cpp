@@ -105,7 +105,7 @@ QString DraftsBrowser::labelFor(const Session::DraftEntry &entry)
 {
     if (!entry.filePath.isEmpty())
         return QFileInfo(entry.filePath).fileName();
-    return !entry.defaultName.isEmpty() ? entry.defaultName : entry.id.left(8);
+    return !entry.defaultName.isEmpty() ? entry.defaultName + ".md" : entry.id.left(8);
 }
 
 void DraftsBrowser::setSortMode(const QString &mode)

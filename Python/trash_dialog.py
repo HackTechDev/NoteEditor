@@ -19,7 +19,8 @@ import session
 def _label_for(entry):
     if entry.get("file_path"):
         return os.path.basename(entry["file_path"])
-    return entry.get("default_name") or entry["id"][:8]
+    default_name = entry.get("default_name")
+    return default_name + ".md" if default_name else entry["id"][:8]
 
 
 def _format_deleted_at(iso_text):

@@ -925,7 +925,7 @@ Editor *MainWindow::newTab(const QString &filePath, const QString &content, cons
             syncPreviewScroll();
     });
 
-    const QString label = !filePath.isEmpty() ? QFileInfo(filePath).fileName() : editor->defaultName;
+    const QString label = !filePath.isEmpty() ? QFileInfo(filePath).fileName() : editor->defaultName + ".md";
     const int index = m_tabs->addTab(editor, label);
     refreshTabButton(editor);
     m_tabs->setCurrentIndex(index);
@@ -974,7 +974,7 @@ void MainWindow::refreshTabTooltips()
         auto *editor = qobject_cast<Editor *>(m_tabs->widget(i));
         if (!editor)
             continue;
-        const QString name = !editor->filePath.isEmpty() ? QFileInfo(editor->filePath).fileName() : editor->defaultName;
+        const QString name = !editor->filePath.isEmpty() ? QFileInfo(editor->filePath).fileName() : editor->defaultName + ".md";
         QString tip = pathTooltip(editor->filePath, name, editor->sessionId);
         const QString path = !editor->filePath.isEmpty() ? editor->filePath
                                                            : Session::draftsDir() + "/" + editor->sessionId + ".txt";
@@ -1185,7 +1185,7 @@ void MainWindow::trashDraftEntry(const Session::DraftEntry &entry)
     }
     const QString label = !entry.filePath.isEmpty()
         ? QFileInfo(entry.filePath).fileName()
-        : (!entry.defaultName.isEmpty() ? entry.defaultName : entry.id.left(8));
+        : (!entry.defaultName.isEmpty() ? entry.defaultName + ".md" : entry.id.left(8));
     QString text = QString("Mettre « %1 » à la corbeille ?").arg(label);
     if (!entry.filePath.isEmpty()) {
         // ce n'est que le brouillon interne qui part à la corbeille ; le fichier réel
@@ -1518,7 +1518,7 @@ void MainWindow::showTabContextMenu(const QPoint &pos)
         showVersionHistory(editor);
     else if (editor && chosen == copyNameAction)
         QApplication::clipboard()->setText(!editor->filePath.isEmpty() ? QFileInfo(editor->filePath).fileName()
-                                                                       : editor->defaultName);
+                                                                       : editor->defaultName + ".md");
     else if (editor && chosen == copyPathAction)
         QApplication::clipboard()->setText(editor->filePath);
     else if (editor && chosen == openFolderAction)
@@ -1622,7 +1622,7 @@ void MainWindow::restoreSession()
 
 QString MainWindow::tabLabel(Editor *editor) const
 {
-    const QString name = !editor->filePath.isEmpty() ? QFileInfo(editor->filePath).fileName() : editor->defaultName;
+    const QString name = !editor->filePath.isEmpty() ? QFileInfo(editor->filePath).fileName() : editor->defaultName + ".md";
     return editor->document()->isModified() ? "*" + name : name;
 }
 
@@ -1679,7 +1679,7 @@ void MainWindow::refreshRecentMenu()
         m_recentMenu->addAction("Aucune note fermée récemment")->setEnabled(false);
     for (const Session::DraftEntry &entry : entries) {
         const QString label = !entry.filePath.isEmpty() ? QFileInfo(entry.filePath).fileName()
-                                                        : (!entry.defaultName.isEmpty() ? entry.defaultName : entry.id.left(8));
+                                                        : (!entry.defaultName.isEmpty() ? entry.defaultName + ".md" : entry.id.left(8));
         QAction *action = m_recentMenu->addAction(label);
         action->setToolTip(pathTooltip(entry.filePath, label, entry.id));
         connect(action, &QAction::triggered, this, [this, entry] { reopenRecent(entry); });
@@ -1837,7 +1837,7 @@ bool MainWindow::writeHtml(const Editor *editor, const QString &path)
 {
     QTextDocument doc;
     doc.setMarkdown(editor->toPlainText());
-    const QString title = !editor->filePath.isEmpty() ? QFileInfo(editor->filePath).fileName() : editor->defaultName;
+    const QString title = !editor->filePath.isEmpty() ? QFileInfo(editor->filePath).fileName() : editor->defaultName + ".md";
     doc.setMetaInformation(QTextDocument::DocumentTitle, title);
     QFile f(path);
     if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate))

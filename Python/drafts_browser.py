@@ -171,7 +171,7 @@ class DraftsBrowser(QListWidget):
     def _label_for(entry):
         if entry["file_path"]:
             return os.path.basename(entry["file_path"])
-        return entry["default_name"] or entry["id"][:8]
+        return entry["default_name"] + ".md" if entry["default_name"] else entry["id"][:8]
 
     def select_ids(self, draft_ids):
         """Sélectionne (en plus de l'éventuelle sélection) les entrées de ces notes."""

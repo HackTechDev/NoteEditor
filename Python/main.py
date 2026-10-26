@@ -872,7 +872,7 @@ class MainWindow(QMainWindow):
         s'affichent si la page est enregistrée dans ce même dossier (proposé par défaut)."""
         doc = QTextDocument()
         doc.setMarkdown(editor.toPlainText())
-        title = os.path.basename(editor.file_path) if editor.file_path else editor.default_name
+        title = os.path.basename(editor.file_path) if editor.file_path else editor.default_name + ".md"
         doc.setMetaInformation(QTextDocument.MetaInformation.DocumentTitle, title)
         with open(path, "w", encoding="utf-8") as f:
             f.write(_style_markdown_html(doc.toHtml()))
@@ -993,7 +993,8 @@ class MainWindow(QMainWindow):
             self.recent_menu.addAction("Aucune note fermée récemment").setEnabled(False)
         for entry in entries:
             path = entry.get("file_path")
-            label = os.path.basename(path) if path else entry.get("default_name") or entry["id"][:8]
+            default_name = entry.get("default_name")
+            label = os.path.basename(path) if path else (default_name + ".md" if default_name else entry["id"][:8])
             action = self.recent_menu.addAction(label)
             action.setToolTip(path_tooltip(path, label, entry["id"]))
             action.triggered.connect(lambda _checked=False, e=entry: self._reopen_recent(e))
@@ -1102,7 +1103,7 @@ class MainWindow(QMainWindow):
             QPlainTextEdit.LineWrapMode.WidgetWidth if self.word_wrap_enabled else QPlainTextEdit.LineWrapMode.NoWrap
         )
 
-        label = os.path.basename(file_path) if file_path else editor.default_name
+        label = os.path.basename(file_path) if file_path else editor.default_name + ".md"
         index = self.tabs.addTab(editor, label)
         self._refresh_tab_button(editor)
         self.tabs.setCurrentIndex(index)
@@ -1225,7 +1226,10 @@ class MainWindow(QMainWindow):
         if session.is_external_file(entry.get("file_path")):
             self.statusBar().showMessage("Fichier extérieur : fermez-le plutôt que de le mettre à la corbeille.", 3000)
             return
-        label = os.path.basename(entry["file_path"]) if entry.get("file_path") else entry.get("default_name") or entry["id"][:8]
+        default_name = entry.get("default_name")
+        label = os.path.basename(entry["file_path"]) if entry.get("file_path") else (
+            default_name + ".md" if default_name else entry["id"][:8]
+        )
         text = f"Mettre « {label} » à la corbeille ?"
         if entry.get("file_path"):
             # ce n'est que le brouillon interne qui part à la corbeille ; le fichier réel
@@ -1486,7 +1490,7 @@ class MainWindow(QMainWindow):
         elif history_action is not None and chosen == history_action:
             self._show_version_history(editor)
         elif chosen == copy_name_action:
-            name = os.path.basename(editor.file_path) if editor.file_path else editor.default_name
+            name = os.path.basename(editor.file_path) if editor.file_path else editor.default_name + ".md"
             QApplication.clipboard().setText(name)
         elif chosen == copy_path_action:
             QApplication.clipboard().setText(editor.file_path)
@@ -1573,7 +1577,7 @@ class MainWindow(QMainWindow):
         """Même infobulle que dans le panneau Brouillons : le chemin du fichier,
         précédée de la date et l'heure de dernière modification de ce fichier
         (ou du brouillon, pour une note pas encore enregistrée)."""
-        name = os.path.basename(editor.file_path) if editor.file_path else editor.default_name
+        name = os.path.basename(editor.file_path) if editor.file_path else editor.default_name + ".md"
         tip = path_tooltip(editor.file_path, name, editor.session_id)
         stamp = self._tab_tooltip_timestamp(editor)
         if stamp:
@@ -1696,7 +1700,7 @@ class MainWindow(QMainWindow):
         self.tabs.setCurrentIndex(active if active is not None else 0)
 
     def tab_label(self, editor):
-        name = os.path.basename(editor.file_path) if editor.file_path else editor.default_name
+        name = os.path.basename(editor.file_path) if editor.file_path else editor.default_name + ".md"
         return "*" + name if editor.document().isModified() else name
 
     def _update_pin_action(self):

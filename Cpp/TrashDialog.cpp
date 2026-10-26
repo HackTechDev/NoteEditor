@@ -17,7 +17,7 @@ QString labelFor(const Session::TrashEntry &entry)
 {
     if (!entry.filePath.isEmpty())
         return QFileInfo(entry.filePath).fileName();
-    return !entry.defaultName.isEmpty() ? entry.defaultName : entry.id.left(8);
+    return !entry.defaultName.isEmpty() ? entry.defaultName + ".md" : entry.id.left(8);
 }
 
 QString formatDeletedAt(const QString &iso)
