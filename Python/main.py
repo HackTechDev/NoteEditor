@@ -782,11 +782,14 @@ class MainWindow(QMainWindow):
 
     @staticmethod
     def _is_markdown(editor):
-        return (
-            editor is not None
-            and editor.file_path is not None
-            and os.path.splitext(editor.file_path)[1].lower() in (".md", ".markdown")
-        )
+        """Une note sans titre (jamais enregistrée) est traitée comme du Markdown par
+        défaut, puisque c'est là qu'elle finira (voir highlighter_class_for() et
+        save_file()) ; une fois enregistrée, seule l'extension réelle compte."""
+        if editor is None:
+            return False
+        if editor.file_path is None:
+            return True
+        return os.path.splitext(editor.file_path)[1].lower() in (".md", ".markdown")
 
     def _update_preview_state(self):
         """Le volet n'est visible que si l'aperçu est activé ET que l'onglet actif
@@ -846,7 +849,8 @@ class MainWindow(QMainWindow):
         editor = self.current_editor()
         if not self._is_markdown(editor):
             return
-        start = os.path.splitext(editor.file_path)[0] + ".html"
+        base = editor.file_path or os.path.join(session.DOCS_DIR, f"{editor.default_name}.md")
+        start = os.path.splitext(base)[0] + ".html"
         path, _ = QFileDialog.getSaveFileName(
             self, "Exporter en HTML", start, "Pages HTML (*.html *.htm);;Tous les fichiers (*)"
         )
@@ -868,7 +872,8 @@ class MainWindow(QMainWindow):
         s'affichent si la page est enregistrée dans ce même dossier (proposé par défaut)."""
         doc = QTextDocument()
         doc.setMarkdown(editor.toPlainText())
-        doc.setMetaInformation(QTextDocument.MetaInformation.DocumentTitle, os.path.basename(editor.file_path))
+        title = os.path.basename(editor.file_path) if editor.file_path else editor.default_name
+        doc.setMetaInformation(QTextDocument.MetaInformation.DocumentTitle, title)
         with open(path, "w", encoding="utf-8") as f:
             f.write(_style_markdown_html(doc.toHtml()))
 
@@ -888,8 +893,9 @@ class MainWindow(QMainWindow):
         bar = self.preview.verticalScrollBar()
         scroll = bar.value() if same_note else 0
         self._preview_key = key
-        # les images et liens relatifs se résolvent depuis le dossier du fichier
-        self.preview.setSearchPaths([os.path.dirname(editor.file_path)])
+        # les images et liens relatifs se résolvent depuis le dossier du fichier (celui où
+        # une note sans titre finira, docs/, tant qu'elle n'a pas encore été enregistrée)
+        self.preview.setSearchPaths([os.path.dirname(editor.file_path) if editor.file_path else session.DOCS_DIR])
         doc = QTextDocument()
         doc.setMarkdown(text)
         # setHtml() peut remettre le défilement de l'aperçu à zéro le temps de charger le

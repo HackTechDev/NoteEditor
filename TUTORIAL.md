@@ -674,10 +674,11 @@ s'applique à **tous** les onglets et il est **mémorisé** d'un lancement à l'
 
 ### Aperçu Markdown
 
-Pour un fichier Markdown (`.md` ou `.markdown`), l'icône **Aperçu Markdown** (la
-dernière de la barre d'outils, une fenêtre coupée en deux) affiche à **droite de
-l'éditeur** le texte tel qu'il apparaîtra une fois mis en forme : titres, gras,
-italique, listes, cases à cocher, citations, code, liens, images.
+Pour un fichier Markdown (`.md` ou `.markdown`) — ce qu'est aussi, par défaut, toute
+nouvelle note pas encore enregistrée — l'icône **Aperçu Markdown** (la dernière de la
+barre d'outils, une fenêtre coupée en deux) affiche à **droite de l'éditeur** le texte
+tel qu'il apparaîtra une fois mis en forme : titres, gras, italique, listes, cases à
+cocher, citations, code, liens, images.
 
 - Le rendu se **met à jour en direct** pendant que vous tapez, et garde sa
   position de défilement.
@@ -690,9 +691,9 @@ italique, listes, cases à cocher, citations, code, liens, images.
   gauche (molette, barre de défilement, curseur qui descend), le rendu à droite
   défile en même temps, au même endroit relatif — et inversement, faire défiler le
   rendu à droite fait défiler le texte à gauche.
-- L'icône est **grisée** tant que l'onglet actif n'est pas un fichier Markdown. Une
-  note qui n'est pas encore liée à un fichier n'en est pas un : faites d'abord
-  `Ctrl+S`, qui l'enregistre en `.md`, ou **Enregistrer sous** avec un nom en `.md`.
+- L'icône est **grisée** tant que l'onglet actif n'est pas un fichier Markdown — ce
+  qui n'arrive qu'après l'avoir enregistré sous une autre extension (**Enregistrer
+  sous**) : une note sans fichier associé est traitée comme Markdown dès sa création.
 - Le volet suit l'onglet actif : il disparaît sur un onglet qui n'est pas Markdown
   et réapparaît quand vous revenez sur un onglet Markdown, tant que l'icône reste
   enfoncée. Recliquez sur l'icône pour le masquer.
@@ -704,24 +705,27 @@ italique, listes, cases à cocher, citations, code, liens, images.
 **À essayer**
 
 1. Créez une note et écrivez `# Mon journal`, une ligne avec du `**gras**`, puis une
-   liste avec des `- éléments`.
-2. Faites `Ctrl+S` (la note est enregistrée en `.md`) ou **Enregistrer sous**
-   (`Ctrl+Maj+S`) avec le nom `journal.md`. La coloration du texte apparaît et
-   l'icône **Aperçu Markdown** devient active.
-3. Cliquez dessus : le rendu s'affiche à droite. Modifiez le texte à gauche et
+   liste avec des `- éléments`. La coloration du texte apparaît immédiatement et
+   l'icône **Aperçu Markdown** est déjà active, sans avoir rien enregistré.
+2. Cliquez dessus : le rendu s'affiche à droite. Modifiez le texte à gauche et
    regardez le rendu suivre.
+3. Faites `Ctrl+S` (la note est enregistrée en `.md`) ou **Enregistrer sous**
+   (`Ctrl+Maj+S`) avec le nom `journal.md`.
 
 ### Exporter en HTML
 
 Pour partager le rendu ou le mettre en ligne, choisissez **Fichier → Exporter en
 HTML...** : la note Markdown active est enregistrée sous forme de **page HTML**
-autonome (encodage UTF-8, titre = nom du fichier). L'entrée est grisée pour une note
-qui n'est pas un fichier Markdown ; l'aperçu n'a pas besoin d'être affiché.
+autonome (encodage UTF-8, titre = nom du fichier, ou nom par défaut de la note si elle
+n'a pas encore été enregistrée). L'entrée est grisée pour une note qui n'est pas un
+fichier Markdown ; l'aperçu n'a pas besoin d'être affiché, et la note elle-même pas
+besoin d'avoir déjà été enregistrée.
 
-- La boîte de dialogue propose le **dossier du fichier Markdown** et le nom
-  `note.html` (le nom de la note avec l'extension `.html`). Gardez ce dossier si la
-  note contient des **images** ou des liens relatifs : ils sont conservés tels quels
-  dans la page et ne s'affichent que si elle est à côté d'eux.
+- La boîte de dialogue propose le **dossier du fichier Markdown** (ou `docs/` si la
+  note n'a pas encore de fichier) et le nom `note.html` (le nom de la note avec
+  l'extension `.html`). Gardez ce dossier si la note contient des **images** ou des
+  liens relatifs : ils sont conservés tels quels dans la page et ne s'affichent que si
+  elle est à côté d'eux.
 - L'export part du **texte actuel**, y compris les modifications pas encore
   enregistrées dans le fichier `.md`.
 - Une fois l'export fait, un message dans la barre de statut donne le fichier créé.
@@ -907,9 +911,9 @@ restaurées au lancement suivant).
 
 **L'icône « Aperçu Markdown » est grisée.**
 L'onglet actif n'est pas un fichier Markdown. L'aperçu n'est disponible que pour un
-fichier dont l'extension est `.md` ou `.markdown` ; une note qui n'est pas encore liée
-à un fichier n'en est pas un. Faites `Ctrl+S` (qui l'enregistre en `.md`) ou **Enregistrer sous**
-avec un nom en `.md`.
+fichier dont l'extension est `.md` ou `.markdown` — une note qui n'est pas encore liée
+à un fichier en est un par défaut, donc si l'icône est grisée c'est que la note a déjà
+été enregistrée sous une autre extension (**Enregistrer sous**).
 
 **Comment obtenir une page web à partir de ma note Markdown ?**
 **Fichier → Exporter en HTML...** (voir la [partie 12](#exporter-en-html)). L'entrée est

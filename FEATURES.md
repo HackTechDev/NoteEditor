@@ -151,9 +151,11 @@ adapter si le dépôt est cloné ailleurs.
 
 - **Numéros de ligne** dans la marge, avec **surlignage de la ligne courante**.
 - **Coloration syntaxique** choisie automatiquement selon l'extension du fichier :
-  Python (`.py`, `.pyw`), JSON (`.json`) et Markdown (`.md`, `.markdown`).
-  Elle se met à jour quand l'extension change (Enregistrer sous). Les couleurs sont
-  prévues pour un fond clair.
+  Python (`.py`, `.pyw`), JSON (`.json`) et Markdown (`.md`, `.markdown`). Une note
+  sans fichier associé (nouvel onglet jamais enregistré) est colorée en Markdown par
+  défaut, puisque c'est ce qu'elle deviendra si on l'enregistre sans préciser
+  d'extension. Elle se met à jour quand l'extension change (Enregistrer sous). Les
+  couleurs sont prévues pour un fond clair.
 - **Mise en forme Markdown** du texte sélectionné, par icône de la barre d'outils ou
   entrée du menu contextuel de l'éditeur : **Gras** (`**...**`, `Ctrl+B`), **Italique**
   (`*...*`, `Ctrl+I`), **Barré** (`~~...~~`) et **Couleur du texte...** (sélecteur de
@@ -171,8 +173,8 @@ adapter si le dépôt est cloné ailleurs.
   `.md` et `.markdown` :
   - il s'active avec l'icône **Aperçu Markdown** de la barre d'outils, qui n'est
     disponible que pour un onglet Markdown (un fichier dont l'extension est `.md`
-    ou `.markdown` ; une note sans fichier associé n'en est pas un tant qu'elle
-    n'a pas été enregistrée sous un tel nom) ;
+    ou `.markdown` ; une note sans fichier associé en est un aussi, dès sa création,
+    tant qu'elle n'a pas été enregistrée sous une autre extension) ;
   - le rendu (titres, gras, italique, listes, cases à cocher, citations, code,
     liens, images) se **met à jour en direct** pendant la frappe, avec un court
     délai, et **conserve la position de défilement** ; au-delà du rendu de base de

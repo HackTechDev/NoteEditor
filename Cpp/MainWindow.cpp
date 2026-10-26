@@ -1738,10 +1738,15 @@ void MainWindow::setCurrentPinned(bool pinned)
         setPinned(editor->sessionId, pinned);
 }
 
+// Une note sans titre (jamais enregistrée) est traitée comme du Markdown par défaut,
+// puisque c'est là qu'elle finira (voir highlighterKindFor() et saveFile()) ; une fois
+// enregistrée, seule l'extension réelle compte.
 bool MainWindow::isMarkdown(const Editor *editor)
 {
-    if (!editor || editor->filePath.isEmpty())
+    if (!editor)
         return false;
+    if (editor->filePath.isEmpty())
+        return true;
     const QString suffix = QFileInfo(editor->filePath).suffix().toLower();
     return suffix == "md" || suffix == "markdown";
 }
@@ -1809,7 +1814,9 @@ void MainWindow::exportHtml()
     Editor *editor = currentEditor();
     if (!isMarkdown(editor))
         return;
-    const QString start = QFileInfo(editor->filePath).absolutePath() + "/" + QFileInfo(editor->filePath).completeBaseName() + ".html";
+    const QString base = !editor->filePath.isEmpty() ? editor->filePath
+                                                       : Session::docsDir() + "/" + editor->defaultName + ".md";
+    const QString start = QFileInfo(base).absolutePath() + "/" + QFileInfo(base).completeBaseName() + ".html";
     QString path = QFileDialog::getSaveFileName(this, "Exporter en HTML", start,
                                                 "Pages HTML (*.html *.htm);;Tous les fichiers (*)");
     if (path.isEmpty())
@@ -1830,7 +1837,8 @@ bool MainWindow::writeHtml(const Editor *editor, const QString &path)
 {
     QTextDocument doc;
     doc.setMarkdown(editor->toPlainText());
-    doc.setMetaInformation(QTextDocument::DocumentTitle, QFileInfo(editor->filePath).fileName());
+    const QString title = !editor->filePath.isEmpty() ? QFileInfo(editor->filePath).fileName() : editor->defaultName;
+    doc.setMetaInformation(QTextDocument::DocumentTitle, title);
     QFile f(path);
     if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate))
         return false;
@@ -1860,8 +1868,10 @@ void MainWindow::renderPreview()
     m_previewNoteId = editor->sessionId;
     m_previewPath = editor->filePath;
     m_previewText = text;
-    // les images et liens relatifs se résolvent depuis le dossier du fichier
-    m_preview->setSearchPaths({QFileInfo(editor->filePath).absolutePath()});
+    // les images et liens relatifs se résolvent depuis le dossier du fichier (celui où
+    // une note sans titre finira, docsDir(), tant qu'elle n'a pas encore été enregistrée)
+    const QString dir = !editor->filePath.isEmpty() ? QFileInfo(editor->filePath).absolutePath() : Session::docsDir();
+    m_preview->setSearchPaths({dir});
     QTextDocument doc;
     doc.setMarkdown(text);
     // setHtml() peut remettre le défilement de l'aperçu à zéro le temps de charger le

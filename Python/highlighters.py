@@ -127,7 +127,10 @@ EXTENSION_MAP = {
 
 
 def highlighter_class_for(file_path):
+    # Une note sans titre (jamais enregistrée) n'a pas encore d'extension : elle est
+    # traitée comme du Markdown par défaut, puisque c'est là qu'elle finira si on
+    # l'enregistre sans choisir un autre type (voir MainWindow.save_file()).
     if not file_path:
-        return None
+        return MarkdownHighlighter
     ext = os.path.splitext(file_path)[1].lower()
     return EXTENSION_MAP.get(ext)

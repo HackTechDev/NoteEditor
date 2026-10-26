@@ -141,8 +141,11 @@ void MarkdownHighlighter::highlightBlock(const QString &text)
 
 HighlighterKind highlighterKindFor(const QString &filePath)
 {
+    // Une note sans titre (jamais enregistrée) n'a pas encore d'extension : elle est
+    // traitée comme du Markdown par défaut, puisque c'est là qu'elle finira si on
+    // l'enregistre sans choisir un autre type (voir MainWindow::saveFile()).
     if (filePath.isEmpty())
-        return HighlighterKind::None;
+        return HighlighterKind::Markdown;
     const QString ext = QFileInfo(filePath).suffix().toLower();
     if (ext == "py" || ext == "pyw")
         return HighlighterKind::Python;
