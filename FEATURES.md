@@ -154,6 +154,17 @@ adapter si le dépôt est cloné ailleurs.
   Python (`.py`, `.pyw`), JSON (`.json`) et Markdown (`.md`, `.markdown`).
   Elle se met à jour quand l'extension change (Enregistrer sous). Les couleurs sont
   prévues pour un fond clair.
+- **Mise en forme Markdown** du texte sélectionné, par icône de la barre d'outils ou
+  entrée du menu contextuel de l'éditeur : **Gras** (`**...**`, `Ctrl+B`), **Italique**
+  (`*...*`, `Ctrl+I`), **Barré** (`~~...~~`) et **Couleur du texte...** (sélecteur de
+  couleur, `<span style="color:...">...</span>` — le seul moyen de colorer du texte en
+  Markdown ; l'aperçu et l'export HTML le rendent). Sans sélection, insère des
+  marqueurs vides et place le curseur entre les deux, prêt à taper le texte mis en
+  forme. Avec une sélection qui les inclut déjà, **bascule** (retire la mise en
+  forme) ; pour la couleur, resélectionner un texte déjà coloré reprend sa couleur
+  comme point de départ dans le sélecteur et la remplace, sans imbriquer un second
+  `<span>`. Chaque mise en forme s'annule en un seul `Ctrl+Z`. Hors d'un fichier
+  Markdown, c'est du texte brut avec cette syntaxe autour.
 - **Retour automatique à la ligne**, activable et désactivable depuis la barre
   d'outils (activé par défaut, appliqué à tous les onglets, réglage mémorisé).
 - **Aperçu Markdown** en volet séparé, à droite de l'éditeur, pour les fichiers
@@ -367,7 +378,8 @@ ouverts.
 
 Icônes (dessinées par l'application, sans fichier d'image), de gauche à droite :
 **Nouveau**, **Ouvrir**, **Enregistrer**, **Enregistrer sous**, **Fermer l'onglet**, **Épingler**, **Détacher**, **Corbeille**,
-**Rechercher**, **Rechercher / Remplacer**, **Panneau Brouillons** (afficher / masquer),
+**Rechercher**, **Rechercher / Remplacer**, **Gras**, **Italique**, **Barré**, **Couleur
+du texte**, **Panneau Brouillons** (afficher / masquer),
 **Retour automatique à la ligne**, **Aperçu Markdown**.
 
 ## 10. Barre de statut

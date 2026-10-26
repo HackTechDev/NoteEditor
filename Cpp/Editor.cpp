@@ -3,6 +3,8 @@
 #include <QAction>
 #include <QApplication>
 #include <QClipboard>
+#include <QColor>
+#include <QColorDialog>
 #include <QContextMenuEvent>
 #include <QFont>
 #include <QJsonArray>
@@ -10,6 +12,7 @@
 #include <QKeySequence>
 #include <QFontMetrics>
 #include <QMenu>
+#include <QRegularExpression>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPalette>
@@ -248,8 +251,95 @@ void Editor::contextMenuEvent(QContextMenuEvent *event)
             }
         }
     }
+    menu->addSeparator();
+    menu->addAction("Gras", this, &Editor::toggleBold);
+    menu->addAction("Italique", this, &Editor::toggleItalic);
+    menu->addAction("Barré", this, &Editor::toggleStrikethrough);
+    menu->addAction("Couleur du texte...", this, &Editor::applyTextColor);
     menu->exec(event->globalPos());
     delete menu;
+}
+
+// Insère prefix/suffix Markdown autour de la sélection ; bascule (les retire) si la
+// sélection les inclut déjà. Sans sélection, les insère vides et place le curseur entre
+// les deux, prêt à taper le texte mis en forme. QString indexe en unités UTF-16, comme
+// les positions de QTextCursor : contrairement à la version Python, aucune conversion
+// n'est nécessaire ici.
+void Editor::wrapSelection(const QString &prefix, const QString &suffix)
+{
+    QTextCursor cursor = textCursor();
+    const int start = cursor.selectionStart(), end = cursor.selectionEnd();
+    const QString text = toPlainText().mid(start, end - start);
+    QString replacement;
+    bool hasReplacement = false;
+    if (!text.isEmpty() && text.startsWith(prefix) && text.endsWith(suffix)
+        && text.size() >= prefix.size() + suffix.size()) {
+        replacement = text.mid(prefix.size(), text.size() - prefix.size() - suffix.size());
+        hasReplacement = true;
+    } else if (!text.isEmpty()) {
+        replacement = prefix + text + suffix;
+        hasReplacement = true;
+    }
+    cursor.beginEditBlock();
+    if (hasReplacement) {
+        cursor.setPosition(start);
+        cursor.setPosition(end, QTextCursor::KeepAnchor);
+        cursor.insertText(replacement);
+        cursor.setPosition(start);
+        cursor.setPosition(start + replacement.size(), QTextCursor::KeepAnchor);
+    } else {
+        cursor.insertText(prefix + suffix);
+        cursor.setPosition(start + prefix.size());
+    }
+    cursor.endEditBlock();
+    setTextCursor(cursor);
+}
+
+void Editor::toggleBold()
+{
+    wrapSelection("**", "**");
+}
+
+void Editor::toggleItalic()
+{
+    wrapSelection("*", "*");
+}
+
+void Editor::toggleStrikethrough()
+{
+    wrapSelection("~~", "~~");
+}
+
+void Editor::applyTextColor()
+{
+    // Repère une sélection déjà entièrement colorée (span HTML), pour reprendre sa
+    // couleur et la remplacer plutôt que l'imbriquer.
+    static const QRegularExpression colorSpanRe(
+        R"re(^<span style="color:([^"]+)">(.*)</span>$)re", QRegularExpression::DotMatchesEverythingOption);
+    QTextCursor cursor = textCursor();
+    const int start = cursor.selectionStart(), end = cursor.selectionEnd();
+    const QString text = toPlainText().mid(start, end - start);
+    const QRegularExpressionMatch match = text.isEmpty() ? QRegularExpressionMatch() : colorSpanRe.match(text);
+    const QColor initial = match.hasMatch() ? QColor(match.captured(1)) : QColor(Qt::black);
+    const QColor color = QColorDialog::getColor(initial, this, "Couleur du texte");
+    if (!color.isValid())
+        return;
+    const QString prefix = QString("<span style=\"color:%1\">").arg(color.name());
+    const QString suffix = "</span>";
+    const QString inner = match.hasMatch() ? match.captured(2) : text;
+    const QString replacement = prefix + inner + suffix;
+    cursor.beginEditBlock();
+    cursor.setPosition(start);
+    cursor.setPosition(end, QTextCursor::KeepAnchor);
+    cursor.insertText(replacement);
+    if (!text.isEmpty()) {
+        cursor.setPosition(start);
+        cursor.setPosition(start + replacement.size(), QTextCursor::KeepAnchor);
+    } else {
+        cursor.setPosition(start + prefix.size());
+    }
+    cursor.endEditBlock();
+    setTextCursor(cursor);
 }
 
 // Tab : décale de 4 espaces vers la droite les lignes touchées par la sélection ;
