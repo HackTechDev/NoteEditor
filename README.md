@@ -14,7 +14,7 @@ La liste détaillée et complète est dans [`FEATURES.md`](FEATURES.md), et un d
 - Quitter l'application (croix de la fenêtre, `Ctrl+Q`, Fichier → Quitter) demande d'abord une confirmation ; les notes sont de toute façon archivées et restaurées au lancement suivant
 - Onglets multiples (fermables, réordonnables), onglet actif bien visible
 - Bouton **+** pour créer un nouvel onglet, collé juste après le dernier onglet (style Gedit) ; se déplace automatiquement à côté des flèches de défilement quand les onglets débordent de la largeur disponible
-- Nouveaux onglets nommés par date/heure (`aammjj_hhmmssmm`)
+- Nouveaux onglets nommés par date/heure (`aammjj_hhmmssmm.md` — traités comme du Markdown par défaut tant qu'ils ne sont pas enregistrés sous une autre extension)
 - Menu contextuel sur les onglets (clic droit) : fermer / fermer les autres / fermer à droite / fermer tout, dupliquer, renommer, historique des versions, mettre à la corbeille (l'onglet se ferme et la note quitte le panneau Brouillons), épingler / détacher, copier le nom du fichier, copier le chemin complet du fichier, ouvrir le dossier du fichier
 - Notes épinglées : « Épingler » (menu contextuel d'un onglet ou du panneau Brouillons) bloque la fermeture et la mise à la corbeille de la note, jusqu'à « Détacher » ; les onglets épinglés sont regroupés à gauche de la barre d'onglets ; une petite punaise s'affiche à gauche de son nom (dans l'onglet, où la croix de fermeture disparaît, et dans le panneau), et l'état est restauré avec la session
 - Numéros de ligne avec surlignage de la ligne courante

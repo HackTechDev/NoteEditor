@@ -94,7 +94,9 @@ adapter si le dépôt est cloné ailleurs.
   (comme Gedit). Quand les onglets débordent de la largeur disponible et que les
   flèches de défilement apparaissent, il se place à côté d'elles.
 - Un **nouvel onglet est nommé par la date et l'heure** de sa création, au format
-  `aammjj_hhmmssmm` (année, mois, jour, heure, minute, seconde, centièmes).
+  `aammjj_hhmmssmm.md` (année, mois, jour, heure, minute, seconde, centièmes) :
+  l'extension `.md` reflète que la note est traitée comme du Markdown par défaut
+  (coloration, aperçu) tant qu'elle n'est pas enregistrée sous une autre extension.
 - Le titre de la fenêtre reprend le nom de l'onglet actif.
 - **Infobulle au survol d'un onglet** : la même que dans le panneau Brouillons, c'est-à-dire
   le **chemin complet du fichier** (ou, pour une note sans fichier, l'emplacement de son
@@ -114,8 +116,8 @@ adapter si le dépôt est cloné ailleurs.
     Brouillons.
   - **Copier le nom du fichier** et **Copier le chemin complet du fichier** (dans le
     presse-papiers, prêts à coller) : le nom fonctionne pour toute note (nom du fichier,
-    ou nom de la note si elle n'a pas de fichier), le chemin n'est disponible que pour
-    une note liée à un fichier
+    ou nom par défaut suivi de `.md` si elle n'a pas de fichier), le chemin n'est
+    disponible que pour une note liée à un fichier
   - **Ouvrir le dossier du fichier** : ouvre le dossier qui contient le fichier dans le
     gestionnaire de fichiers du bureau (grisé pour une note sans fichier ; un message
     s'affiche dans la barre de statut si le dossier n'existe plus)

@@ -109,10 +109,12 @@ position, comme la taille et l'emplacement de la fenêtre, sera retenue.
 1. Cliquez dans la zone d'édition et tapez quelques lignes.
 2. Regardez la **barre de statut** : le mode (`-- INSERTION --`), la ligne, la
    colonne, le nombre de mots et de caractères changent en direct.
-3. Regardez le **nom de l'onglet** : il ressemble à `260919_07352346`. C'est la
+3. Regardez le **nom de l'onglet** : il ressemble à `260919_07352346.md`. C'est la
    date et l'heure de création de la note, au format `aammjj_hhmmssmm` (année,
-   mois, jour, heure, minute, seconde, centièmes). Chaque nouvelle note reçoit
-   ainsi un nom unique, sans que vous ayez à en choisir un.
+   mois, jour, heure, minute, seconde, centièmes), suivi de `.md` : chaque
+   nouvelle note est traitée comme du Markdown par défaut (coloration, aperçu)
+   tant qu'elle n'est pas enregistrée sous une autre extension. Chaque nouvelle
+   note reçoit ainsi un nom unique, sans que vous ayez à en choisir un.
 4. Utilisez les raccourcis habituels : `Ctrl+Z` annuler, `Ctrl+Maj+Z` rétablir,
    `Ctrl+X` / `Ctrl+C` / `Ctrl+V` couper, copier, coller, `Ctrl+A` tout
    sélectionner (ils sont aussi dans le menu **Édition**).
@@ -237,7 +239,7 @@ Faites un **clic droit sur un onglet** :
 | **Dupliquer** | Crée une nouvelle note avec le même texte |
 | **Renommer...** | Change le nom (notes sans fichier associé) |
 | **Historique des versions...** | Affiche les anciennes versions (partie 10) |
-| **Copier le nom du fichier** | Copie dans le presse-papiers le nom du fichier (ou le nom de la note s'il n'y a pas de fichier) |
+| **Copier le nom du fichier** | Copie dans le presse-papiers le nom du fichier (ou le nom de la note suivi de `.md` s'il n'y a pas de fichier) |
 | **Copier le chemin complet du fichier** | Copie le chemin complet, nom compris (grisé pour une note sans fichier) |
 | **Ouvrir le dossier du fichier** | Ouvre le dossier qui contient le fichier dans le gestionnaire de fichiers (grisé pour une note sans fichier) |
 | **Mettre à la corbeille** | Met la note à la corbeille (partie 9) |
